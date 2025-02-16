@@ -23,27 +23,54 @@ class LoginScreen extends HookConsumerWidget {
 
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
-      next.mapOrNull(
-        authenticated: (state) {
-          if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message!)),
-            );
-          }
-          context.go('/home');
-        },
-        unauthenticated: (state) {
-          if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message!)),
-            );
-          }
-        },
-        error: (error) {
+      // Clear any existing snackbars first
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      next.when(
+        initial: () => null,
+        loading: () => null,
+        authenticated: (user, message) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error.message)),
+            SnackBar(
+              content: Text(message ?? 'Login successful!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Delay navigation to ensure snackbar is visible
+          Future.delayed(const Duration(seconds: 1), () {
+            if (context.mounted) {
+              context.go('/home');
+            }
+          });
+        },
+        unauthenticated: (message) {
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: Colors.blue,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+        error: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
+            ),
           );
         },
+        guest: () => null,
       );
     });
 
@@ -96,6 +123,7 @@ class LoginScreen extends HookConsumerWidget {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: TextField(
+                          controller: emailController,
                           style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -126,8 +154,9 @@ class LoginScreen extends HookConsumerWidget {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: TextField(
-                          style: const TextStyle(color: Colors.white),
+                          controller: passwordController,
                           obscureText: true,
+                          style: const TextStyle(color: Colors.white),
                           textInputAction: TextInputAction.done,
                           decoration: InputDecoration(
                             hintText: 'Password',
@@ -176,8 +205,32 @@ class LoginScreen extends HookConsumerWidget {
                         onPressed: authState.maybeMap(
                           loading: (_) => null,
                           orElse: () => () async {
+                            // Clear any existing snackbars
+                            ScaffoldMessenger.of(context).clearSnackBars();
+
+                            if (emailController.text.isEmpty ||
+                                passwordController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please fill in all fields'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (!emailController.text.contains('@')) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter a valid email'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                              return;
+                            }
+
                             await authNotifier.login(
-                              emailController.text,
+                              emailController.text.trim(),
                               passwordController.text,
                             );
                           },

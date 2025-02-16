@@ -45,13 +45,7 @@ class AuthNotifier extends _$AuthNotifier {
         message: 'Registration successful! Please login to continue.',
       );
     } catch (e) {
-      if (e.toString().contains('Registration successful')) {
-        state = const AuthState.unauthenticated(
-          message: 'Registration successful! Please login to continue.',
-        );
-      } else {
-        state = AuthState.error(e.toString());
-      }
+      state = AuthState.error(e.toString());
     }
   }
 

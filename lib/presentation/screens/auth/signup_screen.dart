@@ -19,28 +19,48 @@ class SignupScreen extends HookConsumerWidget {
 
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
-      next.mapOrNull(
-        authenticated: (state) {
-          if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message!)),
-            );
-          }
-          context.go('/home');
-        },
-        unauthenticated: (state) {
-          if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message!)),
-            );
-            context.go('/login');
-          }
-        },
-        error: (error) {
+      next.when(
+        initial: () => null,
+        loading: () => null,
+        authenticated: (user, message) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error.message)),
+            SnackBar(
+              content: Text(message ?? 'Success!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+            ),
           );
         },
+        unauthenticated: (message) {
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+              ),
+            );
+            if (message.contains('successful')) {
+              Future.delayed(const Duration(seconds: 2), () {
+                context.go('/login');
+              });
+            }
+          }
+        },
+        error: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        },
+        guest: () => null,
       );
     });
 
@@ -93,6 +113,7 @@ class SignupScreen extends HookConsumerWidget {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: TextField(
+                          controller: emailController,
                           style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -123,6 +144,7 @@ class SignupScreen extends HookConsumerWidget {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: TextField(
+                          controller: passwordController,
                           style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           textInputAction: TextInputAction.next,
@@ -153,6 +175,7 @@ class SignupScreen extends HookConsumerWidget {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: TextField(
+                          controller: confirmPasswordController,
                           style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           textInputAction: TextInputAction.done,
@@ -188,7 +211,37 @@ class SignupScreen extends HookConsumerWidget {
                       child: ElevatedButton(
                         onPressed: authState.maybeMap(
                           loading: (_) => null,
-                          orElse: () => () {
+                          orElse: () => () async {
+                            // Validate inputs
+                            if (emailController.text.isEmpty ||
+                                passwordController.text.isEmpty ||
+                                confirmPasswordController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Please fill in all fields')),
+                              );
+                              return;
+                            }
+
+                            if (!emailController.text.contains('@')) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Please enter a valid email')),
+                              );
+                              return;
+                            }
+
+                            if (passwordController.text.length < 8) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Password must be at least 8 characters long'),
+                                ),
+                              );
+                              return;
+                            }
+
                             if (passwordController.text !=
                                 confirmPasswordController.text) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -198,15 +251,23 @@ class SignupScreen extends HookConsumerWidget {
                               return;
                             }
 
-                            authNotifier.signup(
-                              emailController.text,
+                            await authNotifier.signup(
+                              emailController.text.trim(),
                               passwordController.text,
                               confirmPasswordController.text,
                             );
                           },
                         ),
                         child: authState.maybeMap(
-                          loading: (_) => const CircularProgressIndicator(),
+                          loading: (_) => const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.black),
+                              strokeWidth: 2.0,
+                            ),
+                          ),
                           orElse: () => const Text(
                             'Sign Up',
                             style: TextStyle(

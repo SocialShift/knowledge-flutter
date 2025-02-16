@@ -1,23 +1,19 @@
-import 'package:dio/dio.dart';
-import 'package:knowledge/core/config/app_config.dart';
+import 'package:knowledge/core/network/api_service.dart';
 import 'package:knowledge/data/models/user.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:dio/dio.dart';
 
 part 'auth_repository.g.dart';
 
 class AuthRepository {
-  final Dio _dio;
+  final ApiService _apiService;
 
-  AuthRepository() : _dio = Dio() {
-    _dio.options.baseUrl = dotenv.env['API_BASE_URL']!;
-    _dio.options.headers = AppConfig.headers;
-    _dio.options.validateStatus = (status) => status! < 500;
-  }
+  AuthRepository() : _apiService = ApiService();
 
   Future<User> login(String email, String password) async {
     try {
-      final response = await _dio.post(
+      final response = await _apiService.post(
         '/auth/login',
         data: {
           'email': email,
@@ -29,40 +25,29 @@ class AuthRepository {
         final userData = response.data['user'] ?? response.data;
         return User.fromJson(userData);
       } else {
-        final message = response.data['detail'] ?? 'Authentication failed';
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Authentication failed';
         throw message.toString();
       }
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      if (e.response?.data != null) {
+        final message = e.response?.data['detail'] ??
+            e.response?.data['message'] ??
+            'Authentication failed';
+        throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    } catch (e) {
+      throw 'An unexpected error occurred. Please try again.';
     }
   }
 
-  String _handleDioError(DioException e) {
-    if (e.response != null) {
-      // Handle specific API error messages
-      final message = e.response?.data['detail'] ?? e.response?.data['message'];
-      if (message != null) return message.toString();
-    }
-
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return 'Connection timeout. Please check your internet connection.';
-      case DioExceptionType.badResponse:
-        return 'Server error. Please try again later.';
-      case DioExceptionType.connectionError:
-        return 'No internet connection. Please check your network.';
-      default:
-        return 'Something went wrong. Please try again.';
-    }
-  }
-
-  Future<User> signup(
+  Future<void> signup(
       String email, String password, String confirmPassword) async {
     try {
-      final response = await _dio.post(
-        '/auth/register',
+      final response = await _apiService.post(
+        '/auth/create-user',
         data: {
           'email': email,
           'password': password,
@@ -70,38 +55,41 @@ class AuthRepository {
         },
       );
 
+      print('Signup Response: ${response.data}');
+
       if (response.statusCode == 201 || response.statusCode == 200) {
-        // Return a success message instead of user data
-        throw 'Registration successful! Please login to continue.';
+        return; // Successful registration
       } else {
-        final message = response.data['detail'] ?? 'Registration failed';
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Registration failed';
         throw message.toString();
       }
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      print('DioException in signup: ${e.response?.data}');
+
+      if (e.response?.data != null) {
+        final message =
+            e.response?.data['detail'] ?? e.response?.data['message'];
+        if (message != null) throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
     }
   }
 
   Future<void> logout() async {
-    // If your API has a logout endpoint, implement it here
-    await Future.delayed(const Duration(milliseconds: 100));
+    await _apiService.post(dotenv.env['AUTH_LOGOUT_ENDPOINT']!);
   }
 
   Future<void> forgotPassword(String email) async {
-    try {
-      final response = await _dio.post(
-        AppConfig.forgotPasswordEndpoint,
-        data: {
-          'email': email,
-        },
-      );
+    final response = await _apiService.post(
+      '/auth/forgot-password',
+      data: {'email': email},
+    );
 
-      if (response.statusCode != 200) {
-        final message = response.data['detail'] ?? 'Password reset failed';
-        throw message.toString();
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
+    if (response.statusCode != 200) {
+      final message = response.data['detail'] ?? 'Password reset failed';
+      throw message.toString();
     }
   }
 }
