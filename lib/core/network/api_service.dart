@@ -13,9 +13,9 @@ class ApiService {
       baseUrl: dotenv.env['API_BASE_URL']!,
       headers: AppConfig.headers,
       validateStatus: (status) => status! < 500,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
-      sendTimeout: const Duration(seconds: 60),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+      sendTimeout: const Duration(seconds: 15),
     ));
 
     // Add interceptors for logging, token handling, etc.

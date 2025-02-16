@@ -19,18 +19,53 @@ class SignupScreen extends HookConsumerWidget {
 
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
+      // Always clear existing snackbars first
+      ScaffoldMessenger.of(context).clearSnackBars();
+
       next.when(
         initial: () => null,
-        loading: () => null,
+        loading: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Text('Creating your account...'),
+                ],
+              ),
+              backgroundColor: Colors.blue,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 15),
+              dismissDirection:
+                  DismissDirection.none, // Prevent dismissal while loading
+            ),
+          );
+        },
         authenticated: (user, message) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(message ?? 'Success!'),
+              content: Text(message ?? 'Account created successfully!'),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
             ),
           );
+          // Navigate after message is shown
+          Future.delayed(const Duration(seconds: 3), () {
+            if (context.mounted) {
+              context.go('/login');
+            }
+          });
         },
         unauthenticated: (message) {
           if (message != null) {
@@ -40,13 +75,15 @@ class SignupScreen extends HookConsumerWidget {
                 backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
                 margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 3),
               ),
             );
-            if (message.contains('successful')) {
-              Future.delayed(const Duration(seconds: 2), () {
+            // Navigate after message is shown
+            Future.delayed(const Duration(seconds: 3), () {
+              if (context.mounted) {
                 context.go('/login');
-              });
-            }
+              }
+            });
           }
         },
         error: (message) {
@@ -56,7 +93,16 @@ class SignupScreen extends HookConsumerWidget {
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
-              duration: const Duration(seconds: 3),
+              duration:
+                  const Duration(seconds: 4), // Longer duration for errors
+              action: SnackBarAction(
+                // Add a dismiss button
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
             ),
           );
         },
@@ -212,13 +258,20 @@ class SignupScreen extends HookConsumerWidget {
                         onPressed: authState.maybeMap(
                           loading: (_) => null,
                           orElse: () => () async {
+                            // Clear any existing snackbars
+                            ScaffoldMessenger.of(context).clearSnackBars();
+
                             // Validate inputs
                             if (emailController.text.isEmpty ||
                                 passwordController.text.isEmpty ||
                                 confirmPasswordController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Please fill in all fields')),
+                                  content: Text('Please fill in all fields'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
+                                ),
                               );
                               return;
                             }
@@ -226,8 +279,11 @@ class SignupScreen extends HookConsumerWidget {
                             if (!emailController.text.contains('@')) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content:
-                                        Text('Please enter a valid email')),
+                                  content: Text('Please enter a valid email'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
+                                ),
                               );
                               return;
                             }
@@ -237,6 +293,9 @@ class SignupScreen extends HookConsumerWidget {
                                 const SnackBar(
                                   content: Text(
                                       'Password must be at least 8 characters long'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
                                 ),
                               );
                               return;
@@ -246,7 +305,11 @@ class SignupScreen extends HookConsumerWidget {
                                 confirmPasswordController.text) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Passwords do not match')),
+                                  content: Text('Passwords do not match'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
+                                ),
                               );
                               return;
                             }
@@ -257,6 +320,15 @@ class SignupScreen extends HookConsumerWidget {
                               confirmPasswordController.text,
                             );
                           },
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: authState.maybeMap(
                           loading: (_) => const SizedBox(

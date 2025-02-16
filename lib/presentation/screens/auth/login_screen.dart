@@ -28,7 +28,30 @@ class LoginScreen extends HookConsumerWidget {
 
       next.when(
         initial: () => null,
-        loading: () => null,
+        loading: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Text('Logging in...'),
+                ],
+              ),
+              backgroundColor: Colors.blue,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 15),
+            ),
+          );
+        },
         authenticated: (user, message) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -39,7 +62,7 @@ class LoginScreen extends HookConsumerWidget {
               duration: const Duration(seconds: 2),
             ),
           );
-          // Delay navigation to ensure snackbar is visible
+          // Navigate after showing success message
           Future.delayed(const Duration(seconds: 1), () {
             if (context.mounted) {
               context.go('/home');
@@ -51,7 +74,7 @@ class LoginScreen extends HookConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(message),
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.orange,
                 behavior: SnackBarBehavior.floating,
                 margin: const EdgeInsets.all(16),
                 duration: const Duration(seconds: 3),
@@ -208,12 +231,16 @@ class LoginScreen extends HookConsumerWidget {
                             // Clear any existing snackbars
                             ScaffoldMessenger.of(context).clearSnackBars();
 
+                            // Validate inputs
                             if (emailController.text.isEmpty ||
                                 passwordController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Please fill in all fields'),
                                   backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
+                                  duration: Duration(seconds: 3),
                                 ),
                               );
                               return;
@@ -224,6 +251,9 @@ class LoginScreen extends HookConsumerWidget {
                                 const SnackBar(
                                   content: Text('Please enter a valid email'),
                                   backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.all(16),
+                                  duration: Duration(seconds: 3),
                                 ),
                               );
                               return;
