@@ -1,9 +1,15 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
-  static String get baseUrl =>
-      dotenv.env['API_BASE_URL'] ??
-      'https://knowledge-backend-rqya.onrender.com';
+  static String get baseUrl {
+    final url = dotenv.env['API_BASE_URL'];
+    if (url == null) {
+      throw AssertionError(
+        'API_BASE_URL not found in .env file. Please check .env configuration.',
+      );
+    }
+    return url;
+  }
 
   // Auth endpoints
   static String get loginEndpoint => '$baseUrl/auth/login';

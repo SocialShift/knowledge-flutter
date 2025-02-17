@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/presentation/navigation/router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:knowledge/core/services/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +19,7 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeNotifierProvider);
 
     return MaterialApp.router(
-      title: 'Western Civilization',
+      title: 'Know[Ledge]',
       themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

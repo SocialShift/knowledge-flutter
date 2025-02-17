@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'dart:ui';
-import 'package:knowledge/core/services/navigation_service.dart';
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
@@ -17,83 +16,46 @@ class LoginScreen extends HookConsumerWidget {
     final authNotifier = ref.watch(authNotifierProvider.notifier);
     final authState = ref.watch(authNotifierProvider);
 
-    // Create a key for the scaffold to show snackbars
-    final scaffoldMessengerKey =
-        useMemoized(() => GlobalKey<ScaffoldMessengerState>());
-
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
       // Clear any existing snackbars first
       ScaffoldMessenger.of(context).clearSnackBars();
 
-      next.when(
-        initial: () => null,
-        loading: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Text('Logging in...'),
-                ],
-              ),
-              backgroundColor: Colors.blue,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.all(16),
-              duration: Duration(seconds: 15),
-            ),
+      next.maybeWhen(
+        error: (message) {
+          // Show error message in red
+          _showSnackBar(
+            context,
+            message,
+            backgroundColor: Colors.red,
           );
         },
         authenticated: (user, message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message ?? 'Login successful!'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-          // Navigate after showing success message
-          Future.delayed(const Duration(seconds: 1), () {
+          // Show success message in green and navigate
+          _showSnackBar(
+            context,
+            message ?? 'Login successful!',
+            backgroundColor: Colors.green,
+          ).then((_) {
+            // Navigate after snackbar is shown
             if (context.mounted) {
-              context.go('/home');
+              Future.delayed(const Duration(seconds: 2), () {
+                if (context.mounted) {
+                  context.go('/home');
+                }
+              });
             }
           });
         },
-        unauthenticated: (message) {
-          if (message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.orange,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-        },
-        error: (message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              duration: const Duration(seconds: 3),
-            ),
+        loading: () {
+          _showSnackBar(
+            context,
+            'Logging in...',
+            backgroundColor: Colors.blue,
+            showProgress: true,
           );
         },
-        guest: () => null,
+        orElse: () => null,
       );
     });
 
@@ -332,5 +294,42 @@ class LoginScreen extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showSnackBar(
+    BuildContext context,
+    String message, {
+    Color backgroundColor = Colors.black,
+    bool showProgress = false,
+  }) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          if (showProgress) ...[
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 3),
+    );
+
+    return ScaffoldMessenger.of(context).showSnackBar(snackBar).closed;
   }
 }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
-import 'package:knowledge/presentation/widgets/history_timeline_card.dart';
-import 'package:knowledge/presentation/widgets/history_card.dart';
+import 'package:knowledge/presentation/widgets/timeline_grid.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -67,80 +66,23 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
-
-            // Timeline Circles
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                            image: const DecorationImage(
-                              image:
-                                  AssetImage('assets/images/placeholder.jpg'),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${1700 + (index * 100)}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // History Cards List
+            // Timeline Grid
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
+              child: TimelineGrid(
+                itemCount: 10,
+                nodes: List.generate(
+                  10,
+                  (index) => TimelineNodeData(
+                    year: 1700 + (index * 50),
+                    isCompleted: index < 3,
+                    isActive: index == 3,
+                    title: 'Period ${index + 1}',
+                  ),
                 ),
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: 3,
-                  itemBuilder: (context, index) {
-                    return HistoryCard(
-                      imageUrl: 'assets/images/placeholder.jpg',
-                      title: 'Lorem ipsum dolor',
-                      description:
-                          '${1700 + (index * 50)}-${1750 + (index * 50)}\nLorem ipsum dolor sit amet consectetur. Nibh sagittis dolor sit amet...',
-                    );
-                  },
-                ),
+                onNodeTap: (index) {
+                  // Handle node tap
+                  debugPrint('Tapped node at index: $index');
+                },
               ),
             ),
           ],

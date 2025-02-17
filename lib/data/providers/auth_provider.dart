@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/auth_state.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
@@ -60,8 +59,9 @@ class AuthNotifier extends _$AuthNotifier {
       await ref
           .read(authRepositoryProvider)
           .signup(email, password, confirmPassword);
+
       state = const AuthState.unauthenticated(
-        message: 'Registration successful! Please login to continue.',
+        message: 'Account created successfully! Please login to continue.',
       );
     } on DioException catch (e) {
       String errorMessage;

@@ -19,12 +19,21 @@ class SignupScreen extends HookConsumerWidget {
 
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
-      // Always clear existing snackbars first
-      ScaffoldMessenger.of(context).clearSnackBars();
-
-      next.when(
-        initial: () => null,
+      next.maybeWhen(
+        error: (message) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        },
         loading: () {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(
@@ -38,77 +47,115 @@ class SignupScreen extends HookConsumerWidget {
                     ),
                   ),
                   SizedBox(width: 16),
-                  Text('Creating your account...'),
+                  Text('Creating account...'),
                 ],
               ),
               backgroundColor: Colors.blue,
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.all(16),
               duration: Duration(seconds: 15),
-              dismissDirection:
-                  DismissDirection.none, // Prevent dismissal while loading
             ),
           );
-        },
-        authenticated: (user, message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message ?? 'Account created successfully!'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-          // Navigate after message is shown
-          Future.delayed(const Duration(seconds: 3), () {
-            if (context.mounted) {
-              context.go('/login');
-            }
-          });
         },
         unauthenticated: (message) {
           if (message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 3),
-              ),
-            );
-            // Navigate after message is shown
-            Future.delayed(const Duration(seconds: 3), () {
-              if (context.mounted) {
-                context.go('/login');
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
+                    duration: const Duration(seconds: 3),
+                  ),
+                )
+                .closed
+                .then((_) {
+              if (context.mounted && message.contains('successfully')) {
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                });
               }
             });
           }
         },
-        error: (message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              duration:
-                  const Duration(seconds: 4), // Longer duration for errors
-              action: SnackBarAction(
-                // Add a dismiss button
-                label: 'Dismiss',
-                textColor: Colors.white,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                },
-              ),
-            ),
-          );
-        },
-        guest: () => null,
+        orElse: () => null,
       );
     });
+
+    // Update handleSignup function
+    Future<void> handleSignup() async {
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      // Validate inputs
+      if (emailController.text.isEmpty ||
+          passwordController.text.isEmpty ||
+          confirmPasswordController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please fill in all fields'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      if (!emailController.text.contains('@')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter a valid email'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      if (passwordController.text != confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      if (passwordController.text.length < 6) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password must be at least 6 characters'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      try {
+        await authNotifier.signup(
+          emailController.text.trim(),
+          passwordController.text,
+          confirmPasswordController.text,
+        );
+      } catch (e) {
+        // Let the ref.listen handle the error state
+        print('Signup error: $e');
+      }
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -257,69 +304,7 @@ class SignupScreen extends HookConsumerWidget {
                       child: ElevatedButton(
                         onPressed: authState.maybeMap(
                           loading: (_) => null,
-                          orElse: () => () async {
-                            // Clear any existing snackbars
-                            ScaffoldMessenger.of(context).clearSnackBars();
-
-                            // Validate inputs
-                            if (emailController.text.isEmpty ||
-                                passwordController.text.isEmpty ||
-                                confirmPasswordController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please fill in all fields'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (!emailController.text.contains('@')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter a valid email'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (passwordController.text.length < 8) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Password must be at least 8 characters long'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (passwordController.text !=
-                                confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Passwords do not match'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                ),
-                              );
-                              return;
-                            }
-
-                            await authNotifier.signup(
-                              emailController.text.trim(),
-                              passwordController.text,
-                              confirmPasswordController.text,
-                            );
-                          },
+                          orElse: () => handleSignup,
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
@@ -332,16 +317,16 @@ class SignupScreen extends HookConsumerWidget {
                         ),
                         child: authState.maybeMap(
                           loading: (_) => const SizedBox(
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             child: CircularProgressIndicator(
+                              strokeWidth: 2,
                               valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.black),
-                              strokeWidth: 2.0,
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           ),
                           orElse: () => const Text(
-                            'Sign Up',
+                            'Create Account',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
