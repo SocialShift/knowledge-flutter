@@ -10,9 +10,12 @@ import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 import 'package:knowledge/presentation/screens/settings/settings_screen.dart';
 import 'package:knowledge/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
+import 'package:knowledge/data/providers/onboarding_provider.dart';
+import 'package:knowledge/presentation/screens/onboarding/onboarding_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
+  final onboardingState = ref.watch(onboardingNotifierProvider);
 
   return GoRouter(
     initialLocation: '/login',
@@ -23,16 +26,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/signup' ||
-          state.matchedLocation == '/forgot-password';
+      final isAuthRoute = state.uri.path == '/login' ||
+          state.uri.path == '/signup' ||
+          state.uri.path == '/forgot-password';
 
+      final isOnboardingComplete = onboardingState.isCompleted;
+      final isOnboardingRoute = state.uri.path == '/onboarding';
+
+      // If not authenticated and trying to access protected route, go to login
       if (!isAuthenticated && !isAuthRoute) {
         return '/login';
       }
 
-      if (isAuthenticated && isAuthRoute) {
-        return '/home';
+      // If authenticated but onboarding not complete and not on onboarding route
+      if (isAuthenticated && !isOnboardingComplete && !isOnboardingRoute) {
+        return '/onboarding';
+      }
+
+      // If authenticated and onboarding complete, allow access to all routes
+      if (isAuthenticated && isOnboardingComplete) {
+        // If on onboarding or login route, redirect to home
+        if (isOnboardingRoute || state.uri.path == '/login') {
+          return '/home';
+        }
+        return null;
       }
 
       return null;
@@ -47,33 +64,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
-
-      // Main content routes with bottom navigation
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const AppLayout(child: HomeScreen()),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const AppLayout(child: ProfileScreen()),
-      ),
-      GoRoute(
-        path: '/elearning',
-        builder: (context, state) => const AppLayout(child: ElearningScreen()),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const AppLayout(child: SettingsScreen()),
-      ),
-      GoRoute(
-        path: '/bookmarks',
-        builder: (context, state) => const AppLayout(
-          child: Center(child: Text('Bookmarks Screen')),
-        ),
-      ),
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+
+      // Shell route for bottom navigation
+      ShellRoute(
+        builder: (context, state, child) => AppLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: '/elearning',
+            builder: (context, state) => const ElearningScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/bookmarks',
+            builder: (context, state) => const Center(
+              child: Text('Bookmarks Screen'),
+            ),
+          ),
+        ],
       ),
     ],
   );
