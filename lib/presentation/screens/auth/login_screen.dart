@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'dart:ui';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
@@ -16,37 +17,24 @@ class LoginScreen extends HookConsumerWidget {
     final authNotifier = ref.watch(authNotifierProvider.notifier);
     final authState = ref.watch(authNotifierProvider);
 
+    // Add animation controller using hooks
+    final isAnimating = useState(true);
+
+    // Use effect to control initial animation
+    useEffect(() {
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        isAnimating.value = false;
+      });
+      return null;
+    }, []);
+
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
       // Clear any existing snackbars first
       ScaffoldMessenger.of(context).clearSnackBars();
 
-      next.maybeWhen(
-        error: (message) {
-          // Show error message in red
-          _showSnackBar(
-            context,
-            message,
-            backgroundColor: Colors.red,
-          );
-        },
-        authenticated: (user, message) {
-          // Show success message in green and navigate
-          _showSnackBar(
-            context,
-            message ?? 'Login successful!',
-            backgroundColor: Colors.green,
-          ).then((_) {
-            // Navigate after snackbar is shown
-            if (context.mounted) {
-              Future.delayed(const Duration(seconds: 2), () {
-                if (context.mounted) {
-                  context.go('/home');
-                }
-              });
-            }
-          });
-        },
+      next.when(
+        initial: () => null,
         loading: () {
           _showSnackBar(
             context,
@@ -55,12 +43,41 @@ class LoginScreen extends HookConsumerWidget {
             showProgress: true,
           );
         },
-        orElse: () => null,
+        authenticated: (user, message) {
+          _showSnackBar(
+            context,
+            message ?? 'Login successful!',
+            backgroundColor: Colors.green,
+          ).then((_) {
+            if (context.mounted) {
+              context.go('/onboarding'); // Changed from /home to /onboarding
+            }
+          });
+        },
+        unauthenticated: (message) {
+          if (message != null) {
+            _showSnackBar(
+              context,
+              message,
+              backgroundColor: Colors.orange,
+            );
+          }
+        },
+        error: (message) {
+          _showSnackBar(
+            context,
+            message,
+            backgroundColor: Colors.red,
+          );
+        },
+        guest: () {
+          context.go('/home');
+        },
       );
     });
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: const Color(0xFF3498DB),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -71,97 +88,157 @@ class LoginScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 60),
-                    // App Logo
+                    // Initial spacer with smooth animation
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 1000),
+                      height: isAnimating.value
+                          ? MediaQuery.of(context).size.height * 0.3
+                          : 60,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    // Logo with professional animation
                     Center(
-                      child: SizedBox(
-                        width: 120,
-                        height: 120,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 1000),
+                        width: isAnimating.value ? 200 : 120,
+                        height: isAnimating.value ? 200 : 120,
+                        curve: Curves.easeOutCubic,
                         child: Image.asset(
                           'assets/images/logo/logo.png',
                           fit: BoxFit.contain,
                         ),
                       ),
+                    ).animate(
+                      effects: [
+                        FadeEffect(
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                        ScaleEffect(
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1, 1),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 32),
+                    // Welcome text with fade animation
                     Text(
-                      'Welcome to Knowledge',
+                      'Know [ Ledge ]',
                       style:
                           Theme.of(context).textTheme.headlineMedium?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                       textAlign: TextAlign.center,
+                    ).animate(
+                      delay: const Duration(milliseconds: 400),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your journey through Western Civilization begins here',
+                      'Your journey through History begins here',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.white70,
                           ),
                       textAlign: TextAlign.center,
+                    ).animate(
+                      delay: const Duration(milliseconds: 600),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 48),
-                    // Email TextField
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: TextField(
-                          controller: emailController,
-                          style: const TextStyle(color: Colors.white),
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          decoration: InputDecoration(
-                            hintText: 'Email',
-                            hintStyle:
-                                TextStyle(color: Colors.white.withOpacity(0.7)),
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.1),
-                            prefixIcon: Icon(CupertinoIcons.mail,
-                                color: Colors.white.withOpacity(0.7)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Password TextField
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: TextField(
-                          controller: passwordController,
-                          obscureText: true,
-                          style: const TextStyle(color: Colors.white),
-                          textInputAction: TextInputAction.done,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            hintStyle:
-                                TextStyle(color: Colors.white.withOpacity(0.7)),
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.1),
-                            prefixIcon: Icon(CupertinoIcons.lock,
-                                color: Colors.white.withOpacity(0.7)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
+                    // Form fields with fade animation
+                    Column(
+                      children: [
+                        // Email field
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: TextField(
+                              controller: emailController,
+                              style: const TextStyle(color: Colors.white),
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                hintText: 'Email',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.7)),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                prefixIcon: Icon(CupertinoIcons.mail,
+                                    color: Colors.white.withOpacity(0.7)),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
                             ),
                           ),
+                        ).animate(
+                          delay: const Duration(milliseconds: 800),
+                          effects: const [
+                            FadeEffect(
+                              duration: Duration(milliseconds: 800),
+                              curve: Curves.easeOut,
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        // Password field
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: TextField(
+                              controller: passwordController,
+                              obscureText: true,
+                              style: const TextStyle(color: Colors.white),
+                              textInputAction: TextInputAction.done,
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.7)),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                prefixIcon: Icon(CupertinoIcons.lock,
+                                    color: Colors.white.withOpacity(0.7)),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ).animate(
+                          delay: const Duration(milliseconds: 800),
+                          effects: const [
+                            FadeEffect(
+                              duration: Duration(milliseconds: 800),
+                              curve: Curves.easeOut,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     // Forgot Password
@@ -176,6 +253,14 @@ class LoginScreen extends HookConsumerWidget {
                           ),
                         ),
                       ),
+                    ).animate(
+                      delay: const Duration(milliseconds: 800),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     // Login Button
@@ -247,11 +332,19 @@ class LoginScreen extends HookConsumerWidget {
                           ),
                         ),
                       ),
+                    ).animate(
+                      delay: const Duration(milliseconds: 800),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     // Sign Up Link
                     TextButton(
-                      onPressed: () => context.push('/signup'),
+                      onPressed: () => context.go('/signup'),
                       child: RichText(
                         textAlign: TextAlign.center,
                         text: TextSpan(
@@ -270,6 +363,14 @@ class LoginScreen extends HookConsumerWidget {
                           ],
                         ),
                       ),
+                    ).animate(
+                      delay: const Duration(milliseconds: 800),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     // Skip Button
@@ -281,9 +382,16 @@ class LoginScreen extends HookConsumerWidget {
                         'Skip for now',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.5),
-                          decoration: TextDecoration.underline,
                         ),
                       ),
+                    ).animate(
+                      delay: const Duration(milliseconds: 800),
+                      effects: const [
+                        FadeEffect(
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                        ),
+                      ],
                     ),
                     const Spacer(),
                   ],

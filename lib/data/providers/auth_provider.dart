@@ -17,9 +17,14 @@ class AuthNotifier extends _$AuthNotifier {
     )) return;
 
     state = const AuthState.loading();
+
     try {
       final user =
           await ref.read(authRepositoryProvider).login(email, password);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
       state = AuthState.authenticated(
         user: user,
         message: 'Login successful! Welcome back.',
@@ -40,8 +45,12 @@ class AuthNotifier extends _$AuthNotifier {
       } else {
         errorMessage = 'An error occurred. Please try again.';
       }
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(errorMessage);
     } catch (e) {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
       state =
           AuthState.error('An unexpected error occurred. Please try again.');
     }
@@ -55,10 +64,14 @@ class AuthNotifier extends _$AuthNotifier {
     )) return;
 
     state = const AuthState.loading();
+
     try {
       await ref
           .read(authRepositoryProvider)
           .signup(email, password, confirmPassword);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
 
       state = const AuthState.unauthenticated(
         message: 'Account created successfully! Please login to continue.',
@@ -79,8 +92,12 @@ class AuthNotifier extends _$AuthNotifier {
       } else {
         errorMessage = 'An error occurred. Please try again.';
       }
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(errorMessage);
     } catch (e) {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(e.toString());
     }
   }

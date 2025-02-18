@@ -158,7 +158,7 @@ class SignupScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: const Color(0xFF3498DB), // Lighter blue color
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -361,7 +361,12 @@ class SignupScreen extends HookConsumerWidget {
                     const Spacer(),
                     TextButton(
                       onPressed: () => authNotifier.loginAsGuest(),
-                      child: const Text('Skip for now'),
+                      child: Text(
+                        'Skip for now',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                      ),
                     ),
                   ],
                 ),

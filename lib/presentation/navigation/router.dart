@@ -43,13 +43,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/onboarding';
       }
 
-      // If authenticated and onboarding complete, allow access to all routes
+      // If authenticated and onboarding complete
       if (isAuthenticated && isOnboardingComplete) {
-        // If on onboarding or login route, redirect to home
-        if (isOnboardingRoute || state.uri.path == '/login') {
+        // If on auth routes or onboarding, redirect to home
+        if (isAuthRoute || isOnboardingRoute) {
           return '/home';
         }
-        return null;
       }
 
       return null;

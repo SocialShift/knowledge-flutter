@@ -28,7 +28,7 @@ class ForgotPasswordScreen extends HookConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: const Color(0xFF3498DB), // Lighter blue color
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
