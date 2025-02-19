@@ -20,9 +20,11 @@ HistoryItem _$HistoryItemFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$HistoryItem {
+  String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get subtitle => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
+  int get year => throw _privateConstructorUsedError;
 
   /// Serializes this HistoryItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +42,8 @@ abstract class $HistoryItemCopyWith<$Res> {
           HistoryItem value, $Res Function(HistoryItem) then) =
       _$HistoryItemCopyWithImpl<$Res, HistoryItem>;
   @useResult
-  $Res call({String title, String subtitle, String imageUrl});
+  $Res call(
+      {String id, String title, String subtitle, String imageUrl, int year});
 }
 
 /// @nodoc
@@ -58,11 +61,17 @@ class _$HistoryItemCopyWithImpl<$Res, $Val extends HistoryItem>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? title = null,
     Object? subtitle = null,
     Object? imageUrl = null,
+    Object? year = null,
   }) {
     return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -75,6 +84,10 @@ class _$HistoryItemCopyWithImpl<$Res, $Val extends HistoryItem>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String,
+      year: null == year
+          ? _value.year
+          : year // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -87,7 +100,8 @@ abstract class _$$HistoryItemImplCopyWith<$Res>
       __$$HistoryItemImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String title, String subtitle, String imageUrl});
+  $Res call(
+      {String id, String title, String subtitle, String imageUrl, int year});
 }
 
 /// @nodoc
@@ -103,11 +117,17 @@ class __$$HistoryItemImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? title = null,
     Object? subtitle = null,
     Object? imageUrl = null,
+    Object? year = null,
   }) {
     return _then(_$HistoryItemImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -120,6 +140,10 @@ class __$$HistoryItemImplCopyWithImpl<$Res>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String,
+      year: null == year
+          ? _value.year
+          : year // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -128,21 +152,29 @@ class __$$HistoryItemImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$HistoryItemImpl implements _HistoryItem {
   const _$HistoryItemImpl(
-      {required this.title, required this.subtitle, required this.imageUrl});
+      {required this.id,
+      required this.title,
+      required this.subtitle,
+      required this.imageUrl,
+      required this.year});
 
   factory _$HistoryItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$HistoryItemImplFromJson(json);
 
+  @override
+  final String id;
   @override
   final String title;
   @override
   final String subtitle;
   @override
   final String imageUrl;
+  @override
+  final int year;
 
   @override
   String toString() {
-    return 'HistoryItem(title: $title, subtitle: $subtitle, imageUrl: $imageUrl)';
+    return 'HistoryItem(id: $id, title: $title, subtitle: $subtitle, imageUrl: $imageUrl, year: $year)';
   }
 
   @override
@@ -150,16 +182,19 @@ class _$HistoryItemImpl implements _HistoryItem {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$HistoryItemImpl &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.subtitle, subtitle) ||
                 other.subtitle == subtitle) &&
             (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl));
+                other.imageUrl == imageUrl) &&
+            (identical(other.year, year) || other.year == year));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, title, subtitle, imageUrl);
+  int get hashCode =>
+      Object.hash(runtimeType, id, title, subtitle, imageUrl, year);
 
   /// Create a copy of HistoryItem
   /// with the given fields replaced by the non-null parameter values.
@@ -179,19 +214,25 @@ class _$HistoryItemImpl implements _HistoryItem {
 
 abstract class _HistoryItem implements HistoryItem {
   const factory _HistoryItem(
-      {required final String title,
+      {required final String id,
+      required final String title,
       required final String subtitle,
-      required final String imageUrl}) = _$HistoryItemImpl;
+      required final String imageUrl,
+      required final int year}) = _$HistoryItemImpl;
 
   factory _HistoryItem.fromJson(Map<String, dynamic> json) =
       _$HistoryItemImpl.fromJson;
 
+  @override
+  String get id;
   @override
   String get title;
   @override
   String get subtitle;
   @override
   String get imageUrl;
+  @override
+  int get year;
 
   /// Create a copy of HistoryItem
   /// with the given fields replaced by the non-null parameter values.

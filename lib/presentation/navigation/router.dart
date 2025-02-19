@@ -12,6 +12,8 @@ import 'package:knowledge/presentation/screens/auth/forgot_password_screen.dart'
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
 import 'package:knowledge/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:knowledge/presentation/screens/timeline/timeline_detail_screen.dart';
+import 'package:knowledge/presentation/screens/story/story_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -99,6 +101,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/timeline/:id',
+        builder: (context, state) => TimelineDetailScreen(
+          timelineId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/story/:id',
+        builder: (context, state) => StoryDetailScreen(
+          storyId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );

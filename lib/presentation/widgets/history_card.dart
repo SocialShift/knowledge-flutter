@@ -17,6 +17,7 @@ class HistoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: 160,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -37,7 +38,10 @@ class HistoryCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              _BackgroundImage(imageUrl: item.imageUrl),
+              Hero(
+                tag: 'timeline_${item.id}',
+                child: _BackgroundImage(imageUrl: item.imageUrl),
+              ),
               _GradientOverlay(),
               _CardContent(item: item),
             ],
@@ -96,25 +100,57 @@ class _CardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text(
             item.title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  color: Colors.black54,
+                  blurRadius: 2,
+                  offset: Offset(1, 1),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.pink.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              item.year.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             item.subtitle,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 13,
+              height: 1.2,
+              shadows: const [
+                Shadow(
+                  color: Colors.black54,
+                  blurRadius: 2,
+                  offset: Offset(1, 1),
                 ),
+              ],
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
