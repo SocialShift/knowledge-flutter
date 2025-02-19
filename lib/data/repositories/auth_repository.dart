@@ -22,8 +22,13 @@ class AuthRepository {
       );
 
       if (response.statusCode == 200) {
-        final userData = response.data['user'] ?? response.data;
-        return User.fromJson(userData);
+        final userData = response.data['user'];
+        return User(
+          id: userData['id'].toString(),
+          email: userData['email'],
+          username: userData['email'].split('@')[0],
+          isEmailVerified: false,
+        );
       } else {
         final message = response.data['detail'] ??
             response.data['message'] ??

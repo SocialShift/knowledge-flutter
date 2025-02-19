@@ -22,38 +22,37 @@ class AuthNotifier extends _$AuthNotifier {
       final user =
           await ref.read(authRepositoryProvider).login(email, password);
 
-      // Add a small delay to ensure the loading state is visible
+      // Show loading state for a moment
       await Future.delayed(const Duration(milliseconds: 500));
 
+      // Set authenticated state with user and success message
       state = AuthState.authenticated(
         user: user,
-        message: 'Login successful! Welcome back.',
+        message: 'Welcome back, ${user.email}!',
       );
     } on DioException catch (e) {
-      String errorMessage;
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        errorMessage =
-            'Connection timeout. Please check your internet and try again.';
-      } else if (e.response?.statusCode == 401) {
-        errorMessage = 'Invalid email or password.';
-      } else if (e.response?.data != null) {
-        errorMessage = e.response?.data['detail'] ??
-            e.response?.data['message'] ??
-            'Login failed. Please try again.';
-      } else {
-        errorMessage = 'An error occurred. Please try again.';
-      }
-      // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
+      final errorMessage = _handleDioError(e);
       state = AuthState.error(errorMessage);
     } catch (e) {
-      // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
-      state =
-          AuthState.error('An unexpected error occurred. Please try again.');
+      state = AuthState.error(e.toString());
     }
+  }
+
+  String _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return 'Connection timeout. Please check your internet and try again.';
+    } else if (e.response?.statusCode == 401) {
+      return 'Invalid email or password.';
+    } else if (e.response?.data != null) {
+      return e.response?.data['detail'] ??
+          e.response?.data['message'] ??
+          'Authentication failed. Please try again.';
+    }
+    return 'An unexpected error occurred. Please try again.';
   }
 
   Future<void> signup(

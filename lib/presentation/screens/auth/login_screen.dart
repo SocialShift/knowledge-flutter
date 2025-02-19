@@ -30,49 +30,67 @@ class LoginScreen extends HookConsumerWidget {
 
     // Handle auth state changes
     ref.listen(authNotifierProvider, (previous, next) {
-      // Clear any existing snackbars first
+      // Clear any existing snackbars
       ScaffoldMessenger.of(context).clearSnackBars();
 
       next.when(
         initial: () => null,
         loading: () {
-          _showSnackBar(
-            context,
-            'Logging in...',
-            backgroundColor: Colors.blue,
-            showProgress: true,
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Text('Logging in...'),
+                ],
+              ),
+              backgroundColor: Colors.blue,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(16),
+            ),
           );
         },
         authenticated: (user, message) {
-          _showSnackBar(
-            context,
-            message ?? 'Login successful!',
-            backgroundColor: Colors.green,
-          ).then((_) {
-            if (context.mounted) {
-              context.go('/onboarding'); // Changed from /home to /onboarding
-            }
-          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message ?? 'Login successful!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        },
+        error: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+            ),
+          );
         },
         unauthenticated: (message) {
           if (message != null) {
-            _showSnackBar(
-              context,
-              message,
-              backgroundColor: Colors.orange,
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+              ),
             );
           }
         },
-        error: (message) {
-          _showSnackBar(
-            context,
-            message,
-            backgroundColor: Colors.red,
-          );
-        },
-        guest: () {
-          context.go('/home');
-        },
+        guest: () => null,
       );
     });
 
@@ -322,7 +340,13 @@ class LoginScreen extends HookConsumerWidget {
                           ),
                         ),
                         child: authState.maybeMap(
-                          loading: (_) => const CircularProgressIndicator(),
+                          loading: (_) => const Text(
+                            'Please wait...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           orElse: () => const Text(
                             'Login',
                             style: TextStyle(

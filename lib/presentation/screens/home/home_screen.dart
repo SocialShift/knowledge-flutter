@@ -254,7 +254,10 @@ class _HistoryGrid extends StatelessWidget {
           final item = items[index];
           return HistoryCard(
             item: item,
-            onTap: () => context.push('/timeline/${item.id}'),
+            onTap: () {
+              print('Navigating to timeline: ${item.id}');
+              context.push('/timeline/${item.id}');
+            },
           )
               .animate(
                 delay: Duration(milliseconds: index * 100),

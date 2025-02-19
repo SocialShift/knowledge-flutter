@@ -21,12 +21,19 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/login',
+    debugLogDiagnostics: true,
     redirect: (context, state) {
       final isAuthenticated = authState.maybeMap(
         authenticated: (_) => true,
         guest: (_) => true,
         orElse: () => false,
       );
+
+      // Don't redirect if accessing detail pages
+      if (state.uri.path.startsWith('/timeline/') ||
+          state.uri.path.startsWith('/story/')) {
+        return null;
+      }
 
       final isAuthRoute = state.uri.path == '/login' ||
           state.uri.path == '/signup' ||
@@ -35,22 +42,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnboardingComplete = onboardingState.isCompleted;
       final isOnboardingRoute = state.uri.path == '/onboarding';
 
-      // If not authenticated and trying to access protected route, go to login
-      if (!isAuthenticated && !isAuthRoute) {
+      if (isAuthenticated) {
+        if (!isOnboardingComplete && isOnboardingRoute) return null;
+        if (isOnboardingComplete && state.uri.path == '/home') return null;
+
+        return !isOnboardingComplete ? '/onboarding' : '/home';
+      }
+
+      if (!isAuthRoute && !isAuthenticated) {
         return '/login';
-      }
-
-      // If authenticated but onboarding not complete and not on onboarding route
-      if (isAuthenticated && !isOnboardingComplete && !isOnboardingRoute) {
-        return '/onboarding';
-      }
-
-      // If authenticated and onboarding complete
-      if (isAuthenticated && isOnboardingComplete) {
-        // If on auth routes or onboarding, redirect to home
-        if (isAuthRoute || isOnboardingRoute) {
-          return '/home';
-        }
       }
 
       return null;
@@ -72,6 +72,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+
+      // Move detail routes outside of ShellRoute
+      GoRoute(
+        path: '/timeline/:id',
+        builder: (context, state) {
+          final timelineId = state.pathParameters['id'];
+          if (timelineId == null) return const SizedBox.shrink();
+          return TimelineDetailScreen(timelineId: timelineId);
+        },
+      ),
+      GoRoute(
+        path: '/story/:id',
+        builder: (context, state) {
+          final storyId = state.pathParameters['id'];
+          if (storyId == null) return const SizedBox.shrink();
+          return StoryDetailScreen(storyId: storyId);
+        },
       ),
 
       // Shell route for bottom navigation
@@ -101,18 +119,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
-      ),
-      GoRoute(
-        path: '/timeline/:id',
-        builder: (context, state) => TimelineDetailScreen(
-          timelineId: state.pathParameters['id']!,
-        ),
-      ),
-      GoRoute(
-        path: '/story/:id',
-        builder: (context, state) => StoryDetailScreen(
-          storyId: state.pathParameters['id']!,
-        ),
       ),
     ],
   );
