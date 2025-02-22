@@ -35,13 +35,17 @@ class SearchBarWidget extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB5FF3A),
-              borderRadius: BorderRadius.circular(16),
+          GestureDetector(
+            onTap: onFilterTap,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFB5FF3A),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child:
+                  const Icon(Icons.filter_list, color: Colors.black, size: 20),
             ),
-            child: const Icon(Icons.filter_list, color: Colors.black, size: 20),
           ),
         ],
       ),

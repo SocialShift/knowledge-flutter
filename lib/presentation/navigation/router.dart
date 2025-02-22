@@ -14,6 +14,9 @@ import 'package:knowledge/data/providers/onboarding_provider.dart';
 import 'package:knowledge/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:knowledge/presentation/screens/timeline/timeline_detail_screen.dart';
 import 'package:knowledge/presentation/screens/story/story_detail_screen.dart';
+import 'package:knowledge/presentation/screens/profile/edit_profile_screen.dart';
+import 'package:knowledge/presentation/screens/quiz/quiz_screen.dart';
+import 'package:knowledge/presentation/screens/leaderboard/leaderboard_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -29,15 +32,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
-      // Don't redirect if accessing detail pages
+      // Don't redirect if accessing detail pages or main navigation routes
       if (state.uri.path.startsWith('/timeline/') ||
-          state.uri.path.startsWith('/story/')) {
+              state.uri.path.startsWith('/story/') ||
+              state.uri.path.startsWith('/quiz/') ||
+              state.uri.path == '/home' ||
+              state.uri.path == '/profile' ||
+              state.uri.path == '/profile/edit' ||
+              state.uri.path == '/leaderboard'
+          // Temporarily disabled e-learning route
+          // || state.uri.path == '/elearning'
+          ) {
         return null;
       }
 
       final isAuthRoute = state.uri.path == '/login' ||
           state.uri.path == '/signup' ||
           state.uri.path == '/forgot-password';
+
+      // For guest users, skip onboarding and redirect directly to home
+      if (authState.maybeMap(
+        guest: (_) => true,
+        orElse: () => false,
+      )) {
+        return '/home';
+      }
 
       final isOnboardingComplete = onboardingState.isCompleted;
       final isOnboardingRoute = state.uri.path == '/onboarding';
@@ -92,6 +111,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Add this route outside the ShellRoute
+      GoRoute(
+        path: '/quiz/:storyId',
+        builder: (context, state) {
+          final storyId = state.pathParameters['storyId'];
+          if (storyId == null) return const SizedBox.shrink();
+          return QuizScreen(storyId: storyId);
+        },
+      ),
+
       // Shell route for bottom navigation
       ShellRoute(
         builder: (context, state, child) => AppLayout(child: child),
@@ -105,9 +134,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
           GoRoute(
+            path: '/profile/edit',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+          // Temporarily disabled e-learning route
+          /*GoRoute(
             path: '/elearning',
             builder: (context, state) => const ElearningScreen(),
-          ),
+          ),*/
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
@@ -117,6 +151,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const Center(
               child: Text('Bookmarks Screen'),
             ),
+          ),
+          GoRoute(
+            path: '/leaderboard',
+            builder: (context, state) => const LeaderboardScreen(),
           ),
         ],
       ),

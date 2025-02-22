@@ -6,6 +6,7 @@ import 'package:knowledge/presentation/widgets/history_card.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 
 class HomeScreen extends HookConsumerWidget {
   const HomeScreen({super.key});
@@ -121,32 +122,208 @@ class _HeaderSection extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(24),
+      child: SearchBarWidget(
+        onSearch: (value) {
+          // TODO: Implement search functionality
+        },
+        onFilterTap: () {
+          _showFilterBottomSheet(context);
+        },
       ),
-      child: Row(
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => const _FilterBottomSheet(),
+    );
+  }
+}
+
+class _FilterBottomSheet extends StatefulWidget {
+  const _FilterBottomSheet();
+
+  @override
+  State<_FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<_FilterBottomSheet> {
+  String _selectedEra = 'All';
+  String _selectedRegion = 'All';
+  String _selectedType = 'All';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      child: Column(
         children: [
-          Icon(Icons.search, color: Colors.white.withOpacity(0.7)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Search history...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.white24,
+                  width: 1,
+                ),
               ),
-              onChanged: (value) {
-                // TODO: Implement search functionality
-              },
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Filter Stories',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          // Filter Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildFilterSection(
+                    title: 'Historical Era',
+                    options: [
+                      'All',
+                      'Ancient',
+                      'Medieval',
+                      'Modern',
+                      'Contemporary'
+                    ],
+                    selectedValue: _selectedEra,
+                    onChanged: (value) => setState(() => _selectedEra = value),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFilterSection(
+                    title: 'Region',
+                    options: [
+                      'All',
+                      'Europe',
+                      'Asia',
+                      'Americas',
+                      'Africa',
+                      'Oceania'
+                    ],
+                    selectedValue: _selectedRegion,
+                    onChanged: (value) =>
+                        setState(() => _selectedRegion = value),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFilterSection(
+                    title: 'Content Type',
+                    options: ['All', 'Stories', 'Videos', 'Quizzes'],
+                    selectedValue: _selectedType,
+                    onChanged: (value) => setState(() => _selectedType = value),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Apply Button
+          Container(
+            padding: EdgeInsets.fromLTRB(
+                24, 16, 24, MediaQuery.of(context).padding.bottom + 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border(
+                top: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  // TODO: Apply filters
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB5FF3A),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Apply Filters',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFilterSection({
+    required String title,
+    required List<String> options,
+    required String selectedValue,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: options.map((option) {
+            final isSelected = option == selectedValue;
+            return FilterChip(
+              selected: isSelected,
+              label: Text(
+                option,
+                style: TextStyle(
+                  color: isSelected ? Colors.black : Colors.black87,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              backgroundColor: Colors.white.withOpacity(0.9),
+              selectedColor: const Color(0xFFB5FF3A),
+              checkmarkColor: Colors.black,
+              onSelected: (_) => onChanged(option),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }
