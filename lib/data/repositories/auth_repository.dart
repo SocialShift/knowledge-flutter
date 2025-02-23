@@ -3,11 +3,13 @@ import 'package:knowledge/data/models/user.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 part 'auth_repository.g.dart';
 
 class AuthRepository {
   final ApiService _apiService;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   AuthRepository() : _apiService = ApiService();
 
@@ -22,6 +24,21 @@ class AuthRepository {
       );
 
       if (response.statusCode == 200) {
+        // Get the Set-Cookie header value directly
+        final setCookieHeader = response.headers.map['set-cookie']?.first;
+        if (setCookieHeader != null) {
+          print('Login - Found Set-Cookie header: $setCookieHeader');
+          // Store the complete session cookie
+          await _storage.write(key: 'session_cookie', value: setCookieHeader);
+
+          // Verify storage
+          final storedCookie = await _storage.read(key: 'session_cookie');
+          print('Login - Stored cookie verification: $storedCookie');
+        } else {
+          print('Login - No Set-Cookie header found in response');
+          print('Login - All headers: ${response.headers.map}');
+        }
+
         final userData = response.data['user'];
         return User(
           id: userData['id'].toString(),
@@ -35,16 +52,9 @@ class AuthRepository {
             'Authentication failed';
         throw message.toString();
       }
-    } on DioException catch (e) {
-      if (e.response?.data != null) {
-        final message = e.response?.data['detail'] ??
-            e.response?.data['message'] ??
-            'Authentication failed';
-        throw message.toString();
-      }
-      throw 'Connection error. Please try again.';
     } catch (e) {
-      throw 'An unexpected error occurred. Please try again.';
+      print('Login error: $e');
+      throw 'Authentication failed: ${e.toString()}';
     }
   }
 
@@ -83,7 +93,21 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
-    await _apiService.post(dotenv.env['AUTH_LOGOUT_ENDPOINT']!);
+    try {
+      await _apiService.post('/auth/logout');
+      await _storage.delete(key: 'session_cookie');
+    } catch (e) {
+      throw 'Logout failed';
+    }
+  }
+
+  Future<bool> checkSession() async {
+    try {
+      final response = await _apiService.get('/auth/check-session');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<void> forgotPassword(String email) async {

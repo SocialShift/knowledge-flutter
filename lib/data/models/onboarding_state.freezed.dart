@@ -20,15 +20,16 @@ OnboardingState _$OnboardingStateFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$OnboardingState {
+  bool get isCompleted => throw _privateConstructorUsedError;
+  int get currentStep => throw _privateConstructorUsedError;
   String get race => throw _privateConstructorUsedError;
   String get gender => throw _privateConstructorUsedError;
   String get ethnicity => throw _privateConstructorUsedError;
-  List<String> get selectedTopics => throw _privateConstructorUsedError;
-  List<String> get selectedInterests => throw _privateConstructorUsedError;
   String get discoverySource => throw _privateConstructorUsedError;
   String get primaryInterest => throw _privateConstructorUsedError;
-  int get currentStep => throw _privateConstructorUsedError;
-  bool get isCompleted => throw _privateConstructorUsedError;
+  List<String> get selectedTopics => throw _privateConstructorUsedError;
+  List<String> get selectedInterests => throw _privateConstructorUsedError;
+  Map<String, dynamic> get responses => throw _privateConstructorUsedError;
 
   /// Serializes this OnboardingState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,15 +48,16 @@ abstract class $OnboardingStateCopyWith<$Res> {
       _$OnboardingStateCopyWithImpl<$Res, OnboardingState>;
   @useResult
   $Res call(
-      {String race,
+      {bool isCompleted,
+      int currentStep,
+      String race,
       String gender,
       String ethnicity,
-      List<String> selectedTopics,
-      List<String> selectedInterests,
       String discoverySource,
       String primaryInterest,
-      int currentStep,
-      bool isCompleted});
+      List<String> selectedTopics,
+      List<String> selectedInterests,
+      Map<String, dynamic> responses});
 }
 
 /// @nodoc
@@ -73,17 +75,26 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? isCompleted = null,
+    Object? currentStep = null,
     Object? race = null,
     Object? gender = null,
     Object? ethnicity = null,
-    Object? selectedTopics = null,
-    Object? selectedInterests = null,
     Object? discoverySource = null,
     Object? primaryInterest = null,
-    Object? currentStep = null,
-    Object? isCompleted = null,
+    Object? selectedTopics = null,
+    Object? selectedInterests = null,
+    Object? responses = null,
   }) {
     return _then(_value.copyWith(
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentStep: null == currentStep
+          ? _value.currentStep
+          : currentStep // ignore: cast_nullable_to_non_nullable
+              as int,
       race: null == race
           ? _value.race
           : race // ignore: cast_nullable_to_non_nullable
@@ -96,14 +107,6 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
           ? _value.ethnicity
           : ethnicity // ignore: cast_nullable_to_non_nullable
               as String,
-      selectedTopics: null == selectedTopics
-          ? _value.selectedTopics
-          : selectedTopics // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      selectedInterests: null == selectedInterests
-          ? _value.selectedInterests
-          : selectedInterests // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       discoverySource: null == discoverySource
           ? _value.discoverySource
           : discoverySource // ignore: cast_nullable_to_non_nullable
@@ -112,14 +115,18 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
           ? _value.primaryInterest
           : primaryInterest // ignore: cast_nullable_to_non_nullable
               as String,
-      currentStep: null == currentStep
-          ? _value.currentStep
-          : currentStep // ignore: cast_nullable_to_non_nullable
-              as int,
-      isCompleted: null == isCompleted
-          ? _value.isCompleted
-          : isCompleted // ignore: cast_nullable_to_non_nullable
-              as bool,
+      selectedTopics: null == selectedTopics
+          ? _value.selectedTopics
+          : selectedTopics // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      selectedInterests: null == selectedInterests
+          ? _value.selectedInterests
+          : selectedInterests // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      responses: null == responses
+          ? _value.responses
+          : responses // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ) as $Val);
   }
 }
@@ -133,15 +140,16 @@ abstract class _$$OnboardingStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String race,
+      {bool isCompleted,
+      int currentStep,
+      String race,
       String gender,
       String ethnicity,
-      List<String> selectedTopics,
-      List<String> selectedInterests,
       String discoverySource,
       String primaryInterest,
-      int currentStep,
-      bool isCompleted});
+      List<String> selectedTopics,
+      List<String> selectedInterests,
+      Map<String, dynamic> responses});
 }
 
 /// @nodoc
@@ -157,17 +165,26 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? isCompleted = null,
+    Object? currentStep = null,
     Object? race = null,
     Object? gender = null,
     Object? ethnicity = null,
-    Object? selectedTopics = null,
-    Object? selectedInterests = null,
     Object? discoverySource = null,
     Object? primaryInterest = null,
-    Object? currentStep = null,
-    Object? isCompleted = null,
+    Object? selectedTopics = null,
+    Object? selectedInterests = null,
+    Object? responses = null,
   }) {
     return _then(_$OnboardingStateImpl(
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentStep: null == currentStep
+          ? _value.currentStep
+          : currentStep // ignore: cast_nullable_to_non_nullable
+              as int,
       race: null == race
           ? _value.race
           : race // ignore: cast_nullable_to_non_nullable
@@ -180,14 +197,6 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
           ? _value.ethnicity
           : ethnicity // ignore: cast_nullable_to_non_nullable
               as String,
-      selectedTopics: null == selectedTopics
-          ? _value._selectedTopics
-          : selectedTopics // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      selectedInterests: null == selectedInterests
-          ? _value._selectedInterests
-          : selectedInterests // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       discoverySource: null == discoverySource
           ? _value.discoverySource
           : discoverySource // ignore: cast_nullable_to_non_nullable
@@ -196,14 +205,18 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
           ? _value.primaryInterest
           : primaryInterest // ignore: cast_nullable_to_non_nullable
               as String,
-      currentStep: null == currentStep
-          ? _value.currentStep
-          : currentStep // ignore: cast_nullable_to_non_nullable
-              as int,
-      isCompleted: null == isCompleted
-          ? _value.isCompleted
-          : isCompleted // ignore: cast_nullable_to_non_nullable
-              as bool,
+      selectedTopics: null == selectedTopics
+          ? _value._selectedTopics
+          : selectedTopics // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      selectedInterests: null == selectedInterests
+          ? _value._selectedInterests
+          : selectedInterests // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      responses: null == responses
+          ? _value._responses
+          : responses // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }
@@ -212,21 +225,29 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$OnboardingStateImpl implements _OnboardingState {
   const _$OnboardingStateImpl(
-      {this.race = '',
+      {this.isCompleted = false,
+      this.currentStep = 0,
+      this.race = '',
       this.gender = '',
       this.ethnicity = '',
-      final List<String> selectedTopics = const [],
-      final List<String> selectedInterests = const [],
       this.discoverySource = '',
       this.primaryInterest = '',
-      this.currentStep = 0,
-      this.isCompleted = false})
+      final List<String> selectedTopics = const [],
+      final List<String> selectedInterests = const [],
+      final Map<String, dynamic> responses = const {}})
       : _selectedTopics = selectedTopics,
-        _selectedInterests = selectedInterests;
+        _selectedInterests = selectedInterests,
+        _responses = responses;
 
   factory _$OnboardingStateImpl.fromJson(Map<String, dynamic> json) =>
       _$$OnboardingStateImplFromJson(json);
 
+  @override
+  @JsonKey()
+  final bool isCompleted;
+  @override
+  @JsonKey()
+  final int currentStep;
   @override
   @JsonKey()
   final String race;
@@ -236,6 +257,12 @@ class _$OnboardingStateImpl implements _OnboardingState {
   @override
   @JsonKey()
   final String ethnicity;
+  @override
+  @JsonKey()
+  final String discoverySource;
+  @override
+  @JsonKey()
+  final String primaryInterest;
   final List<String> _selectedTopics;
   @override
   @JsonKey()
@@ -255,22 +282,18 @@ class _$OnboardingStateImpl implements _OnboardingState {
     return EqualUnmodifiableListView(_selectedInterests);
   }
 
+  final Map<String, dynamic> _responses;
   @override
   @JsonKey()
-  final String discoverySource;
-  @override
-  @JsonKey()
-  final String primaryInterest;
-  @override
-  @JsonKey()
-  final int currentStep;
-  @override
-  @JsonKey()
-  final bool isCompleted;
+  Map<String, dynamic> get responses {
+    if (_responses is EqualUnmodifiableMapView) return _responses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_responses);
+  }
 
   @override
   String toString() {
-    return 'OnboardingState(race: $race, gender: $gender, ethnicity: $ethnicity, selectedTopics: $selectedTopics, selectedInterests: $selectedInterests, discoverySource: $discoverySource, primaryInterest: $primaryInterest, currentStep: $currentStep, isCompleted: $isCompleted)';
+    return 'OnboardingState(isCompleted: $isCompleted, currentStep: $currentStep, race: $race, gender: $gender, ethnicity: $ethnicity, discoverySource: $discoverySource, primaryInterest: $primaryInterest, selectedTopics: $selectedTopics, selectedInterests: $selectedInterests, responses: $responses)';
   }
 
   @override
@@ -278,37 +301,40 @@ class _$OnboardingStateImpl implements _OnboardingState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$OnboardingStateImpl &&
+            (identical(other.isCompleted, isCompleted) ||
+                other.isCompleted == isCompleted) &&
+            (identical(other.currentStep, currentStep) ||
+                other.currentStep == currentStep) &&
             (identical(other.race, race) || other.race == race) &&
             (identical(other.gender, gender) || other.gender == gender) &&
             (identical(other.ethnicity, ethnicity) ||
                 other.ethnicity == ethnicity) &&
-            const DeepCollectionEquality()
-                .equals(other._selectedTopics, _selectedTopics) &&
-            const DeepCollectionEquality()
-                .equals(other._selectedInterests, _selectedInterests) &&
             (identical(other.discoverySource, discoverySource) ||
                 other.discoverySource == discoverySource) &&
             (identical(other.primaryInterest, primaryInterest) ||
                 other.primaryInterest == primaryInterest) &&
-            (identical(other.currentStep, currentStep) ||
-                other.currentStep == currentStep) &&
-            (identical(other.isCompleted, isCompleted) ||
-                other.isCompleted == isCompleted));
+            const DeepCollectionEquality()
+                .equals(other._selectedTopics, _selectedTopics) &&
+            const DeepCollectionEquality()
+                .equals(other._selectedInterests, _selectedInterests) &&
+            const DeepCollectionEquality()
+                .equals(other._responses, _responses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      isCompleted,
+      currentStep,
       race,
       gender,
       ethnicity,
-      const DeepCollectionEquality().hash(_selectedTopics),
-      const DeepCollectionEquality().hash(_selectedInterests),
       discoverySource,
       primaryInterest,
-      currentStep,
-      isCompleted);
+      const DeepCollectionEquality().hash(_selectedTopics),
+      const DeepCollectionEquality().hash(_selectedInterests),
+      const DeepCollectionEquality().hash(_responses));
 
   /// Create a copy of OnboardingState
   /// with the given fields replaced by the non-null parameter values.
@@ -329,19 +355,24 @@ class _$OnboardingStateImpl implements _OnboardingState {
 
 abstract class _OnboardingState implements OnboardingState {
   const factory _OnboardingState(
-      {final String race,
+      {final bool isCompleted,
+      final int currentStep,
+      final String race,
       final String gender,
       final String ethnicity,
-      final List<String> selectedTopics,
-      final List<String> selectedInterests,
       final String discoverySource,
       final String primaryInterest,
-      final int currentStep,
-      final bool isCompleted}) = _$OnboardingStateImpl;
+      final List<String> selectedTopics,
+      final List<String> selectedInterests,
+      final Map<String, dynamic> responses}) = _$OnboardingStateImpl;
 
   factory _OnboardingState.fromJson(Map<String, dynamic> json) =
       _$OnboardingStateImpl.fromJson;
 
+  @override
+  bool get isCompleted;
+  @override
+  int get currentStep;
   @override
   String get race;
   @override
@@ -349,17 +380,15 @@ abstract class _OnboardingState implements OnboardingState {
   @override
   String get ethnicity;
   @override
-  List<String> get selectedTopics;
-  @override
-  List<String> get selectedInterests;
-  @override
   String get discoverySource;
   @override
   String get primaryInterest;
   @override
-  int get currentStep;
+  List<String> get selectedTopics;
   @override
-  bool get isCompleted;
+  List<String> get selectedInterests;
+  @override
+  Map<String, dynamic> get responses;
 
   /// Create a copy of OnboardingState
   /// with the given fields replaced by the non-null parameter values.

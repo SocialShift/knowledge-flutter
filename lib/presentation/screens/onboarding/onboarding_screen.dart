@@ -195,48 +195,46 @@ class OnboardingScreen extends HookConsumerWidget {
               ),
         ).animate().fadeIn(duration: const Duration(milliseconds: 600)),
         const SizedBox(height: 32),
-        ...sources
-            .map((source) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: AnimatedScale(
-                    scale: state.discoverySource == source ? 1.05 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: GestureDetector(
-                      onTap: () => notifier.updateDiscoverySource(source),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: state.discoverySource == source
-                              ? Colors.blue
-                              : Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: state.discoverySource == source
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.blue.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ]
-                              : null,
-                        ),
-                        child: Text(
-                          source,
-                          style: TextStyle(
-                            color: state.discoverySource == source
-                                ? Colors.white
-                                : Colors.black87,
-                            fontWeight: state.discoverySource == source
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
+        ...sources.map((source) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AnimatedScale(
+                scale: state.discoverySource == source ? 1.05 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: GestureDetector(
+                  onTap: () => notifier.updateDiscoverySource(source),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: state.discoverySource == source
+                          ? Colors.blue
+                          : Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: state.discoverySource == source
+                          ? [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      source,
+                      style: TextStyle(
+                        color: state.discoverySource == source
+                            ? Colors.white
+                            : Colors.black87,
+                        fontWeight: state.discoverySource == source
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   ),
-                ))
-            .toList(),
+                ),
+              ),
+            )),
       ],
     );
   }

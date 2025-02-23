@@ -9,15 +9,24 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   OnboardingState build() => const OnboardingState();
 
   void updateRace(String race) {
-    state = state.copyWith(race: race);
+    state = state.copyWith(
+      race: race,
+      responses: {...state.responses, 'race': race},
+    );
   }
 
   void updateGender(String gender) {
-    state = state.copyWith(gender: gender);
+    state = state.copyWith(
+      gender: gender,
+      responses: {...state.responses, 'gender': gender},
+    );
   }
 
   void updateEthnicity(String ethnicity) {
-    state = state.copyWith(ethnicity: ethnicity);
+    state = state.copyWith(
+      ethnicity: ethnicity,
+      responses: {...state.responses, 'ethnicity': ethnicity},
+    );
   }
 
   void toggleTopic(String topic) {
@@ -27,7 +36,10 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     } else {
       topics.add(topic);
     }
-    state = state.copyWith(selectedTopics: topics);
+    state = state.copyWith(
+      selectedTopics: topics,
+      responses: {...state.responses, 'topics': topics},
+    );
   }
 
   void nextStep() {
@@ -41,21 +53,37 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     } else {
       interests.add(interest);
     }
-    state = state.copyWith(selectedInterests: interests);
-  }
-
-  void completeOnboarding() {
     state = state.copyWith(
-      isCompleted: true,
-      currentStep: state.currentStep + 1,
+      selectedInterests: interests,
+      responses: {...state.responses, 'interests': interests},
     );
   }
 
+  void setResponse(String key, dynamic value) {
+    state = state.copyWith(
+      responses: {...state.responses, key: value},
+    );
+  }
+
+  void completeOnboarding() {
+    state = state.copyWith(isCompleted: true);
+  }
+
+  void resetOnboarding() {
+    state = const OnboardingState();
+  }
+
   void updateDiscoverySource(String source) {
-    state = state.copyWith(discoverySource: source);
+    state = state.copyWith(
+      discoverySource: source,
+      responses: {...state.responses, 'discovery_source': source},
+    );
   }
 
   void updatePrimaryInterest(String interest) {
-    state = state.copyWith(primaryInterest: interest);
+    state = state.copyWith(
+      primaryInterest: interest,
+      responses: {...state.responses, 'primary_interest': interest},
+    );
   }
 }

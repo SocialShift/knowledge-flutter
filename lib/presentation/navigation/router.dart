@@ -6,7 +6,6 @@ import 'package:knowledge/presentation/screens/auth/login_screen.dart';
 import 'package:knowledge/presentation/screens/auth/signup_screen.dart';
 import 'package:knowledge/presentation/screens/home/home_screen.dart';
 import 'package:knowledge/presentation/screens/profile/profile_screen.dart';
-import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 import 'package:knowledge/presentation/screens/settings/settings_screen.dart';
 import 'package:knowledge/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
@@ -17,6 +16,7 @@ import 'package:knowledge/presentation/screens/story/story_detail_screen.dart';
 import 'package:knowledge/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:knowledge/presentation/screens/quiz/quiz_screen.dart';
 import 'package:knowledge/presentation/screens/leaderboard/leaderboard_screen.dart';
+import 'package:knowledge/presentation/screens/auth/profile_setup_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -60,12 +60,24 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isOnboardingComplete = onboardingState.isCompleted;
       final isOnboardingRoute = state.uri.path == '/onboarding';
+      final isProfileSetupRoute = state.uri.path == '/profile-setup';
 
       if (isAuthenticated) {
+        // If onboarding is not complete and on onboarding route, allow it
         if (!isOnboardingComplete && isOnboardingRoute) return null;
-        if (isOnboardingComplete && state.uri.path == '/home') return null;
 
-        return !isOnboardingComplete ? '/onboarding' : '/home';
+        // If onboarding is complete but profile setup not done, go to profile setup
+        if (isOnboardingComplete && !isProfileSetupRoute)
+          return '/profile-setup';
+
+        // If on profile setup route, allow it
+        if (isProfileSetupRoute) return null;
+
+        // If onboarding is not complete, go to onboarding
+        if (!isOnboardingComplete) return '/onboarding';
+
+        // Otherwise go to home
+        return '/home';
       }
 
       if (!isAuthRoute && !isAuthenticated) {
@@ -157,6 +169,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const LeaderboardScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/profile-setup',
+        builder: (context, state) => const ProfileSetupScreen(),
       ),
     ],
   );

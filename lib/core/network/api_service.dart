@@ -1,23 +1,54 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:knowledge/core/config/app_config.dart';
 
 class ApiService {
-  late final Dio _dio;
+  final Dio _dio;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   static final ApiService _instance = ApiService._internal();
 
   factory ApiService() => _instance;
 
-  ApiService._internal() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: dotenv.env['API_BASE_URL'] ?? '',
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
-        sendTimeout: const Duration(seconds: 60),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+  ApiService._internal() : _dio = Dio() {
+    _dio.options.baseUrl = AppConfig.baseUrl;
+    _dio.options.validateStatus = (status) => status! < 500;
+
+    // Add default headers
+    _dio.options.headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    // Add interceptor for cookies
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onResponse: (response, handler) async {
+          // Check both lowercase and uppercase header names
+          final cookies =
+              response.headers['Set-Cookie'] ?? response.headers['set-cookie'];
+
+          if (cookies != null && cookies.isNotEmpty) {
+            print('Storing cookie: ${cookies.first}'); // Debug log
+            await _storage.write(key: 'session_cookie', value: cookies.first);
+          }
+          return handler.next(response);
+        },
+        onRequest: (options, handler) async {
+          // Attach session cookie to requests
+          final cookie = await _storage.read(key: 'session_cookie');
+          if (cookie != null) {
+            print('Attaching cookie to request: $cookie'); // Debug log
+            options.headers['Cookie'] = cookie;
+          }
+          return handler.next(options);
+        },
+        onError: (DioException e, handler) async {
+          print('Request error: ${e.message}');
+          print('Request path: ${e.requestOptions.path}');
+          print('Request headers: ${e.requestOptions.headers}');
+          return handler.next(e);
         },
       ),
     );
@@ -104,6 +135,46 @@ class ApiService {
       return response;
     } on DioException catch (e) {
       print('DioException occurred: ${e.message}');
+      print('DioException type: ${e.type}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Response> patch(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(
+          validateStatus: (status) {
+            return status != null && status < 500;
+          },
+        ),
+      );
+
+      if (response.statusCode == 401) {
+        throw 'Unauthorized access';
+      }
+
+      if (response.statusCode! >= 400) {
+        throw _handleDioError(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
+      return response;
+    } on DioException catch (e) {
+      print('DioException in patch: ${e.message}');
       print('DioException type: ${e.type}');
       print('DioException response: ${e.response?.data}');
       throw _handleDioError(e);

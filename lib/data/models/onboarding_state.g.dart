@@ -9,9 +9,13 @@ part of 'onboarding_state.dart';
 _$OnboardingStateImpl _$$OnboardingStateImplFromJson(
         Map<String, dynamic> json) =>
     _$OnboardingStateImpl(
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      currentStep: (json['currentStep'] as num?)?.toInt() ?? 0,
       race: json['race'] as String? ?? '',
       gender: json['gender'] as String? ?? '',
       ethnicity: json['ethnicity'] as String? ?? '',
+      discoverySource: json['discoverySource'] as String? ?? '',
+      primaryInterest: json['primaryInterest'] as String? ?? '',
       selectedTopics: (json['selectedTopics'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -20,22 +24,20 @@ _$OnboardingStateImpl _$$OnboardingStateImplFromJson(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      discoverySource: json['discoverySource'] as String? ?? '',
-      primaryInterest: json['primaryInterest'] as String? ?? '',
-      currentStep: (json['currentStep'] as num?)?.toInt() ?? 0,
-      isCompleted: json['isCompleted'] as bool? ?? false,
+      responses: json['responses'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$$OnboardingStateImplToJson(
         _$OnboardingStateImpl instance) =>
     <String, dynamic>{
+      'isCompleted': instance.isCompleted,
+      'currentStep': instance.currentStep,
       'race': instance.race,
       'gender': instance.gender,
       'ethnicity': instance.ethnicity,
-      'selectedTopics': instance.selectedTopics,
-      'selectedInterests': instance.selectedInterests,
       'discoverySource': instance.discoverySource,
       'primaryInterest': instance.primaryInterest,
-      'currentStep': instance.currentStep,
-      'isCompleted': instance.isCompleted,
+      'selectedTopics': instance.selectedTopics,
+      'selectedInterests': instance.selectedInterests,
+      'responses': instance.responses,
     };

@@ -6,15 +6,16 @@ part 'onboarding_state.freezed.dart';
 @freezed
 class OnboardingState with _$OnboardingState {
   const factory OnboardingState({
+    @Default(false) bool isCompleted,
+    @Default(0) int currentStep,
     @Default('') String race,
     @Default('') String gender,
     @Default('') String ethnicity,
-    @Default([]) List<String> selectedTopics,
-    @Default([]) List<String> selectedInterests,
     @Default('') String discoverySource,
     @Default('') String primaryInterest,
-    @Default(0) int currentStep,
-    @Default(false) bool isCompleted,
+    @Default([]) List<String> selectedTopics,
+    @Default([]) List<String> selectedInterests,
+    @Default({}) Map<String, dynamic> responses,
   }) = _OnboardingState;
 
   factory OnboardingState.fromJson(Map<String, dynamic> json) =>

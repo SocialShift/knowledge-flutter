@@ -2,19 +2,29 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/auth_state.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:dio/dio.dart';
+import 'dart:async';
 
 part 'auth_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class AuthNotifier extends _$AuthNotifier {
+  Timer? _sessionCheckTimer;
+
   @override
   AuthState build() => const AuthState.initial();
+
+  @override
+  void dispose() {
+    _sessionCheckTimer?.cancel();
+  }
 
   Future<void> login(String email, String password) async {
     if (state.maybeMap(
       loading: (_) => true,
       orElse: () => false,
-    )) return;
+    )) {
+      return;
+    }
 
     state = const AuthState.loading();
 
@@ -60,7 +70,9 @@ class AuthNotifier extends _$AuthNotifier {
     if (state.maybeMap(
       loading: (_) => true,
       orElse: () => false,
-    )) return;
+    )) {
+      return;
+    }
 
     state = const AuthState.loading();
 
@@ -120,7 +132,9 @@ class AuthNotifier extends _$AuthNotifier {
     if (state.maybeMap(
       loading: (_) => true,
       orElse: () => false,
-    )) return;
+    )) {
+      return;
+    }
 
     state = const AuthState.loading();
     try {
@@ -131,5 +145,25 @@ class AuthNotifier extends _$AuthNotifier {
     } catch (e) {
       state = AuthState.error(e.toString());
     }
+  }
+
+  Future<void> checkSession() async {
+    try {
+      final isValid = await ref.read(authRepositoryProvider).checkSession();
+      if (!isValid) {
+        state = const AuthState.unauthenticated();
+      }
+    } catch (_) {
+      state = const AuthState.unauthenticated();
+    }
+  }
+
+  // Start periodic session checks
+  void startSessionCheck() {
+    _sessionCheckTimer?.cancel();
+    _sessionCheckTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => checkSession(),
+    );
   }
 }
