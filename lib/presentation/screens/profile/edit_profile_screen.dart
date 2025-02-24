@@ -1,239 +1,305 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends HookConsumerWidget {
   const EditProfileScreen({super.key});
 
-  @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
-}
+  static const List<String> pronounOptions = [
+    'He/Him',
+    'She/Her',
+    'They/Them',
+    'Other'
+  ];
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _locationController;
-  String _selectedPronoun = '';
-  String _selectedLanguage = 'English';
+  static const List<String> states = [
+    'Alabama',
+    'Alaska',
+    'Arizona',
+    'Arkansas',
+    'California',
+    'Colorado',
+    'Connecticut',
+    'Delaware',
+    'Florida',
+    'Georgia',
+    'Hawaii',
+    'Idaho',
+    'Illinois',
+    'Indiana',
+    'Iowa',
+    'Kansas',
+    'Kentucky',
+    'Louisiana',
+    'Maine',
+    'Maryland',
+    'Massachusetts',
+    'Michigan',
+    'Minnesota',
+    'Mississippi',
+    'Missouri',
+    'Montana',
+    'Nebraska',
+    'Nevada',
+    'New Hampshire',
+    'New Jersey',
+    'New Mexico',
+    'New York',
+    'North Carolina',
+    'North Dakota',
+    'Ohio',
+    'Oklahoma',
+    'Oregon',
+    'Pennsylvania',
+    'Rhode Island',
+    'South Carolina',
+    'South Dakota',
+    'Tennessee',
+    'Texas',
+    'Utah',
+    'Vermont',
+    'Virginia',
+    'Washington',
+    'West Virginia',
+    'Wisconsin',
+    'Wyoming'
+  ];
+
+  static const List<String> languages = [
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Chinese'
+  ];
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: 'Ann Smith');
-    _locationController = TextEditingController(text: '');
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileProvider);
+    final profileNotifier = ref.watch(profileNotifierProvider.notifier);
+    final isLoading = useState(false);
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
-    super.dispose();
-  }
+    // Controllers and state variables
+    final nicknameController = useTextEditingController();
+    final selectedPronouns = useState<String>('');
+    final selectedState = useState<String>('');
+    final selectedLanguage = useState<String>('English');
 
-  @override
-  Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    // Initialize controllers with current profile data
+    useEffect(() {
+      profileAsync.whenData((profile) {
+        nicknameController.text = profile.nickname ?? '';
+        selectedPronouns.value = profile.pronouns ?? '';
+        selectedState.value = profile.location ?? '';
+        selectedLanguage.value = profile.preferredLanguage;
+      });
+      return null;
+    }, [profileAsync]);
+
+    Future<void> handleSave() async {
+      if (nicknameController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a nickname')),
+        );
+        return;
+      }
+
+      isLoading.value = true;
+      try {
+        await profileNotifier.updateProfile(
+          nickname: nicknameController.text,
+          pronouns: selectedPronouns.value,
+          email: profileAsync.value?.email ?? '',
+          location: selectedState.value,
+          languagePreference: selectedLanguage.value,
+        );
+
+        if (context.mounted) {
+          context.pop();
+          // Refresh profile data
+          ref.refresh(userProfileProvider);
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
+      } finally {
+        isLoading.value = false;
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => context.pop(),
+        title: const Text('Edit Profile'),
+        backgroundColor: const Color(0xFF1A1A1A),
+      ),
+      body: profileAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Text('Error: $error',
+              style: const TextStyle(color: Colors.white)),
         ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _saveChanges,
-            child: const Text(
-              'Save',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+        data: (profile) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Center(
+                child: UserAvatar(size: 100),
               ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottomPadding + 80),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue, width: 2),
-                      ),
-                      child: const ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(50)),
-                        child: UserAvatar(size: 100),
-                      ),
+              const SizedBox(height: 32),
+              // Nickname field
+              _buildInfoTile(
+                context: context,
+                icon: Icons.person_outline,
+                title: 'Nickname',
+                controller: nicknameController,
+              ),
+              const SizedBox(height: 16),
+              // Pronouns dropdown
+              _buildDropdownTile(
+                context: context,
+                icon: Icons.person_pin_outlined,
+                title: 'Pronouns',
+                value: selectedPronouns.value.isEmpty
+                    ? null
+                    : selectedPronouns.value,
+                items: pronounOptions,
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedPronouns.value = value;
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              // Location dropdown
+              _buildDropdownTile(
+                context: context,
+                icon: Icons.location_on_outlined,
+                title: 'Location',
+                value: selectedState.value.isEmpty ? null : selectedState.value,
+                items: states,
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedState.value = value;
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              // Language dropdown
+              _buildDropdownTile(
+                context: context,
+                icon: Icons.language_outlined,
+                title: 'Language',
+                value: selectedLanguage.value,
+                items: languages,
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedLanguage.value = value;
+                  }
+                },
+              ),
+              const SizedBox(height: 32),
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade400,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF1A1A1A),
-                            width: 2,
-                          ),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            // Handle image picker
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      _buildTextField(
-                        controller: _nameController,
-                        label: 'Name',
-                        icon: Icons.person_outline,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _locationController,
-                        label: 'Location',
-                        icon: Icons.location_on_outlined,
-                        hintText: 'Add your location',
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDropdownField(
-                        label: 'Pronouns',
-                        icon: Icons.person,
-                        value:
-                            _selectedPronoun.isEmpty ? null : _selectedPronoun,
-                        items: const [
-                          'He/Him',
-                          'She/Her',
-                          'They/Them',
-                          'Prefer not to say',
-                        ],
-                        onChanged: (value) {
-                          setState(() => _selectedPronoun = value!);
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDropdownField(
-                        label: 'Preferred Language',
-                        icon: Icons.language,
-                        value: _selectedLanguage,
-                        items: const ['English', 'Spanish', 'French'],
-                        onChanged: (value) {
-                          setState(() => _selectedLanguage = value!);
-                        },
-                      ),
-                    ],
                   ),
+                  onPressed: isLoading.value ? null : handleSave,
+                  child: isLoading.value
+                      ? const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        )
+                      : const Text('Save Changes'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildInfoTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
     required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? hintText,
-    int maxLines = 1,
-    TextInputType? keyboardType,
+    bool enabled = true,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[800]!),
-      ),
-      child: TextFormField(
-        controller: controller,
-        style: const TextStyle(color: Colors.white),
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          labelStyle: const TextStyle(color: Colors.blue),
-          prefixIcon: Icon(icon, color: Colors.blue),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdownField({
-    required String label,
-    required IconData icon,
-    required String? value,
-    required List<String> items,
-    required void Function(String?) onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[800]!),
       ),
       child: ListTile(
         leading: Icon(icon, color: Colors.blue),
-        title: Text(label, style: const TextStyle(color: Colors.blue)),
-        trailing: DropdownButton<String>(
-          value: value,
-          hint: Text('Select', style: TextStyle(color: Colors.grey[600])),
-          dropdownColor: Colors.grey[900],
-          underline: const SizedBox(),
-          icon: Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
-          items: items.map((String item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item, style: const TextStyle(color: Colors.white)),
-            );
-          }).toList(),
-          onChanged: onChanged,
+        title: TextField(
+          controller: controller,
+          enabled: enabled,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Enter your $title',
+            hintStyle: TextStyle(color: Colors.grey[400]),
+          ),
         ),
       ),
     );
   }
 
-  void _saveChanges() {
-    if (_formKey.currentState!.validate()) {
-      // Save profile changes
-      context.pop();
-    }
+  Widget _buildDropdownTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String? value,
+    required List<String> items,
+    required void Function(String?)? onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.blue),
+        title: Theme(
+          data: Theme.of(context).copyWith(
+            dropdownMenuTheme: DropdownMenuThemeData(
+              textStyle: const TextStyle(color: Colors.white),
+            ),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            hint: Text('Select $title',
+                style: TextStyle(color: Colors.grey[400])),
+            isExpanded: true,
+            underline: const SizedBox(),
+            dropdownColor: Colors.grey[900],
+            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
+            items: items.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value, style: const TextStyle(color: Colors.white)),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -32,6 +32,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
+      final hasCompletedProfile = authState.maybeMap(
+        authenticated: (auth) => auth.hasCompletedProfile,
+        orElse: () => false,
+      );
+
       // Don't redirect if accessing detail pages or main navigation routes
       if (state.uri.path.startsWith('/timeline/') ||
               state.uri.path.startsWith('/story/') ||
@@ -63,6 +68,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isProfileSetupRoute = state.uri.path == '/profile-setup';
 
       if (isAuthenticated) {
+        // If user has completed profile, go to home
+        if (hasCompletedProfile) {
+          return isAuthRoute ? '/home' : null;
+        }
+
         // If onboarding is not complete and on onboarding route, allow it
         if (!isOnboardingComplete && isOnboardingRoute) return null;
 
@@ -80,6 +90,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/home';
       }
 
+      // Redirect to login if not authenticated and not on an auth route
       if (!isAuthRoute && !isAuthenticated) {
         return '/login';
       }

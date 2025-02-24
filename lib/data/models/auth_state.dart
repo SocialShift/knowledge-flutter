@@ -10,6 +10,7 @@ class AuthState with _$AuthState {
   const factory AuthState.authenticated({
     required User user,
     String? message,
+    @Default(false) bool hasCompletedProfile,
   }) = _Authenticated;
   const factory AuthState.unauthenticated({
     String? message,

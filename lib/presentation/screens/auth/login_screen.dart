@@ -28,71 +28,31 @@ class LoginScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    // Handle auth state changes
-    ref.listen(authNotifierProvider, (previous, next) {
-      // Clear any existing snackbars
-      ScaffoldMessenger.of(context).clearSnackBars();
-
-      next.when(
-        initial: () => null,
-        loading: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Text('Logging in...'),
-                ],
-              ),
-              backgroundColor: Colors.blue,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.all(16),
-            ),
-          );
-        },
-        authenticated: (user, message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message ?? 'Login successful!'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-            ),
-          );
-        },
-        error: (message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-            ),
-          );
-        },
-        unauthenticated: (message) {
-          if (message != null) {
+    // Update the state listener to handle hasCompletedProfile
+    useEffect(() {
+      authState.maybeMap(
+        authenticated: (auth) {
+          // Show success message if present
+          if (auth.message != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.orange,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-              ),
+              SnackBar(content: Text(auth.message!)),
             );
           }
+          // Start session check timer
+          authNotifier.startSessionCheck();
         },
-        guest: () => null,
+        error: (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        orElse: () {},
       );
-    });
+      return null;
+    }, [authState]);
 
     return Scaffold(
       backgroundColor: const Color(0xFF3498DB),

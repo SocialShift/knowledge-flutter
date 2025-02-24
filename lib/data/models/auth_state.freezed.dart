@@ -20,7 +20,9 @@ mixin _$AuthState {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -30,7 +32,8 @@ mixin _$AuthState {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -40,7 +43,8 @@ mixin _$AuthState {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
@@ -143,7 +147,9 @@ class _$InitialImpl implements _Initial {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -156,7 +162,8 @@ class _$InitialImpl implements _Initial {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -169,7 +176,8 @@ class _$InitialImpl implements _Initial {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
@@ -272,7 +280,9 @@ class _$LoadingImpl implements _Loading {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -285,7 +295,8 @@ class _$LoadingImpl implements _Loading {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -298,7 +309,8 @@ class _$LoadingImpl implements _Loading {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
@@ -364,7 +376,7 @@ abstract class _$$AuthenticatedImplCopyWith<$Res> {
           _$AuthenticatedImpl value, $Res Function(_$AuthenticatedImpl) then) =
       __$$AuthenticatedImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({User user, String? message});
+  $Res call({User user, String? message, bool hasCompletedProfile});
 
   $UserCopyWith<$Res> get user;
 }
@@ -384,6 +396,7 @@ class __$$AuthenticatedImplCopyWithImpl<$Res>
   $Res call({
     Object? user = null,
     Object? message = freezed,
+    Object? hasCompletedProfile = null,
   }) {
     return _then(_$AuthenticatedImpl(
       user: null == user
@@ -394,6 +407,10 @@ class __$$AuthenticatedImplCopyWithImpl<$Res>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String?,
+      hasCompletedProfile: null == hasCompletedProfile
+          ? _value.hasCompletedProfile
+          : hasCompletedProfile // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 
@@ -411,16 +428,20 @@ class __$$AuthenticatedImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$AuthenticatedImpl implements _Authenticated {
-  const _$AuthenticatedImpl({required this.user, this.message});
+  const _$AuthenticatedImpl(
+      {required this.user, this.message, this.hasCompletedProfile = false});
 
   @override
   final User user;
   @override
   final String? message;
+  @override
+  @JsonKey()
+  final bool hasCompletedProfile;
 
   @override
   String toString() {
-    return 'AuthState.authenticated(user: $user, message: $message)';
+    return 'AuthState.authenticated(user: $user, message: $message, hasCompletedProfile: $hasCompletedProfile)';
   }
 
   @override
@@ -429,11 +450,14 @@ class _$AuthenticatedImpl implements _Authenticated {
         (other.runtimeType == runtimeType &&
             other is _$AuthenticatedImpl &&
             (identical(other.user, user) || other.user == user) &&
-            (identical(other.message, message) || other.message == message));
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.hasCompletedProfile, hasCompletedProfile) ||
+                other.hasCompletedProfile == hasCompletedProfile));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, user, message);
+  int get hashCode =>
+      Object.hash(runtimeType, user, message, hasCompletedProfile);
 
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.
@@ -448,12 +472,14 @@ class _$AuthenticatedImpl implements _Authenticated {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
-    return authenticated(user, message);
+    return authenticated(user, message, hasCompletedProfile);
   }
 
   @override
@@ -461,12 +487,13 @@ class _$AuthenticatedImpl implements _Authenticated {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
-    return authenticated?.call(user, message);
+    return authenticated?.call(user, message, hasCompletedProfile);
   }
 
   @override
@@ -474,14 +501,15 @@ class _$AuthenticatedImpl implements _Authenticated {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
   }) {
     if (authenticated != null) {
-      return authenticated(user, message);
+      return authenticated(user, message, hasCompletedProfile);
     }
     return orElse();
   }
@@ -532,10 +560,13 @@ class _$AuthenticatedImpl implements _Authenticated {
 
 abstract class _Authenticated implements AuthState {
   const factory _Authenticated(
-      {required final User user, final String? message}) = _$AuthenticatedImpl;
+      {required final User user,
+      final String? message,
+      final bool hasCompletedProfile}) = _$AuthenticatedImpl;
 
   User get user;
   String? get message;
+  bool get hasCompletedProfile;
 
   /// Create a copy of AuthState
   /// with the given fields replaced by the non-null parameter values.
@@ -615,7 +646,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -628,7 +661,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -641,7 +675,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
@@ -780,7 +815,9 @@ class _$ErrorImpl implements _Error {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -793,7 +830,8 @@ class _$ErrorImpl implements _Error {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -806,7 +844,8 @@ class _$ErrorImpl implements _Error {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,
@@ -917,7 +956,9 @@ class _$GuestImpl implements _Guest {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(User user, String? message) authenticated,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
     required TResult Function(String? message) unauthenticated,
     required TResult Function(String message) error,
     required TResult Function() guest,
@@ -930,7 +971,8 @@ class _$GuestImpl implements _Guest {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(User user, String? message)? authenticated,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
@@ -943,7 +985,8 @@ class _$GuestImpl implements _Guest {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(User user, String? message)? authenticated,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
     TResult Function(String? message)? unauthenticated,
     TResult Function(String message)? error,
     TResult Function()? guest,

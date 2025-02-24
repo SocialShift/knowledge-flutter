@@ -32,13 +32,18 @@ class AuthNotifier extends _$AuthNotifier {
       final user =
           await ref.read(authRepositoryProvider).login(email, password);
 
+      // Check if profile is setup
+      final hasProfile =
+          await ref.read(authRepositoryProvider).hasCompletedProfileSetup();
+
       // Show loading state for a moment
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // Set authenticated state with user and success message
+      // Set authenticated state with user and additional info
       state = AuthState.authenticated(
         user: user,
         message: 'Welcome back, ${user.email}!',
+        hasCompletedProfile: hasProfile,
       );
     } on DioException catch (e) {
       await Future.delayed(const Duration(milliseconds: 500));

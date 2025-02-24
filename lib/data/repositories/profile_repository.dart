@@ -18,15 +18,20 @@ class ProfileRepository {
     Map<String, dynamic>? personalizationQuestions,
   }) async {
     try {
+      final Map<String, dynamic> data = {
+        'nickname': nickname,
+        'pronouns': pronouns,
+        'location': location,
+        'languagePreference': languagePreference,
+      };
+
+      if (personalizationQuestions != null) {
+        data['personalization_questions'] = personalizationQuestions;
+      }
+
       final response = await _apiService.patch(
         '/auth/profile/update',
-        data: {
-          'nickname': nickname,
-          'pronouns': pronouns,
-          'location': location,
-          'languagePreference': languagePreference,
-          'personalization_questions': personalizationQuestions,
-        },
+        data: data,
       );
 
       if (response.statusCode == 401) {

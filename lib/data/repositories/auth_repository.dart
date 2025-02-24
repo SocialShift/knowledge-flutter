@@ -1,9 +1,10 @@
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:knowledge/data/models/user.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:knowledge/data/models/user_profile.dart';
 
 part 'auth_repository.g.dart';
 
@@ -103,7 +104,7 @@ class AuthRepository {
 
   Future<bool> checkSession() async {
     try {
-      final response = await _apiService.get('/auth/check-session');
+      final response = await _apiService.get('/auth/user/me');
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -119,6 +120,45 @@ class AuthRepository {
     if (response.statusCode != 200) {
       final message = response.data['detail'] ?? 'Password reset failed';
       throw message.toString();
+    }
+  }
+
+  Future<bool> hasCompletedProfileSetup() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      // Check if response is successful and has user data
+      if (response.statusCode == 200 && response.data != null) {
+        final userData = response.data['user'] ?? response.data;
+
+        // Check if nickname exists and is not empty
+        final nickname = userData['nickname'] as String?;
+        return nickname != null && nickname.isNotEmpty;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking profile setup: $e');
+      return false;
+    }
+  }
+
+  Future<UserProfile> getUserProfile() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      if (response.statusCode == 200) {
+        final userData = response.data['user'] ?? response.data;
+        return UserProfile(
+          email: userData['email'] ?? '',
+          nickname: userData['nickname'],
+          location: userData['location'],
+          preferredLanguage: userData['preferred_language'] ?? 'English',
+          pronouns: userData['pronouns'],
+        );
+      }
+      throw 'Failed to load profile';
+    } catch (e) {
+      throw 'Error loading profile: $e';
     }
   }
 }
