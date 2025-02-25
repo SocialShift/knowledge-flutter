@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/presentation/widgets/success_dialog.dart';
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
@@ -15,350 +16,222 @@ class LoginScreen extends HookConsumerWidget {
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final authNotifier = ref.watch(authNotifierProvider.notifier);
-    final authState = ref.watch(authNotifierProvider);
-
-    // Add animation controller using hooks
-    final isAnimating = useState(true);
-
-    // Use effect to control initial animation
-    useEffect(() {
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        isAnimating.value = false;
-      });
-      return null;
-    }, []);
-
-    // Update the state listener to handle hasCompletedProfile
-    useEffect(() {
-      authState.maybeMap(
-        authenticated: (auth) {
-          // Show success message if present
-          if (auth.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(auth.message!)),
-            );
-          }
-          // Start session check timer
-          authNotifier.startSessionCheck();
-        },
-        error: (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
-        orElse: () {},
-      );
-      return null;
-    }, [authState]);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF3498DB),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Initial spacer with smooth animation
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1000),
-                      height: isAnimating.value
-                          ? MediaQuery.of(context).size.height * 0.3
-                          : 60,
-                      curve: Curves.easeOutCubic,
+      backgroundColor: const Color(0xFF1A1A1A),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 280,
+            backgroundColor: const Color(0xFF1A1A1A),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                children: [
+                  // Gradient background
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.blue.shade700,
+                          const Color(0xFF1A1A1A),
+                        ],
+                      ),
                     ),
-                    // Logo with professional animation
-                    Center(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 1000),
-                        width: isAnimating.value ? 200 : 120,
-                        height: isAnimating.value ? 200 : 120,
-                        curve: Curves.easeOutCubic,
-                        child: Image.asset(
-                          'assets/images/logo/logo.png',
-                          fit: BoxFit.contain,
+                  ),
+                  // Logo and title
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          Image.asset(
+                            'assets/images/logo/logo.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            'Know [ Ledge ]',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 32,
+                                ),
+                            textAlign: TextAlign.center,
+                          ).animate().fadeIn().slideY(
+                                begin: 0.3,
+                                duration: const Duration(milliseconds: 500),
+                              ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Your journey through History begins here',
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: Colors.white70,
+                                      fontSize: 16,
+                                    ),
+                            textAlign: TextAlign.center,
+                          ).animate().fadeIn().slideY(
+                                begin: 0.3,
+                                delay: const Duration(milliseconds: 200),
+                                duration: const Duration(milliseconds: 500),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Login Form
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20.0, 40.0, 20.0, 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildInfoField(
+                    context,
+                    'Email',
+                    emailController,
+                    Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 20),
+                  _buildInfoField(
+                    context,
+                    'Password',
+                    passwordController,
+                    Icons.lock_outline,
+                    isPassword: true,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 400),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 12),
+                  // Forgot Password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.push('/forgot-password'),
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Colors.blue.shade400,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ).animate(
-                      effects: [
-                        FadeEffect(
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                        ScaleEffect(
-                          begin: const Offset(0.8, 0.8),
-                          end: const Offset(1, 1),
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
+                    ),
+                  ).animate().fadeIn().slideX(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 500),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 40),
+                  // Login Button
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.blue.shade400,
+                          Colors.blue.shade700,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.shade700.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    // Welcome text with fade animation
-                    Text(
-                      'Know [ Ledge ]',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                      textAlign: TextAlign.center,
-                    ).animate(
-                      delay: const Duration(milliseconds: 400),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your journey through History begins here',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white70,
-                          ),
-                      textAlign: TextAlign.center,
-                    ).animate(
-                      delay: const Duration(milliseconds: 600),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 48),
-                    // Form fields with fade animation
-                    Column(
-                      children: [
-                        // Email field
-                        ClipRRect(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: TextField(
-                              controller: emailController,
-                              style: const TextStyle(color: Colors.white),
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                hintText: 'Email',
-                                hintStyle: TextStyle(
-                                    color: Colors.white.withOpacity(0.7)),
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
-                                prefixIcon: Icon(CupertinoIcons.mail,
-                                    color: Colors.white.withOpacity(0.7)),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ).animate(
-                          delay: const Duration(milliseconds: 800),
-                          effects: const [
-                            FadeEffect(
-                              duration: Duration(milliseconds: 800),
-                              curve: Curves.easeOut,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Password field
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: TextField(
-                              controller: passwordController,
-                              obscureText: true,
-                              style: const TextStyle(color: Colors.white),
-                              textInputAction: TextInputAction.done,
-                              decoration: InputDecoration(
-                                hintText: 'Password',
-                                hintStyle: TextStyle(
-                                    color: Colors.white.withOpacity(0.7)),
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
-                                prefixIcon: Icon(CupertinoIcons.lock,
-                                    color: Colors.white.withOpacity(0.7)),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ).animate(
-                          delay: const Duration(milliseconds: 800),
-                          effects: const [
-                            FadeEffect(
-                              duration: Duration(milliseconds: 800),
-                              curve: Curves.easeOut,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => context.push('/forgot-password'),
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                          ),
                         ),
                       ),
-                    ).animate(
-                      delay: const Duration(milliseconds: 800),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Login Button
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFB5FF3A), Color(0xFF8CD612)],
-                        ),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: authState.maybeMap(
-                          loading: (_) => null,
-                          orElse: () => () async {
-                            // Clear any existing snackbars
-                            ScaffoldMessenger.of(context).clearSnackBars();
-
-                            // Validate inputs
-                            if (emailController.text.isEmpty ||
-                                passwordController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please fill in all fields'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                  duration: Duration(seconds: 3),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (!emailController.text.contains('@')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter a valid email'),
-                                  backgroundColor: Colors.orange,
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: EdgeInsets.all(16),
-                                  duration: Duration(seconds: 3),
-                                ),
-                              );
-                              return;
-                            }
-
-                            await authNotifier.login(
-                              emailController.text.trim(),
-                              passwordController.text,
-                            );
-                          },
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: authState.maybeMap(
-                          loading: (_) => const Text(
-                            'Please wait...',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          orElse: () => const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      onPressed: () async {
+                        if (emailController.text.isEmpty ||
+                            passwordController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Please fill in all fields')),
+                          );
+                          return;
+                        }
+                        await authNotifier.login(
+                          emailController.text.trim(),
+                          passwordController.text,
+                        );
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ).animate(
-                      delay: const Duration(milliseconds: 800),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 16),
-                    // Sign Up Link
-                    TextButton(
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 20),
+                  // Sign Up Link
+                  Center(
+                    child: TextButton(
                       onPressed: () => context.go('/signup'),
                       child: RichText(
-                        textAlign: TextAlign.center,
                         text: TextSpan(
-                          style: const TextStyle(color: Colors.white70),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                          ),
                           children: [
                             const TextSpan(text: 'Don\'t have an account? '),
                             TextSpan(
                               text: 'Sign up',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Colors.blue.shade400,
                                 fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white.withOpacity(0.7),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ).animate(
-                      delay: const Duration(milliseconds: 800),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 16),
-                    // Skip Button
-                    TextButton(
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 700),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+                  // Skip Button
+                  Center(
+                    child: TextButton(
                       onPressed: () => ref
                           .read(authNotifierProvider.notifier)
                           .loginAsGuest(),
@@ -366,62 +239,77 @@ class LoginScreen extends HookConsumerWidget {
                         'Skip for now',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.5),
+                          fontSize: 14,
                         ),
                       ),
-                    ).animate(
-                      delay: const Duration(milliseconds: 800),
-                      effects: const [
-                        FadeEffect(
-                          duration: Duration(milliseconds: 800),
-                          curve: Curves.easeOut,
-                        ),
-                      ],
                     ),
-                    const Spacer(),
-                  ],
-                ),
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showSnackBar(
-    BuildContext context,
-    String message, {
-    Color backgroundColor = Colors.black,
-    bool showProgress = false,
-  }) {
-    final snackBar = SnackBar(
-      content: Row(
-        children: [
-          if (showProgress) ...[
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 3),
     );
+  }
 
-    return ScaffoldMessenger.of(context).showSnackBar(snackBar).closed;
+  Widget _buildInfoField(
+    BuildContext context,
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    bool isPassword = false,
+    TextInputType? keyboardType,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.blue.shade400,
+            size: 22,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              obscureText: isPassword,
+              keyboardType: keyboardType,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Enter your $label',
+                hintStyle: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
