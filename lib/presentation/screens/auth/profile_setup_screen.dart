@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
-import 'package:knowledge/presentation/widgets/user_avatar.dart';
+// import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
