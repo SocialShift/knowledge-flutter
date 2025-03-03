@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class EditProfileScreen extends HookConsumerWidget {
   const EditProfileScreen({super.key});
@@ -102,7 +104,10 @@ class EditProfileScreen extends HookConsumerWidget {
     Future<void> handleSave() async {
       if (nicknameController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a nickname')),
+          const SnackBar(
+            content: Text('Please enter a nickname'),
+            backgroundColor: Colors.red,
+          ),
         );
         return;
       }
@@ -125,7 +130,10 @@ class EditProfileScreen extends HookConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -134,100 +142,261 @@ class EditProfileScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.navyBlue,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
-        backgroundColor: const Color(0xFF1A1A1A),
+        title: Text(
+          'Edit Profile',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Error: $error',
-              style: const TextStyle(color: Colors.white)),
+        loading: () => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
+          ),
         ),
-        data: (profile) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const Center(
-                child: UserAvatar(size: 100),
-              ),
-              const SizedBox(height: 32),
-              // Nickname field
-              _buildInfoTile(
-                context: context,
-                icon: Icons.person_outline,
-                title: 'Nickname',
-                controller: nicknameController,
-              ),
-              const SizedBox(height: 16),
-              // Pronouns dropdown
-              _buildDropdownTile(
-                context: context,
-                icon: Icons.person_pin_outlined,
-                title: 'Pronouns',
-                value: selectedPronouns.value.isEmpty
-                    ? null
-                    : selectedPronouns.value,
-                items: pronounOptions,
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedPronouns.value = value;
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              // Location dropdown
-              _buildDropdownTile(
-                context: context,
-                icon: Icons.location_on_outlined,
-                title: 'Location',
-                value: selectedState.value.isEmpty ? null : selectedState.value,
-                items: states,
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedState.value = value;
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              // Language dropdown
-              _buildDropdownTile(
-                context: context,
-                icon: Icons.language_outlined,
-                title: 'Language',
-                value: selectedLanguage.value,
-                items: languages,
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedLanguage.value = value;
-                  }
-                },
-              ),
-              const SizedBox(height: 32),
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade400,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: isLoading.value ? null : handleSave,
-                  child: isLoading.value
-                      ? const CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        )
-                      : const Text('Save Changes'),
+        error: (error, stack) => Center(
+          child: SelectableText.rich(
+            TextSpan(
+              children: [
+                const TextSpan(
+                  text: 'Error: ',
+                  style: TextStyle(color: Colors.red),
+                ),
+                TextSpan(
+                  text: error.toString(),
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ),
+        data: (profile) => Stack(
+          children: [
+            // Background gradient for the entire screen
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.lightPurple,
+                    AppColors.navyBlue,
+                  ],
+                  stops: [0.0, 0.3],
                 ),
               ),
-            ],
-          ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  // Avatar section
+                  SizedBox(
+                    height: 140,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          // Future functionality to change avatar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Avatar change coming soon!'),
+                              backgroundColor: AppColors.navyBlue,
+                            ),
+                          );
+                        },
+                        child: Hero(
+                          tag: 'profileAvatar',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.limeGreen,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              children: [
+                                const UserAvatar(size: 100),
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.black.withOpacity(0.3),
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ).animate().fadeIn().scale(
+                            delay: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                    ),
+                  ),
+                  // Form fields - Expanded to fill remaining space
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        padding:
+                            const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
+                        child: Column(
+                          children: [
+                            // Nickname field
+                            _buildInfoTile(
+                              context: context,
+                              icon: Icons.person_outline,
+                              title: 'Nickname',
+                              controller: nicknameController,
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 300),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
+                            // Pronouns dropdown
+                            _buildDropdownTile(
+                              context: context,
+                              icon: Icons.person_pin_outlined,
+                              title: 'Pronouns',
+                              value: selectedPronouns.value.isEmpty
+                                  ? null
+                                  : selectedPronouns.value,
+                              items: pronounOptions,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  selectedPronouns.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 400),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
+                            // Location dropdown
+                            _buildDropdownTile(
+                              context: context,
+                              icon: Icons.location_on_outlined,
+                              title: 'Location',
+                              value: selectedState.value.isEmpty
+                                  ? null
+                                  : selectedState.value,
+                              items: states,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  selectedState.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 500),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
+                            // Language dropdown
+                            _buildDropdownTile(
+                              context: context,
+                              icon: Icons.language_outlined,
+                              title: 'Language',
+                              value: selectedLanguage.value,
+                              items: languages,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  selectedLanguage.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 600),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 40),
+                            // Save button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.limeGreen,
+                                  foregroundColor: AppColors.navyBlue,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: isLoading.value ? null : handleSave,
+                                child: isLoading.value
+                                    ? const CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          AppColors.navyBlue,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'Save Changes',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Icon(
+                                            Icons.check_circle_outline,
+                                            color: AppColors.navyBlue,
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ).animate().fadeIn().slideY(
+                                  begin: 0.2,
+                                  delay: const Duration(milliseconds: 700),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -242,19 +411,41 @@ class EditProfileScreen extends HookConsumerWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.blue),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.navyBlue,
+          ),
+        ),
         title: TextField(
           controller: controller,
           enabled: enabled,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.grey[800],
+          ),
           decoration: InputDecoration(
+            hintText: 'Enter $title',
+            hintStyle: TextStyle(
+              color: Colors.grey[600],
+            ),
             border: InputBorder.none,
-            hintText: 'Enter your $title',
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            contentPadding: EdgeInsets.zero,
           ),
         ),
       ),
@@ -267,36 +458,58 @@ class EditProfileScreen extends HookConsumerWidget {
     required String title,
     required String? value,
     required List<String> items,
-    required void Function(String?)? onChanged,
+    required Function(String?) onChanged,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.blue),
-        title: Theme(
-          data: Theme.of(context).copyWith(
-            dropdownMenuTheme: DropdownMenuThemeData(
-              textStyle: const TextStyle(color: Colors.white),
-            ),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Icon(
+            icon,
+            color: AppColors.navyBlue,
+          ),
+        ),
+        title: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: value,
-            hint: Text('Select $title',
-                style: TextStyle(color: Colors.grey[400])),
+            hint: Text(
+              'Select $title',
+              style: TextStyle(
+                color: Colors.grey[600],
+              ),
+            ),
             isExpanded: true,
-            underline: const SizedBox(),
-            dropdownColor: Colors.grey[900],
-            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
-            items: items.map((String value) {
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: Colors.grey[600],
+            ),
+            dropdownColor: Colors.white,
+            style: TextStyle(
+              color: Colors.grey[800],
+              fontSize: 16,
+            ),
+            onChanged: onChanged,
+            items: items.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
-                child: Text(value, style: const TextStyle(color: Colors.white)),
+                child: Text(value),
               );
             }).toList(),
-            onChanged: onChanged,
           ),
         ),
       ),

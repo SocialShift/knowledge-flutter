@@ -8,6 +8,8 @@ import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ProfileSetupScreen extends HookConsumerWidget {
   const ProfileSetupScreen({super.key});
@@ -158,261 +160,431 @@ class ProfileSetupScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            backgroundColor: const Color(0xFF1A1A1A),
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.blue.shade700,
-                      const Color(0xFF1A1A1A),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(0),
-              child: Container(
+      backgroundColor: AppColors.navyBlue,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF3949AB), // Slightly lighter navy blue
+              AppColors.navyBlue,
+            ],
+            stops: [0.0, 0.7],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Header with avatar
+              SizedBox(
+                height: 160,
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        GestureDetector(
-                          onTap: handleImageSelection,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.blue.shade400,
-                            child: avatarFile.value != null
-                                ? ClipOval(
-                                    child: Image.file(
-                                      File(avatarFile.value!.path),
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: Colors.white,
-                                  ),
-                          ),
-                        ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade400,
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
+                          child: GestureDetector(
+                            onTap: handleImageSelection,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: AppColors.limeGreen,
+                              child: avatarFile.value != null
+                                  ? ClipOval(
+                                      child: Image.file(
+                                        File(avatarFile.value!.path),
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: AppColors.navyBlue,
+                                    ),
+                            ),
+                          ),
+                        ).animate().fadeIn().scale(
+                              duration: const Duration(milliseconds: 500),
+                            ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.limeGreen,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: Icon(
                               Icons.camera_alt,
                               size: 18,
-                              color: Colors.white,
+                              color: AppColors.navyBlue,
                             ),
                           ),
-                        ),
+                        ).animate().fadeIn(
+                              delay: const Duration(milliseconds: 300),
+                            ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Text(
                       'Complete Your Profile',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                    ),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).animate().fadeIn().slideY(
+                          begin: 0.3,
+                          duration: const Duration(milliseconds: 500),
+                        ),
                   ],
                 ),
               ),
-            ),
-          ),
 
-          // Profile Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Nickname field
-                  _buildInfoTile(
-                    context: context,
-                    icon: Icons.person_outline,
-                    title: 'Nickname',
-                    controller: nicknameController,
+              // Profile Content
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 40.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Nickname field
+                            _buildInfoField(
+                              context,
+                              'Nickname',
+                              nicknameController,
+                              Icons.person_outline,
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 200),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
 
-                  // Pronouns dropdown
-                  _buildDropdownTile(
-                    context: context,
-                    icon: Icons.person_pin_outlined,
-                    title: 'Pronouns',
-                    value: selectedPronouns.value.isEmpty
-                        ? null
-                        : selectedPronouns.value,
-                    items: pronounOptions,
-                    onChanged: (value) {
-                      if (value != null) {
-                        selectedPronouns.value = value;
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                            // Pronouns dropdown
+                            _buildDropdownField(
+                              context,
+                              'Pronouns',
+                              selectedPronouns.value.isEmpty
+                                  ? null
+                                  : selectedPronouns.value,
+                              pronounOptions,
+                              Icons.person_pin_outlined,
+                              (value) {
+                                if (value != null) {
+                                  selectedPronouns.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 300),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
 
-                  // Email field (disabled)
-                  _buildInfoTile(
-                    context: context,
-                    icon: Icons.email_outlined,
-                    title: 'Email',
-                    controller: emailController,
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 16),
+                            // Email field (disabled)
+                            _buildInfoField(
+                              context,
+                              'Email',
+                              emailController,
+                              Icons.email_outlined,
+                              enabled: false,
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 400),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
 
-                  // Location dropdown
-                  _buildDropdownTile(
-                    context: context,
-                    icon: Icons.location_on_outlined,
-                    title: 'Location',
-                    value: selectedState.value.isEmpty
-                        ? null
-                        : selectedState.value,
-                    items: states,
-                    onChanged: (value) {
-                      if (value != null) {
-                        selectedState.value = value;
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                            // Location dropdown
+                            _buildDropdownField(
+                              context,
+                              'Location',
+                              selectedState.value.isEmpty
+                                  ? null
+                                  : selectedState.value,
+                              states,
+                              Icons.location_on_outlined,
+                              (value) {
+                                if (value != null) {
+                                  selectedState.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 500),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 16),
 
-                  // Language preference dropdown
-                  _buildDropdownTile(
-                    context: context,
-                    icon: Icons.language_outlined,
-                    title: 'Language',
-                    value: selectedLanguage.value,
-                    items: languages,
-                    onChanged: (value) {
-                      if (value != null) {
-                        selectedLanguage.value = value;
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 32),
+                            // Language preference dropdown
+                            _buildDropdownField(
+                              context,
+                              'Language',
+                              selectedLanguage.value,
+                              languages,
+                              Icons.language_outlined,
+                              (value) {
+                                if (value != null) {
+                                  selectedLanguage.value = value;
+                                }
+                              },
+                            ).animate().fadeIn().slideX(
+                                  begin: -0.2,
+                                  delay: const Duration(milliseconds: 600),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            const SizedBox(height: 32),
 
-                  // Save button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade400,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                            // Save button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.limeGreen,
+                                  foregroundColor: AppColors.navyBlue,
+                                  elevation: 2,
+                                  shadowColor:
+                                      AppColors.limeGreen.withOpacity(0.5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: isLoading.value ? null : handleSave,
+                                child: isLoading.value
+                                    ? SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.navyBlue),
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Save Profile',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Icon(
+                                            Icons.arrow_forward,
+                                            color: AppColors.navyBlue,
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ).animate().fadeIn().slideY(
+                                  begin: 0.2,
+                                  delay: const Duration(milliseconds: 700),
+                                  duration: const Duration(milliseconds: 500),
+                                ),
+                            // Add extra space at the bottom to ensure white background extends
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).padding.bottom + 20),
+                          ],
                         ),
                       ),
-                      onPressed: isLoading.value ? null : handleSave,
-                      child: isLoading.value
-                          ? const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            )
-                          : const Text('Save Profile'),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required TextEditingController controller,
-    bool enabled = true,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.blue),
-        title: TextField(
-          controller: controller,
-          enabled: enabled,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: 'Enter your $title',
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDropdownTile({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String? value,
-    required List<String> items,
-    required Function(String?) onChanged,
+  Widget _buildInfoField(
+    BuildContext context,
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    bool enabled = true,
+    TextInputType? keyboardType,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.blue),
-        title: Theme(
-          data: Theme.of(context).copyWith(
-            dropdownMenuTheme: DropdownMenuThemeData(
-              textStyle: const TextStyle(color: Colors.white),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          child: DropdownButton<String>(
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextFormField(
+            controller: controller,
+            enabled: enabled,
+            keyboardType: keyboardType,
+            style: TextStyle(
+              color: Colors.grey.shade800,
+              fontSize: 16,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Enter your $label',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: AppColors.navyBlue,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField(
+    BuildContext context,
+    String label,
+    String? value,
+    List<String> items,
+    IconData icon,
+    Function(String?) onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
             value: value,
-            hint: Text('Select $title',
-                style: TextStyle(color: Colors.grey[400])),
+            hint: Text(
+              'Select $label',
+              style: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+              ),
+            ),
             isExpanded: true,
-            underline: const SizedBox(),
-            dropdownColor: Colors.grey[900],
-            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
+            decoration: InputDecoration(
+              prefixIcon: Icon(
+                icon,
+                color: AppColors.navyBlue,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+            ),
+            icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade400),
+            dropdownColor: Colors.white,
             items: items.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,
-                child: Text(value, style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 16,
+                  ),
+                ),
               );
             }).toList(),
             onChanged: onChanged,
           ),
         ),
-      ),
+      ],
     );
   }
 }

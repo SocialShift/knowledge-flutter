@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget child;
@@ -19,17 +20,22 @@ class AppLayout extends StatelessWidget {
       extendBody: true,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey.withOpacity(0.1),
-              width: 0.5,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
+          ],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
         ),
         child: SafeArea(
           child: SizedBox(
-            height: 50,
+            height: 60,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -79,27 +85,30 @@ class AppLayout extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? selectedIcon : icon,
-                key: ValueKey(isSelected),
-                color: isSelected ? Colors.white : Colors.white60,
-                size: isSelected ? 28 : 26,
-              ),
-            ),
-            if (showProfileIndicator && isSelected)
-              Positioned(
-                bottom: 0,
-                child: Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    isSelected ? selectedIcon : icon,
+                    key: ValueKey(isSelected),
+                    color: isSelected ? AppColors.navyBlue : Colors.grey,
+                    size: isSelected ? 28 : 26,
                   ),
                 ),
-              ),
+                const SizedBox(height: 4),
+                if (isSelected)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: AppColors.limeGreen,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
