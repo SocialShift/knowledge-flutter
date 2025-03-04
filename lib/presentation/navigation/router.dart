@@ -17,6 +17,7 @@ import 'package:knowledge/presentation/screens/profile/edit_profile_screen.dart'
 import 'package:knowledge/presentation/screens/quiz/quiz_screen.dart';
 import 'package:knowledge/presentation/screens/leaderboard/leaderboard_screen.dart';
 import 'package:knowledge/presentation/screens/auth/profile_setup_screen.dart';
+import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -39,15 +40,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Don't redirect if accessing detail pages or main navigation routes
       if (state.uri.path.startsWith('/timeline/') ||
-              state.uri.path.startsWith('/story/') ||
-              state.uri.path.startsWith('/quiz/') ||
-              state.uri.path == '/home' ||
-              state.uri.path == '/profile' ||
-              state.uri.path == '/profile/edit' ||
-              state.uri.path == '/leaderboard'
-          // Temporarily disabled e-learning route
-          // || state.uri.path == '/elearning'
-          ) {
+          state.uri.path.startsWith('/story/') ||
+          state.uri.path.startsWith('/quiz/') ||
+          state.uri.path == '/home' ||
+          state.uri.path == '/profile' ||
+          state.uri.path == '/profile/edit' ||
+          state.uri.path == '/leaderboard' ||
+          state.uri.path == '/elearning') {
         return null;
       }
 
@@ -160,11 +159,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/profile/edit',
             builder: (context, state) => const EditProfileScreen(),
           ),
-          // Temporarily disabled e-learning route
-          /*GoRoute(
+          // Enable e-learning route
+          GoRoute(
             path: '/elearning',
             builder: (context, state) => const ElearningScreen(),
-          ),*/
+          ),
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),

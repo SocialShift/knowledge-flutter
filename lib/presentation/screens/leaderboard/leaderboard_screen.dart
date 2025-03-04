@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class LeaderboardScreen extends HookConsumerWidget {
   const LeaderboardScreen({super.key});
@@ -8,7 +9,7 @@ class LeaderboardScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -16,16 +17,16 @@ class LeaderboardScreen extends HookConsumerWidget {
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
-            backgroundColor: const Color(0xFF1A1A1A),
+            backgroundColor: AppColors.navyBlue,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
                   // Trophy Background
-                  const Icon(
+                  Icon(
                     Icons.emoji_events,
                     size: 150,
-                    color: Color(0xFF2A2A2A),
+                    color: AppColors.navyBlue.withOpacity(0.3),
                   ),
                   // Content
                   Column(
@@ -46,7 +47,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Row(
@@ -54,7 +55,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                           children: [
                             Icon(
                               Icons.star,
-                              color: Colors.amber,
+                              color: AppColors.limeGreen,
                               size: 20,
                             ),
                             SizedBox(width: 8),
@@ -86,19 +87,19 @@ class LeaderboardScreen extends HookConsumerWidget {
                     icon: Icons.military_tech,
                     value: '12',
                     label: 'Medals',
-                    color: Colors.amber,
+                    color: AppColors.limeGreen,
                   ),
                   _StatCard(
                     icon: Icons.psychology,
                     value: '85%',
                     label: 'Quiz Score',
-                    color: Colors.blue,
+                    color: AppColors.navyBlue,
                   ),
                   _StatCard(
                     icon: Icons.local_fire_department,
                     value: '7',
                     label: 'Day Streak',
-                    color: Colors.orange,
+                    color: AppColors.lightPurple,
                   ),
                 ],
               ),
@@ -106,13 +107,13 @@ class LeaderboardScreen extends HookConsumerWidget {
           ),
 
           // Achievements Section
-          const SliverPadding(
-            padding: EdgeInsets.all(16),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
             sliver: SliverToBoxAdapter(
               child: Text(
                 'Recent Achievements',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.navyBlue,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -144,13 +145,13 @@ class LeaderboardScreen extends HookConsumerWidget {
           ),
 
           // Leaderboard Section
-          const SliverPadding(
-            padding: EdgeInsets.all(16),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
             sliver: SliverToBoxAdapter(
               child: Text(
                 'Top Learners',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.navyBlue,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -203,6 +204,10 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
+          ),
         ),
         child: Column(
           children: [
@@ -220,7 +225,7 @@ class _StatCard extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.black87,
                 fontSize: 12,
               ),
             ),
@@ -283,7 +288,7 @@ class _AchievementCard extends StatelessWidget {
           Text(
             achievement.description,
             style: TextStyle(
-              color: achievement.color.withOpacity(0.8),
+              color: Colors.black87,
               fontSize: 12,
             ),
             textAlign: TextAlign.center,
@@ -323,8 +328,12 @@ class _LeaderboardItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppColors.navyBlue.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.navyBlue.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -356,8 +365,8 @@ class _LeaderboardItem extends StatelessWidget {
               children: [
                 Text(
                   user.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.navyBlue,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -365,7 +374,7 @@ class _LeaderboardItem extends StatelessWidget {
                 Text(
                   user.badge,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.black54,
                     fontSize: 12,
                   ),
                 ),
@@ -378,13 +387,13 @@ class _LeaderboardItem extends StatelessWidget {
               vertical: 6,
             ),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.2),
+              color: AppColors.limeGreen.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               '${user.points} pts',
               style: const TextStyle(
-                color: Colors.blue,
+                color: AppColors.navyBlue,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -397,13 +406,13 @@ class _LeaderboardItem extends StatelessWidget {
   Color _getRankColor(int rank) {
     switch (rank) {
       case 1:
-        return Colors.amber;
+        return AppColors.limeGreen;
       case 2:
         return Colors.grey.shade400;
       case 3:
         return Colors.brown.shade300;
       default:
-        return Colors.blue;
+        return AppColors.navyBlue;
     }
   }
 }
@@ -414,13 +423,13 @@ final List<Achievement> _demoAchievements = [
     title: 'History Buff',
     description: 'Complete 10 history quizzes',
     icon: Icons.history_edu,
-    color: Colors.blue,
+    color: AppColors.navyBlue,
   ),
   Achievement(
     title: 'Perfect Score',
     description: 'Get 100% on any quiz',
     icon: Icons.grade,
-    color: Colors.amber,
+    color: AppColors.limeGreen,
   ),
   Achievement(
     title: 'Early Bird',
@@ -432,7 +441,7 @@ final List<Achievement> _demoAchievements = [
     title: 'Knowledge Seeker',
     description: 'Read 50 stories',
     icon: Icons.auto_stories,
-    color: Colors.purple,
+    color: AppColors.lightPurple,
   ),
 ];
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -18,216 +19,193 @@ class StoryDetailScreen extends HookConsumerWidget {
     final story = _demoStory;
     final isVideo = story.mediaType == 'video';
     final size = MediaQuery.of(context).size;
+    final pageController = PageController();
+    final currentPage = ValueNotifier<int>(0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.navyBlue,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Section (Media + Header)
-            SizedBox(
-              height: size.height * 0.4,
-              child: Stack(
+            // App Bar with back button and audio button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Media
-                  Positioned.fill(
+                  // Back Button
+                  GestureDetector(
+                    onTap: () => context.pop(),
                     child: Container(
-                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: isVideo
-                            ? _VideoPlayer(videoUrl: story.mediaUrl)
-                            : Hero(
-                                tag: 'story_${story.id}',
-                                child: CachedNetworkImage(
-                                  imageUrl: story.mediaUrl,
-                                  fit: BoxFit.cover,
+                      child: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  // Audio Button
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.headphones,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Main Content
+            Expanded(
+              child: PageView(
+                controller: pageController,
+                onPageChanged: (index) {
+                  currentPage.value = index;
+                },
+                children: [
+                  // Content Pages
+                  for (int i = 0; i < 5; i++)
+                    _ContentPage(
+                      story: story,
+                      isVideo: isVideo,
+                      pageIndex: i,
+                    ),
+                ],
+              ),
+            ),
+
+            // Page Indicator and Navigation
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Page Indicator
+                  ValueListenableBuilder<int>(
+                    valueListenable: currentPage,
+                    builder: (context, value, child) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          5,
+                          (index) => Container(
+                            width: index == value ? 24 : 8,
+                            height: 8,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: index == value
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Navigation Buttons
+                  Row(
+                    children: [
+                      // Bookmark Button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {/* TODO: Implement bookmark */},
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.bookmark_border,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+
+                      // Back Button
+                      Expanded(
+                        flex: 2,
+                        child: GestureDetector(
+                          onTap: () => context.pop(),
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Back',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+
+                      // Next Button
+                      Expanded(
+                        flex: 2,
+                        child: ValueListenableBuilder<int>(
+                          valueListenable: currentPage,
+                          builder: (context, value, child) {
+                            return GestureDetector(
+                              onTap: () {
+                                if (value < 4) {
+                                  pageController.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                } else {
+                                  // On last page, navigate to quiz
+                                  context.push('/quiz/$storyId');
+                                }
+                              },
+                              child: Container(
+                                height: 48,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: value == 4
+                                      ? AppColors.limeGreen
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  value == 4 ? 'Take Quiz' : 'Next',
+                                  style: TextStyle(
+                                    color: value == 4
+                                        ? Colors.black
+                                        : AppColors.navyBlue,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                      ),
-                    ),
-                  ),
-                  // Back Button
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: GestureDetector(
-                      onTap: () => context.pop(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 24,
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Title Section with better alignment
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    story.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ).animate().fadeIn().slideX(),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${story.year}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ).animate().fadeIn().slideX(),
-                ],
-              ),
-            ),
-
-            // Interaction Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  _InteractionButton(
-                    icon: Icons.thumb_up_outlined,
-                    label: 'Like',
-                    onTap: () {/* TODO */},
-                  ),
-                  const SizedBox(width: 12),
-                  _InteractionButton(
-                    icon: Icons.bookmark_border,
-                    label: 'Save',
-                    onTap: () {/* TODO */},
-                  ),
-                  const SizedBox(width: 12),
-                  _InteractionButton(
-                    icon: Icons.share_outlined,
-                    label: 'Share',
-                    onTap: () {/* TODO */},
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Scrollable Content with better typography
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      story.content,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        height: 1.7,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    if (isVideo) ...[
-                      const Text(
-                        'Video Chapters',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _VideoTimestamps(timestamps: story.timestamps),
                     ],
-                    const SizedBox(height: 100), // Bottom padding for content
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom Navigation
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => context.pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.1),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Back to Timeline'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => context.push('/quiz/$storyId'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Take Quiz'),
-                    ),
                   ),
                 ],
               ),
@@ -320,41 +298,123 @@ The story of Athenian democracy reminds us that political systems can evolve and
   );
 }
 
-class _InteractionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+class _ContentPage extends StatelessWidget {
+  final Story story;
+  final bool isVideo;
+  final int pageIndex;
 
-  const _InteractionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
+  const _ContentPage({
+    required this.story,
+    required this.isVideo,
+    required this.pageIndex,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+    // Split content into pages for demonstration
+    final contentParts = story.content.split('\n\n');
+    final startIndex = pageIndex * 2;
+    final endIndex = (startIndex + 2) < contentParts.length
+        ? (startIndex + 2)
+        : contentParts.length;
+
+    final pageContent = contentParts.sublist(startIndex, endIndex).join('\n\n');
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image or Video
+          if (pageIndex == 0) ...[
+            Container(
+              height: 200,
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: isVideo
+                    ? _VideoPlayer(videoUrl: story.mediaUrl)
+                    : CachedNetworkImage(
+                        imageUrl: story.mediaUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[800],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[800],
+                          child: const Icon(Icons.error, color: Colors.white),
+                        ),
+                      ),
               ),
             ),
+
+            // Title and Year
+            Text(
+              story.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ).animate().fadeIn().slideX(),
+
+            const SizedBox(height: 8),
+
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '${story.year} BCE',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ).animate().fadeIn().slideX(),
+
+            const SizedBox(height: 24),
           ],
-        ),
+
+          // Content
+          Text(
+            pageContent,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.6,
+              letterSpacing: 0.3,
+            ),
+          ).animate().fadeIn(
+                duration: const Duration(milliseconds: 500),
+                delay: const Duration(milliseconds: 200),
+              ),
+
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -375,46 +435,6 @@ class _VideoPlayer extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
       ),
-    );
-  }
-}
-
-class _VideoTimestamps extends StatelessWidget {
-  final List<Timestamp> timestamps;
-
-  const _VideoTimestamps({required this.timestamps});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: timestamps.map((timestamp) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Row(
-            children: [
-              Text(
-                timestamp.time,
-                style: const TextStyle(
-                  color: Colors.blue,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  timestamp.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 }

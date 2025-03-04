@@ -41,23 +41,30 @@ class AppLayout extends StatelessWidget {
               children: [
                 _buildNavItem(
                   context: context,
-                  icon: Icons.leaderboard_outlined,
-                  selectedIcon: Icons.leaderboard,
+                  icon: Icons.home_outlined,
+                  selectedIcon: Icons.home_filled,
                   isSelected: currentIndex == 0,
-                  onTap: () => context.go('/leaderboard'),
+                  onTap: () => context.go('/home'),
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.home_outlined,
-                  selectedIcon: Icons.home_filled,
+                  icon: Icons.school_outlined,
+                  selectedIcon: Icons.school,
                   isSelected: currentIndex == 1,
-                  onTap: () => context.go('/home'),
+                  onTap: () => context.go('/elearning'),
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.leaderboard_outlined,
+                  selectedIcon: Icons.leaderboard,
+                  isSelected: currentIndex == 2,
+                  onTap: () => context.go('/leaderboard'),
                 ),
                 _buildNavItem(
                   context: context,
                   icon: Icons.person_outline,
                   selectedIcon: Icons.person,
-                  isSelected: currentIndex == 2,
+                  isSelected: currentIndex == 3,
                   onTap: () => context.go('/profile'),
                   showProfileIndicator: true,
                 ),
@@ -117,9 +124,10 @@ class AppLayout extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/leaderboard')) return 0;
-    if (location.startsWith('/home')) return 1;
-    if (location.startsWith('/profile')) return 2;
-    return 1; // Default to home
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/elearning')) return 1;
+    if (location.startsWith('/leaderboard')) return 2;
+    if (location.startsWith('/profile')) return 3;
+    return 0; // Default to home
   }
 }

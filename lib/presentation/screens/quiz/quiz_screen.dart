@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/quiz_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class QuizScreen extends HookConsumerWidget {
   final String storyId;
@@ -20,13 +21,17 @@ class QuizScreen extends HookConsumerWidget {
     final quizAsync = ref.watch(quizNotifierProvider(storyId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: Colors.white,
       body: quizAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+            child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
+        )),
         error: (error, stack) => Center(
           child: SelectableText.rich(
             TextSpan(
               text: 'Error loading quiz: ',
+              style: const TextStyle(color: AppColors.navyBlue),
               children: [
                 TextSpan(
                   text: error.toString(),
@@ -38,99 +43,258 @@ class QuizScreen extends HookConsumerWidget {
         ),
         data: (quiz) {
           final currentQuestion = quiz.questions[currentQuestionIndex.value];
+          final totalQuestions = quiz.questions.length;
 
           return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Progress and close button
-                  Row(
+            child: Column(
+              children: [
+                // Top navigation bar
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => context.pop(),
+                      // Back button
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: AppColors.navyBlue,
+                            size: 20,
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Question ${currentQuestionIndex.value + 1}/${quiz.questions.length}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
+
+                      // Title
+                      const Text(
+                        'Title',
+                        style: TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      // Hint button
+                      GestureDetector(
+                        onTap: () {
+                          // Show hint dialog
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Hint'),
+                              content: Text(
+                                  'Hint for question ${currentQuestionIndex.value + 1}'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: (currentQuestionIndex.value + 1) /
-                                  quiz.questions.length,
-                              backgroundColor: Colors.white10,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.blue,
-                              ),
-                            ),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.lightbulb_outline,
+                            color: AppColors.navyBlue,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
-                  ).animate().fadeIn(),
+                  ),
+                ),
 
-                  const SizedBox(height: 40),
-
-                  // Question
-                  Text(
-                    currentQuestion.text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ).animate().fadeIn().slideX(
-                      begin: 0.2,
-                      end: 0,
-                      duration: const Duration(milliseconds: 400)),
-
-                  const SizedBox(height: 40),
-
-                  // Options
-                  ...currentQuestion.options.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final option = entry.value;
-                    final isSelected = selectedOptionIndex.value == index;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _QuizOption(
-                        text: option.text,
-                        isSelected: isSelected,
-                        onTap: () {
-                          selectedOptionIndex.value = index;
-                          // Wait a bit before moving to next question
-                          Future.delayed(const Duration(milliseconds: 500), () {
-                            if (currentQuestionIndex.value <
-                                quiz.questions.length - 1) {
-                              currentQuestionIndex.value++;
-                              selectedOptionIndex.value = null;
-                            } else {
-                              // Quiz completed
-                              context.pop();
-                            }
-                          });
-                        },
+                // Progress indicator
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      totalQuestions,
+                      (index) => Container(
+                        width: index == currentQuestionIndex.value ? 24 : 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: index == currentQuestionIndex.value
+                              ? AppColors.navyBlue
+                              : AppColors.navyBlue.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
-                    )
-                        .animate()
-                        .fadeIn(
-                          delay: Duration(milliseconds: 100 * index),
-                        )
-                        .slideX(begin: 0.2, end: 0);
-                  }),
-                ],
-              ),
+                    ),
+                  ),
+                ),
+
+                // Question number
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    '0${currentQuestionIndex.value + 1} Question /${totalQuestions < 10 ? '0$totalQuestions' : totalQuestions}',
+                    style: const TextStyle(
+                      color: AppColors.navyBlue,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+
+                // Question text
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Text(
+                    currentQuestion.text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.navyBlue,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+
+                // Options
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ListView.builder(
+                      itemCount: currentQuestion.options.length,
+                      itemBuilder: (context, index) {
+                        final option = currentQuestion.options[index];
+                        final isSelected = selectedOptionIndex.value == index;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _QuizOption(
+                            text: option.text,
+                            isSelected: isSelected,
+                            onTap: () {
+                              selectedOptionIndex.value = index;
+                              // Wait a bit before moving to next question
+                              Future.delayed(const Duration(milliseconds: 500),
+                                  () {
+                                if (currentQuestionIndex.value <
+                                    totalQuestions - 1) {
+                                  currentQuestionIndex.value++;
+                                  selectedOptionIndex.value = null;
+                                } else {
+                                  // Quiz completed
+                                  context.pop();
+                                }
+                              });
+                            },
+                          ),
+                        ).animate().fadeIn(
+                              delay: Duration(milliseconds: 100 * index),
+                            );
+                      },
+                    ),
+                  ),
+                ),
+
+                // Bottom navigation
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      // Next button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: selectedOptionIndex.value != null
+                              ? () {
+                                  if (currentQuestionIndex.value <
+                                      totalQuestions - 1) {
+                                    currentQuestionIndex.value++;
+                                    selectedOptionIndex.value = null;
+                                  } else {
+                                    // Quiz completed
+                                    context.pop();
+                                  }
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.limeGreen,
+                            foregroundColor: Colors.black,
+                            disabledBackgroundColor:
+                                Colors.grey.withOpacity(0.3),
+                            disabledForegroundColor:
+                                Colors.black.withOpacity(0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Next',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Learn more button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: TextButton(
+                          onPressed: () {
+                            // Show learn more dialog
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Learn More'),
+                                content: Text(
+                                    'Additional information about question ${currentQuestionIndex.value + 1}'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.grey.withOpacity(0.1),
+                            foregroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Learn More',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -155,42 +319,50 @@ class _QuizOption extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? AppColors.lightPurple.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.white24,
+            color: isSelected
+                ? AppColors.lightPurple
+                : Colors.grey.withOpacity(0.3),
             width: 1,
           ),
         ),
         child: Row(
           children: [
             Container(
-              width: 24,
-              height: 24,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? Colors.white : Colors.transparent,
+                color: isSelected ? AppColors.lightPurple : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? Colors.blue : Colors.white24,
-                  width: 2,
+                  color: isSelected
+                      ? AppColors.lightPurple
+                      : Colors.grey.withOpacity(0.5),
+                  width: 1,
                 ),
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.blue,
+                  ? const Center(
+                      child: Icon(
+                        Icons.circle,
+                        size: 10,
+                        color: Colors.white,
+                      ),
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 text,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected ? AppColors.navyBlue : Colors.black87,
                   fontSize: 16,
                 ),
               ),

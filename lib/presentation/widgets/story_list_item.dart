@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/data/models/timeline.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class StoryListItem extends StatelessWidget {
   final Story story;
@@ -19,8 +20,12 @@ class StoryListItem extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: AppColors.navyBlue.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -40,8 +45,9 @@ class StoryListItem extends StatelessWidget {
                       color: Colors.grey[900],
                       child: const Center(
                         child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.limeGreen),
+                          strokeWidth: 2,
                         ),
                       ),
                     ),
@@ -70,15 +76,16 @@ class StoryListItem extends StatelessWidget {
                     Text(
                       '${story.year}',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: AppColors.limeGreen,
                         fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       story.description,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withOpacity(0.7),
                         fontSize: 14,
                         height: 1.4,
                       ),

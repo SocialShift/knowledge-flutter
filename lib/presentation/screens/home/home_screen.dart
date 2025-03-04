@@ -1,21 +1,107 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:knowledge/data/models/history_item.dart';
-import 'package:knowledge/presentation/widgets/history_card.dart';
-import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/data/models/timeline.dart';
+import 'package:knowledge/presentation/widgets/story_list_item.dart';
+import 'package:knowledge/presentation/widgets/circular_timeline.dart';
+import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
-import 'package:knowledge/core/themes/app_theme.dart';
 
-class HomeScreen extends HookConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  int _selectedTimelineIndex = 0; // Default to 1700s
+
+  // Mock data for timelines using TimelinePeriod from circular_timeline.dart
+  late final List<TimelinePeriod> _timelines = [
+    TimelinePeriod(
+        year: 1700, imageUrl: 'https://picsum.photos/200/300?random=1'),
+    TimelinePeriod(
+        year: 1800, imageUrl: 'https://picsum.photos/200/300?random=2'),
+    TimelinePeriod(
+        year: 1900, imageUrl: 'https://picsum.photos/200/300?random=3'),
+    TimelinePeriod(
+        year: 2000, imageUrl: 'https://picsum.photos/200/300?random=4'),
+    TimelinePeriod(
+        year: 2100, imageUrl: 'https://picsum.photos/200/300?random=5'),
+  ];
+
+  // Timeline info text based on selected timeline
+  String _getTimelineInfo(int index) {
+    switch (_timelines[index].year) {
+      case 1700:
+        return '1700 (MDCC) was a century leap year starting on Friday of the Gregorian calendar.';
+      case 1800:
+        return '1800 (MDCCC) was an exceptional common year starting on Wednesday of the Gregorian calendar.';
+      case 1900:
+        return '1900 (MCM) was an exceptional common year starting on Monday of the Gregorian calendar.';
+      default:
+        return '';
+    }
+  }
+
+  // Mock data for stories
+  final List<Story> _mockStories = [
+    Story(
+      id: '1',
+      title: 'Lorem ipsum dolor',
+      description:
+          'Lorem ipsum dolor sit amet consectetur. Nibh sagittis adipiscing...',
+      imageUrl: 'https://picsum.photos/200/300?random=4',
+      year: 1758,
+      isCompleted: true,
+      mediaType: 'image',
+      mediaUrl: 'https://picsum.photos/200/300?random=5',
+      content: 'Lorem ipsum dolor sit amet',
+      timestamps: [],
+    ),
+    Story(
+      id: '2',
+      title: 'Lorem ipsum dolor',
+      description:
+          'Lorem ipsum dolor sit amet consectetur. Nibh sagittis adipiscing...',
+      imageUrl: 'https://picsum.photos/200/300?random=6',
+      year: 1789,
+      isCompleted: true,
+      mediaType: 'image',
+      mediaUrl: 'https://picsum.photos/200/300?random=7',
+      content: 'Lorem ipsum dolor sit amet',
+      timestamps: [],
+    ),
+    Story(
+      id: '3',
+      title: 'Lorem ipsum dolor',
+      description:
+          'Lorem ipsum dolor sit amet consectetur. Nibh sagittis adipiscing...',
+      imageUrl: 'https://picsum.photos/200/300?random=8',
+      year: 1795,
+      isCompleted: true,
+      mediaType: 'image',
+      mediaUrl: 'https://picsum.photos/200/300?random=9',
+      content: 'Lorem ipsum dolor sit amet',
+      timestamps: [],
+    ),
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Get the bottom padding to account for the navigation bar
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 70;
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,
@@ -38,92 +124,228 @@ class HomeScreen extends HookConsumerWidget {
           SafeArea(
             bottom: false, // Don't apply safe area at the bottom
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top section with gradient background
-                Expanded(
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      const SliverToBoxAdapter(
-                        child: _HeaderSection(),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 8),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: _FeaturedSection(),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Popular in History',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ).animate().fadeIn().slideX(
-                                    begin: -0.1,
-                                    duration: const Duration(milliseconds: 500),
-                                  ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: () {
-                                  // TODO: Navigate to all history items
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.limeGreen,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.arrow_forward, size: 16),
-                                label: const Text(
-                                  'See All',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ).animate().fadeIn().slideX(
-                                    begin: 0.1,
-                                    duration: const Duration(milliseconds: 500),
-                                  ),
-                            ],
+                // Header with welcome message and notification icon
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    children: [
+                      // Logo
+                      GestureDetector(
+                        onTap: () => context.go('/home'),
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: Image.asset(
+                            'assets/images/logo/logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
-                      ),
-                      // White background container for the grid
-                      SliverToBoxAdapter(
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(30),
-                              topRight: Radius.circular(30),
-                            ),
+                      ).animate().fadeIn().scale(
+                            delay: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 500),
                           ),
-                          child: Column(
+                      const SizedBox(width: 12),
+                      // Welcome text
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome, Ann 👋',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'The History Erased Now in Your Hands',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ).animate().fadeIn().slideX(
+                              begin: -0.2,
+                              delay: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 500),
+                            ),
+                      ),
+                      // Notification icon
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: Show notifications
+                        },
+                        child: Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 24),
-                                child: SizedBox(
-                                  height:
-                                      500, // Fixed height for the grid container
-                                  child: _HistoryGrid(items: _demoItems),
+                              const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  height: 8,
+                                  width: 8,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.limeGreen,
+                                  ),
                                 ),
                               ),
-                              // Extra padding at the bottom to cover navigation bar corners
-                              SizedBox(height: bottomPadding),
                             ],
                           ),
                         ),
-                      ),
+                      ).animate().fadeIn().scale(
+                            delay: const Duration(milliseconds: 400),
+                            duration: const Duration(milliseconds: 500),
+                          ),
                     ],
+                  ),
+                ),
+
+                // Search bar
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: SearchBarWidget(
+                    onSearch: (value) {
+                      // TODO: Implement search functionality
+                    },
+                    onFilterTap: () {
+                      _showFilterBottomSheet(context);
+                    },
+                  ),
+                ).animate().fadeIn(duration: const Duration(milliseconds: 800)),
+
+                // Timeline section with matching gradient background
+                Container(
+                  child: Column(
+                    children: [
+                      // Timeline circles
+                      CircularTimeline(
+                        periods: _timelines,
+                        selectedIndex: _selectedTimelineIndex,
+                        onPeriodSelected: (index) {
+                          setState(() {
+                            _selectedTimelineIndex = index;
+                          });
+                        },
+                      )
+                          .animate()
+                          .fadeIn(duration: const Duration(milliseconds: 900)),
+
+                      // Spacer to ensure no error text is visible
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+
+                // Stories section title with proper background
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Stories from ${_timelines[_selectedTimelineIndex].year}s',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).animate().fadeIn().slideX(
+                            begin: -0.1,
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () {
+                          // TODO: Navigate to all stories
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.limeGreen,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        icon: const Icon(Icons.arrow_forward, size: 16),
+                        label: const Text(
+                          'See All',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ).animate().fadeIn().slideX(
+                            begin: 0.1,
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                    ],
+                  ),
+                ),
+
+                // Stories section with white background - Fixed layout
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x1A000000),
+                          blurRadius: 10,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(
+                          left: 16,
+                          right: 16,
+                          top: 24,
+                          bottom: bottomPadding,
+                        ),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _mockStories.length,
+                        itemBuilder: (context, index) {
+                          return _buildStoryCard(
+                            context,
+                            _mockStories[index],
+                            index,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -134,150 +356,115 @@ class HomeScreen extends HookConsumerWidget {
     );
   }
 
-  static const List<HistoryItem> _demoItems = [
-    HistoryItem(
-      id: '1',
-      title: 'Ancient Greece',
-      subtitle: 'The birthplace of democracy and philosophy',
-      imageUrl: 'https://images.unsplash.com/photo-1608730973360-cc2b8a0a9447',
-      year: 1967,
-    ),
-    HistoryItem(
-      id: '2',
-      title: 'Roman Empire',
-      subtitle: 'The rise and fall of an ancient superpower',
-      imageUrl: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-      year: 1970,
-    ),
-    HistoryItem(
-      id: '3',
-      title: 'Medieval Europe',
-      subtitle: 'The age of knights and castles',
-      imageUrl: 'https://images.unsplash.com/photo-1599946347371-68eb71b16afc',
-      year: 1976,
-    ),
-    HistoryItem(
-      id: '4',
-      title: 'Renaissance',
-      subtitle: 'The rebirth of art and learning',
-      imageUrl: 'https://images.unsplash.com/photo-1578925518470-4def7a0f08bb',
-      year: 1980,
-    ),
-  ];
-}
-
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStoryCard(BuildContext context, Story story, int index) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Enhanced logo without rounded corners
-              GestureDetector(
-                onTap: () => context.go('/home'),
-                child: SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: Image.asset(
-                    'assets/images/logo/logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ).animate().fadeIn().scale(
-                    delay: const Duration(milliseconds: 200),
-                    duration: const Duration(milliseconds: 500),
-                  ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Discover history today',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ).animate().fadeIn().slideX(
-                      begin: -0.2,
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 500),
-                    ),
-              ),
-              // Avatar moved to the right
-              GestureDetector(
-                onTap: () => context.push('/profile'),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.limeGreen,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const UserAvatar(size: 40),
-                ),
-              ).animate().fadeIn().scale(
-                    delay: const Duration(milliseconds: 400),
-                    duration: const Duration(milliseconds: 500),
-                  ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: _SearchBar().animate().fadeIn().slideY(
-                  begin: 0.2,
-                  delay: const Duration(milliseconds: 500),
-                  duration: const Duration(milliseconds: 500),
-                ),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.navyBlue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SearchBarWidget(
-      onSearch: (value) {
-        // TODO: Implement search functionality
-      },
-      onFilterTap: () {
-        _showFilterBottomSheet(context);
-      },
-    );
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/story/${story.id}'),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left side - Image
+                Hero(
+                  tag: 'story_image_${story.id}',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: CachedNetworkImage(
+                        imageUrl: story.imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.navyBlue),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.error, color: Colors.grey[400]),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Right side - Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        story.title,
+                        style: const TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${story.year}',
+                        style: TextStyle(
+                          color: AppColors.limeGreen,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        story.description,
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(
+          duration: const Duration(milliseconds: 600),
+          delay: Duration(milliseconds: 100 * index),
+        );
   }
 
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.navyBlue,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
@@ -303,25 +490,17 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.of(context).size.height,
+      height: MediaQuery.of(context).size.height * 0.85,
       child: Column(
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.lightPurple,
-                  AppColors.navyBlue,
-                ],
-                stops: [0.0, 1.0],
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Color(0xFFEEEEEE),
                   width: 1,
                 ),
               ),
@@ -329,23 +508,34 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Back button
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios, size: 18),
+                  onPressed: () => Navigator.pop(context),
+                  color: Colors.black54,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                // Title
                 const Text(
-                  'Filter Stories',
+                  'Filters',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                // Reset button
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _selectedEra = 'All';
+                      _selectedRegion = 'All';
+                      _selectedType = 'All';
+                    });
+                  },
+                  color: Colors.black54,
                 ),
               ],
             ),
@@ -354,7 +544,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -396,39 +586,41 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               ),
             ),
           ),
-          // Apply Button
+          // Confirm Button
           Container(
             padding: EdgeInsets.fromLTRB(
-                24, 16, 24, MediaQuery.of(context).padding.bottom + 16),
-            decoration: BoxDecoration(
-              color: AppColors.navyBlue,
+                20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Color(0xFFEEEEEE),
+                  width: 1,
                 ),
               ),
             ),
             child: SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton(
                 onPressed: () {
                   // TODO: Apply filters
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.limeGreen,
-                  foregroundColor: AppColors.navyBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor:
+                      const Color(0xFFDEE14B), // Yellow-green color
+                  foregroundColor: Colors.black87,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  elevation: 2,
                 ),
                 child: const Text(
-                  'Apply Filters',
+                  'Confirm',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -451,7 +643,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -462,246 +654,36 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           runSpacing: 12,
           children: options.map((option) {
             final isSelected = option == selectedValue;
-            return AnimatedScale(
-              scale: isSelected ? 1.05 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              child: FilterChip(
-                selected: isSelected,
-                label: Text(
-                  option,
-                  style: TextStyle(
-                    color: isSelected ? AppColors.navyBlue : Colors.black87,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+            return GestureDetector(
+              onTap: () => onChanged(option),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFE9DAFF) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFFE9DAFF)
+                        : const Color(0xFFE0E0E0),
+                    width: 1,
                   ),
                 ),
-                backgroundColor: Colors.white.withOpacity(0.9),
-                selectedColor: AppColors.limeGreen,
-                checkmarkColor: AppColors.navyBlue,
-                onSelected: (_) => onChanged(option),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                child: Text(
+                  option,
+                  style: TextStyle(
+                    color:
+                        isSelected ? const Color(0xFF8B5CF6) : Colors.black54,
+                    fontWeight:
+                        isSelected ? FontWeight.w500 : FontWeight.normal,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             );
           }).toList(),
         ),
       ],
-    );
-  }
-}
-
-class _FeaturedSection extends StatelessWidget {
-  const _FeaturedSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/timeline/featured'),
-      child: Container(
-        height: 200,
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Hero(
-                tag: 'timeline_featured',
-                child: CachedNetworkImage(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[800],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[800],
-                    child: const Icon(Icons.error, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.8),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.limeGreen,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Featured Story',
-                      style: TextStyle(
-                        color: AppColors.navyBlue,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'The Rise of Roman Empire',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black54,
-                          blurRadius: 2,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        '1970',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              color: Colors.white,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '10 min read',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Play button overlay for video content
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.bookmark_border,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn().slideX(
-          begin: -0.1,
-          end: 0,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOutQuart,
-        );
-  }
-}
-
-class _HistoryGrid extends StatelessWidget {
-  final List<HistoryItem> items;
-
-  const _HistoryGrid({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return HistoryCard(
-          item: item,
-          onTap: () {
-            context.push('/timeline/${item.id}');
-          },
-        )
-            .animate(
-              delay: Duration(milliseconds: index * 100 + 600),
-            )
-            .slideY(
-              begin: 0.2,
-              end: 0,
-              curve: Curves.easeOutCubic,
-              duration: const Duration(milliseconds: 600),
-            )
-            .fadeIn(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOut,
-            );
-      },
     );
   }
 }
