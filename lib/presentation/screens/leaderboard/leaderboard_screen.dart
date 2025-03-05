@@ -10,171 +10,252 @@ class LeaderboardScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Header
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            backgroundColor: AppColors.navyBlue,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Trophy Background
-                  Icon(
-                    Icons.emoji_events,
-                    size: 150,
-                    color: AppColors.navyBlue.withOpacity(0.3),
-                  ),
-                  // Content
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
+        children: [
+          // Background gradient only for the top section
+          Container(
+            height: 220, // Just enough for the header
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.lightPurple,
+                  AppColors.navyBlue,
+                ],
+                stops: [0.0, 0.7],
+              ),
+            ),
+          ),
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Header
+              SliverAppBar(
+                expandedHeight: 200,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const Text(
-                        'Your Achievements',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      // Trophy Background
+                      Icon(
+                        Icons.emoji_events,
+                        size: 150,
+                        color: Colors.white.withOpacity(0.1),
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.star,
-                              color: AppColors.limeGreen,
-                              size: 20,
+                      // Content
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // App Logo
+                          Image.asset(
+                            'assets/images/logo/logo.png',
+                            height: 50,
+                            width: 50,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Your Achievements',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
                             ),
-                            SizedBox(width: 8),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  color: AppColors.limeGreen,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Rank #42',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ).animate().fadeIn(),
+                    ],
+                  ),
+                ),
+              ),
+
+              // White background container that scrolls with content
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      // Stats Section
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                        child: Row(
+                          children: [
+                            _StatCard(
+                              icon: Icons.military_tech,
+                              value: '12',
+                              label: 'Medals',
+                              color: AppColors.limeGreen,
+                            ),
+                            _StatCard(
+                              icon: Icons.psychology,
+                              value: '85%',
+                              label: 'Quiz Score',
+                              color: AppColors.navyBlue,
+                            ),
+                            _StatCard(
+                              icon: Icons.local_fire_department,
+                              value: '7',
+                              label: 'Day Streak',
+                              color: AppColors.lightPurple,
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn().slideY(begin: 0.2),
+
+                      // Achievements Section
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        child: Row(
+                          children: [
                             Text(
-                              'Rank #42',
+                              'Recent Achievements',
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                color: AppColors.navyBlue,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to all achievements
+                              },
+                              child: Text(
+                                'See All',
+                                style: TextStyle(
+                                  color: AppColors.limeGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
+
+                      // Achievements Cards
+                      SizedBox(
+                        height: 180,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.2,
+                          ),
+                          itemCount: _demoAchievements.length,
+                          itemBuilder: (context, index) {
+                            final achievement = _demoAchievements[index];
+                            return _AchievementCard(
+                              achievement: achievement,
+                            ).animate().fadeIn(
+                                  delay: Duration(milliseconds: index * 100),
+                                );
+                          },
+                        ),
+                      ),
+
+                      // Leaderboard Section
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Top Learners',
+                              style: TextStyle(
+                                color: AppColors.navyBlue,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to full leaderboard
+                              },
+                              child: Text(
+                                'View All',
+                                style: TextStyle(
+                                  color: AppColors.limeGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Leaderboard List
+                      ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _demoUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _demoUsers[index];
+                          return _LeaderboardItem(
+                            rank: index + 1,
+                            user: user,
+                          ).animate().fadeIn(
+                                delay: Duration(milliseconds: index * 100),
+                              );
+                        },
+                      ),
+
+                      // Add bottom padding to account for navigation bar
+                      SizedBox(
+                          height: MediaQuery.of(context).padding.bottom + 70),
                     ],
-                  ).animate().fadeIn(),
-                ],
-              ),
-            ),
-          ),
-
-          // Stats Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _StatCard(
-                    icon: Icons.military_tech,
-                    value: '12',
-                    label: 'Medals',
-                    color: AppColors.limeGreen,
                   ),
-                  _StatCard(
-                    icon: Icons.psychology,
-                    value: '85%',
-                    label: 'Quiz Score',
-                    color: AppColors.navyBlue,
-                  ),
-                  _StatCard(
-                    icon: Icons.local_fire_department,
-                    value: '7',
-                    label: 'Day Streak',
-                    color: AppColors.lightPurple,
-                  ),
-                ],
-              ),
-            ).animate().fadeIn().slideY(begin: 0.2),
-          ),
-
-          // Achievements Section
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                'Recent Achievements',
-                style: TextStyle(
-                  color: AppColors.navyBlue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.5,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final achievement = _demoAchievements[index];
-                  return _AchievementCard(
-                    achievement: achievement,
-                  ).animate().fadeIn(
-                        delay: Duration(milliseconds: index * 100),
-                      );
-                },
-                childCount: _demoAchievements.length,
-              ),
-            ),
-          ),
-
-          // Leaderboard Section
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                'Top Learners',
-                style: TextStyle(
-                  color: AppColors.navyBlue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final user = _demoUsers[index];
-                  return _LeaderboardItem(
-                    rank: index + 1,
-                    user: user,
-                  ).animate().fadeIn(
-                        delay: Duration(milliseconds: index * 100),
-                      );
-                },
-                childCount: _demoUsers.length,
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -208,6 +289,13 @@ class _StatCard extends StatelessWidget {
             color: color.withOpacity(0.3),
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -266,8 +354,16 @@ class _AchievementCard extends StatelessWidget {
           color: achievement.color.withOpacity(0.3),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: achievement.color.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
@@ -284,14 +380,21 @@ class _AchievementCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          Text(
-            achievement.description,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 12,
+          const SizedBox(height: 4),
+          Flexible(
+            child: Text(
+              achievement.description,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -334,6 +437,13 @@ class _LeaderboardItem extends StatelessWidget {
           color: AppColors.navyBlue.withOpacity(0.1),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -343,6 +453,13 @@ class _LeaderboardItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: _getRankColor(rank),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: _getRankColor(rank).withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Center(
               child: Text(

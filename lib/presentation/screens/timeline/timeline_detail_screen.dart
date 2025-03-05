@@ -5,6 +5,7 @@ import 'package:knowledge/data/models/timeline.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/presentation/widgets/story_list_item.dart';
+import 'package:knowledge/core/themes/app_theme.dart';
 
 class TimelineDetailScreen extends HookConsumerWidget {
   final String timelineId;
@@ -19,7 +20,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
     final timeline = _demoTimeline;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           // Hero Header with Image
@@ -27,7 +28,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
             expandedHeight: 300,
             pinned: true,
             stretch: true,
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.navyBlue,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
@@ -35,13 +36,13 @@ class TimelineDetailScreen extends HookConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: BorderRadius.circular(24),
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.arrow_back,
                     color: Colors.white,
-                    size: 24,
+                    size: 20,
                   ),
                 ),
               ),
@@ -57,29 +58,29 @@ class TimelineDetailScreen extends HookConsumerWidget {
                       imageUrl: timeline.imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Colors.grey[900],
+                        color: Colors.grey[200],
                         child: const Center(
                           child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.navyBlue),
                           ),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[900],
+                        color: Colors.grey[200],
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
-                              color: Colors.white54,
+                              color: AppColors.navyBlue.withOpacity(0.7),
                               size: 48,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Failed to load image',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: AppColors.navyBlue.withOpacity(0.7),
                                 fontSize: 14,
                               ),
                             ),
@@ -96,8 +97,8 @@ class TimelineDetailScreen extends HookConsumerWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                          Colors.black,
+                          AppColors.navyBlue.withOpacity(0.7),
+                          AppColors.navyBlue,
                         ],
                         stops: const [0.2, 0.7, 1.0],
                       ),
@@ -111,21 +112,21 @@ class TimelineDetailScreen extends HookConsumerWidget {
           // Content
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.black,
+              color: Colors.white,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title and Year
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           timeline.title,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
+                            color: AppColors.navyBlue,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.5,
                           ),
@@ -137,13 +138,13 @@ class TimelineDetailScreen extends HookConsumerWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.limeGreen.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             '${timeline.year}',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.navyBlue,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -161,7 +162,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
                         const Text(
                           'Overview',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.navyBlue,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -170,7 +171,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
                         Text(
                           timeline.description,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.black87,
                             fontSize: 16,
                             height: 1.5,
                           ),
@@ -185,8 +186,8 @@ class TimelineDetailScreen extends HookConsumerWidget {
                     child: Text(
                       'Stories',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
+                        color: AppColors.navyBlue,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -294,8 +295,10 @@ class _StoryCard extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: story.imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (context, url) =>
-                    const Center(child: CircularProgressIndicator()),
+                placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
+                )),
                 errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
 
@@ -307,7 +310,7 @@ class _StoryCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      AppColors.navyBlue.withOpacity(0.7),
                     ],
                   ),
                 ),
@@ -337,10 +340,11 @@ class _StoryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${story.year} BCE',
+                      '${story.year}',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: AppColors.limeGreen,
                         fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

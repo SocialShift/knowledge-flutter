@@ -48,8 +48,8 @@ class AppLayout extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.school_outlined,
-                  selectedIcon: Icons.school,
+                  icon: Icons.menu_book_outlined,
+                  selectedIcon: Icons.menu_book,
                   isSelected: currentIndex == 1,
                   onTap: () => context.go('/elearning'),
                 ),
