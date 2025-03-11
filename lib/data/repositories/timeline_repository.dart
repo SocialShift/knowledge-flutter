@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:knowledge/data/models/timeline.dart';
