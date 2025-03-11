@@ -171,13 +171,13 @@ class __$$TimelineImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$TimelineImpl implements _Timeline {
-  const _$TimelineImpl(
+  _$TimelineImpl(
       {required this.id,
       required this.title,
       required this.description,
       required this.imageUrl,
       required this.year,
-      required final List<Story> stories})
+      final List<Story> stories = const []})
       : _stories = stories;
 
   factory _$TimelineImpl.fromJson(Map<String, dynamic> json) =>
@@ -195,6 +195,7 @@ class _$TimelineImpl implements _Timeline {
   final int year;
   final List<Story> _stories;
   @override
+  @JsonKey()
   List<Story> get stories {
     if (_stories is EqualUnmodifiableListView) return _stories;
     // ignore: implicit_dynamic_type
@@ -243,13 +244,13 @@ class _$TimelineImpl implements _Timeline {
 }
 
 abstract class _Timeline implements Timeline {
-  const factory _Timeline(
+  factory _Timeline(
       {required final String id,
       required final String title,
       required final String description,
       required final String imageUrl,
       required final int year,
-      required final List<Story> stories}) = _$TimelineImpl;
+      final List<Story> stories}) = _$TimelineImpl;
 
   factory _Timeline.fromJson(Map<String, dynamic> json) =
       _$TimelineImpl.fromJson;
@@ -287,11 +288,15 @@ mixin _$Story {
   String get imageUrl => throw _privateConstructorUsedError;
   int get year => throw _privateConstructorUsedError;
   bool get isCompleted => throw _privateConstructorUsedError;
-  String get mediaType =>
-      throw _privateConstructorUsedError; // 'video' or 'image'
+  String get mediaType => throw _privateConstructorUsedError;
   String get mediaUrl => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   List<Timestamp> get timestamps => throw _privateConstructorUsedError;
+  int get likes => throw _privateConstructorUsedError;
+  int get views => throw _privateConstructorUsedError;
+  String? get timelineId => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
+  String? get storyDate => throw _privateConstructorUsedError;
 
   /// Serializes this Story to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -317,7 +322,12 @@ abstract class $StoryCopyWith<$Res> {
       String mediaType,
       String mediaUrl,
       String content,
-      List<Timestamp> timestamps});
+      List<Timestamp> timestamps,
+      int likes,
+      int views,
+      String? timelineId,
+      String? createdAt,
+      String? storyDate});
 }
 
 /// @nodoc
@@ -345,6 +355,11 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
     Object? mediaUrl = null,
     Object? content = null,
     Object? timestamps = null,
+    Object? likes = null,
+    Object? views = null,
+    Object? timelineId = freezed,
+    Object? createdAt = freezed,
+    Object? storyDate = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -387,6 +402,26 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
           ? _value.timestamps
           : timestamps // ignore: cast_nullable_to_non_nullable
               as List<Timestamp>,
+      likes: null == likes
+          ? _value.likes
+          : likes // ignore: cast_nullable_to_non_nullable
+              as int,
+      views: null == views
+          ? _value.views
+          : views // ignore: cast_nullable_to_non_nullable
+              as int,
+      timelineId: freezed == timelineId
+          ? _value.timelineId
+          : timelineId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storyDate: freezed == storyDate
+          ? _value.storyDate
+          : storyDate // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -408,7 +443,12 @@ abstract class _$$StoryImplCopyWith<$Res> implements $StoryCopyWith<$Res> {
       String mediaType,
       String mediaUrl,
       String content,
-      List<Timestamp> timestamps});
+      List<Timestamp> timestamps,
+      int likes,
+      int views,
+      String? timelineId,
+      String? createdAt,
+      String? storyDate});
 }
 
 /// @nodoc
@@ -434,6 +474,11 @@ class __$$StoryImplCopyWithImpl<$Res>
     Object? mediaUrl = null,
     Object? content = null,
     Object? timestamps = null,
+    Object? likes = null,
+    Object? views = null,
+    Object? timelineId = freezed,
+    Object? createdAt = freezed,
+    Object? storyDate = freezed,
   }) {
     return _then(_$StoryImpl(
       id: null == id
@@ -476,6 +521,26 @@ class __$$StoryImplCopyWithImpl<$Res>
           ? _value._timestamps
           : timestamps // ignore: cast_nullable_to_non_nullable
               as List<Timestamp>,
+      likes: null == likes
+          ? _value.likes
+          : likes // ignore: cast_nullable_to_non_nullable
+              as int,
+      views: null == views
+          ? _value.views
+          : views // ignore: cast_nullable_to_non_nullable
+              as int,
+      timelineId: freezed == timelineId
+          ? _value.timelineId
+          : timelineId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storyDate: freezed == storyDate
+          ? _value.storyDate
+          : storyDate // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -483,17 +548,22 @@ class __$$StoryImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$StoryImpl implements _Story {
-  const _$StoryImpl(
+  _$StoryImpl(
       {required this.id,
       required this.title,
       required this.description,
       required this.imageUrl,
       required this.year,
-      required this.isCompleted,
-      required this.mediaType,
-      required this.mediaUrl,
-      required this.content,
-      required final List<Timestamp> timestamps})
+      this.isCompleted = false,
+      this.mediaType = '',
+      this.mediaUrl = '',
+      this.content = '',
+      final List<Timestamp> timestamps = const [],
+      this.likes = 0,
+      this.views = 0,
+      this.timelineId,
+      this.createdAt,
+      this.storyDate})
       : _timestamps = timestamps;
 
   factory _$StoryImpl.fromJson(Map<String, dynamic> json) =>
@@ -510,16 +580,20 @@ class _$StoryImpl implements _Story {
   @override
   final int year;
   @override
+  @JsonKey()
   final bool isCompleted;
   @override
+  @JsonKey()
   final String mediaType;
-// 'video' or 'image'
   @override
+  @JsonKey()
   final String mediaUrl;
   @override
+  @JsonKey()
   final String content;
   final List<Timestamp> _timestamps;
   @override
+  @JsonKey()
   List<Timestamp> get timestamps {
     if (_timestamps is EqualUnmodifiableListView) return _timestamps;
     // ignore: implicit_dynamic_type
@@ -527,8 +601,21 @@ class _$StoryImpl implements _Story {
   }
 
   @override
+  @JsonKey()
+  final int likes;
+  @override
+  @JsonKey()
+  final int views;
+  @override
+  final String? timelineId;
+  @override
+  final String? createdAt;
+  @override
+  final String? storyDate;
+
+  @override
   String toString() {
-    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps)';
+    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps, likes: $likes, views: $views, timelineId: $timelineId, createdAt: $createdAt, storyDate: $storyDate)';
   }
 
   @override
@@ -551,7 +638,15 @@ class _$StoryImpl implements _Story {
                 other.mediaUrl == mediaUrl) &&
             (identical(other.content, content) || other.content == content) &&
             const DeepCollectionEquality()
-                .equals(other._timestamps, _timestamps));
+                .equals(other._timestamps, _timestamps) &&
+            (identical(other.likes, likes) || other.likes == likes) &&
+            (identical(other.views, views) || other.views == views) &&
+            (identical(other.timelineId, timelineId) ||
+                other.timelineId == timelineId) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.storyDate, storyDate) ||
+                other.storyDate == storyDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -567,7 +662,12 @@ class _$StoryImpl implements _Story {
       mediaType,
       mediaUrl,
       content,
-      const DeepCollectionEquality().hash(_timestamps));
+      const DeepCollectionEquality().hash(_timestamps),
+      likes,
+      views,
+      timelineId,
+      createdAt,
+      storyDate);
 
   /// Create a copy of Story
   /// with the given fields replaced by the non-null parameter values.
@@ -586,17 +686,22 @@ class _$StoryImpl implements _Story {
 }
 
 abstract class _Story implements Story {
-  const factory _Story(
+  factory _Story(
       {required final String id,
       required final String title,
       required final String description,
       required final String imageUrl,
       required final int year,
-      required final bool isCompleted,
-      required final String mediaType,
-      required final String mediaUrl,
-      required final String content,
-      required final List<Timestamp> timestamps}) = _$StoryImpl;
+      final bool isCompleted,
+      final String mediaType,
+      final String mediaUrl,
+      final String content,
+      final List<Timestamp> timestamps,
+      final int likes,
+      final int views,
+      final String? timelineId,
+      final String? createdAt,
+      final String? storyDate}) = _$StoryImpl;
 
   factory _Story.fromJson(Map<String, dynamic> json) = _$StoryImpl.fromJson;
 
@@ -613,13 +718,23 @@ abstract class _Story implements Story {
   @override
   bool get isCompleted;
   @override
-  String get mediaType; // 'video' or 'image'
+  String get mediaType;
   @override
   String get mediaUrl;
   @override
   String get content;
   @override
   List<Timestamp> get timestamps;
+  @override
+  int get likes;
+  @override
+  int get views;
+  @override
+  String? get timelineId;
+  @override
+  String? get createdAt;
+  @override
+  String? get storyDate;
 
   /// Create a copy of Story
   /// with the given fields replaced by the non-null parameter values.

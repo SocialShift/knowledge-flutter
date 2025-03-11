@@ -96,7 +96,7 @@ class EditProfileScreen extends HookConsumerWidget {
         nicknameController.text = profile.nickname ?? '';
         selectedPronouns.value = profile.pronouns ?? '';
         selectedState.value = profile.location ?? '';
-        selectedLanguage.value = profile.preferredLanguage;
+        selectedLanguage.value = profile.languagePreference ?? 'English';
       });
       return null;
     }, [profileAsync]);

@@ -141,6 +141,104 @@ class ApiService {
     }
   }
 
+  Future<Response> postFormData(
+    String path, {
+    required FormData formData,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      print('Making FormData POST request to: ${_dio.options.baseUrl}$path');
+      print('FormData fields: ${formData.fields}');
+
+      final response = await _dio.post(
+        path,
+        data: formData,
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          validateStatus: (status) {
+            return status != null && status < 500;
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 401) {
+        throw 'Unauthorized access';
+      }
+
+      if (response.statusCode! >= 400) {
+        throw _handleDioError(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
+      return response;
+    } on DioException catch (e) {
+      print('DioException occurred: ${e.message}');
+      print('DioException type: ${e.type}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Response> patchFormData(
+    String path, {
+    required FormData formData,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      print('Making FormData PATCH request to: ${_dio.options.baseUrl}$path');
+      print('FormData fields: ${formData.fields}');
+
+      final response = await _dio.patch(
+        path,
+        data: formData,
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          validateStatus: (status) {
+            return status != null && status < 500;
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 401) {
+        throw 'Unauthorized access';
+      }
+
+      if (response.statusCode! >= 400) {
+        throw _handleDioError(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
+      return response;
+    } on DioException catch (e) {
+      print('DioException occurred: ${e.message}');
+      print('DioException type: ${e.type}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioError(e);
+    }
+  }
+
   Future<Response> patch(
     String path, {
     dynamic data,

@@ -6,15 +6,58 @@ part 'profile.freezed.dart';
 @freezed
 class Profile with _$Profile {
   const factory Profile({
-    required String nickname,
+    String? nickname,
     required String email,
     String? pronouns,
     String? avatarUrl,
     String? languagePreference,
     String? location,
     Map<String, dynamic>? personalizationQuestions,
+    int? points,
+    String? referralCode,
+    int? totalReferrals,
+    // Stats fields
+    int? rank,
+    int? totalUsers,
+    int? percentile,
+    int? completedQuizzes,
+    int? currentLoginStreak,
+    int? maxLoginStreak,
+    int? daysToNextMilestone,
+    int? nextMilestone,
+    int? streakBonus,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
+
+  // Factory constructor to handle the nested API response
+  factory Profile.fromApiResponse(Map<String, dynamic> json) {
+    final user = json['user'] ?? {};
+    final profile = json['profile'] ?? {};
+    final stats = json['stats'] ?? {};
+
+    return Profile(
+      email: user['email'] ?? '',
+      nickname: profile['nickname'],
+      avatarUrl: profile['avatar_url'],
+      languagePreference: profile['language_preference'],
+      pronouns: profile['pronouns'],
+      location: profile['location'],
+      personalizationQuestions: profile['personalization_questions'],
+      points: profile['points'],
+      referralCode: profile['referral_code'],
+      totalReferrals: profile['total_referrals'],
+      // Stats
+      rank: stats['rank'],
+      totalUsers: stats['total_users'],
+      percentile: stats['percentile'],
+      completedQuizzes: stats['completed_quizzes'],
+      currentLoginStreak: stats['current_login_streak'],
+      maxLoginStreak: stats['max_login_streak'],
+      daysToNextMilestone: stats['days_to_next_milestone'],
+      nextMilestone: stats['next_milestone'],
+      streakBonus: stats['streak_bonus'],
+    );
+  }
 }

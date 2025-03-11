@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/repositories/profile_repository.dart';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
-import 'package:knowledge/data/models/user_profile.dart';
+import 'package:knowledge/data/models/profile.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 
 part 'profile_provider.g.dart';
@@ -31,6 +31,9 @@ class ProfileNotifier extends _$ProfileNotifier {
             personalizationQuestions: personalizationQuestions,
           );
       state = const AsyncData(null);
+
+      // Refresh the user profile after update
+      ref.invalidate(userProfileProvider);
     } catch (e) {
       state = AsyncError(e, StackTrace.current);
       rethrow;
@@ -51,7 +54,8 @@ class ProfileNotifier extends _$ProfileNotifier {
   }
 }
 
+// Use the provider from the profile repository
 @riverpod
-Future<UserProfile> userProfile(UserProfileRef ref) {
-  return ref.read(authRepositoryProvider).getUserProfile();
+Future<Profile> userProfile(UserProfileRef ref) {
+  return ref.read(profileRepositoryProvider).getUserProfile();
 }

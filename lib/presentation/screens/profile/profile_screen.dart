@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/data/models/profile.dart';
 
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
@@ -79,259 +80,345 @@ class ProfileScreen extends HookConsumerWidget {
             ),
           ),
         ),
-        data: (profile) => Column(
-          children: [
-            // Header with gradient and avatar
-            SizedBox(
-              height: 280,
-              child: Stack(
-                children: [
-                  // Gradient background
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.lightPurple,
-                          AppColors.navyBlue,
-                        ],
-                      ),
-                    ),
+        data: (profile) =>
+            _buildProfileContent(context, profile as Profile, authNotifier),
+      ),
+    );
+  }
+
+  Widget _buildProfileContent(
+    BuildContext context,
+    Profile profile,
+    AuthNotifier authNotifier,
+  ) {
+    return Column(
+      children: [
+        // Header with gradient and avatar
+        SizedBox(
+          height: 280,
+          child: Stack(
+            children: [
+              // Gradient background
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.lightPurple,
+                      AppColors.navyBlue,
+                    ],
                   ),
-                  // Profile content
-                  Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 60.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: () => context.push('/profile/edit'),
-                            child: Hero(
-                              tag: 'profileAvatar',
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppColors.limeGreen,
-                                    width: 3,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
+                ),
+              ),
+              // Profile content
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 60.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () => context.push('/profile/edit'),
+                        child: Hero(
+                          tag: 'profileAvatar',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.limeGreen,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
                                 ),
-                                child: const UserAvatar(size: 100),
-                              ),
+                              ],
                             ),
-                          ).animate().fadeIn().scale(
-                                delay: const Duration(milliseconds: 200),
-                                duration: const Duration(milliseconds: 500),
-                              ),
-                          const SizedBox(height: 16),
-                          Text(
-                            profile.nickname ?? 'User',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
+                            child: const UserAvatar(size: 100),
+                          ),
+                        ),
+                      ).animate().fadeIn().scale(
+                            delay: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                      const SizedBox(height: 16),
+                      Text(
+                        profile.nickname ?? 'User',
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 24,
                                 ),
-                          ).animate().fadeIn().slideY(
-                                begin: 0.3,
-                                delay: const Duration(milliseconds: 300),
-                                duration: const Duration(milliseconds: 500),
-                              ),
-                          const SizedBox(height: 4),
-                          Text(
-                            profile.email,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 16,
-                            ),
-                          ).animate().fadeIn().slideY(
-                                begin: 0.3,
-                                delay: const Duration(milliseconds: 400),
-                                duration: const Duration(milliseconds: 500),
-                              ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Profile Info - Expanded to fill remaining space
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoField(
-                        context,
-                        'Nickname',
-                        profile.nickname ?? 'Not set',
-                        Icons.person_outline,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
-                            delay: const Duration(milliseconds: 500),
+                      ).animate().fadeIn().slideY(
+                            begin: 0.3,
+                            delay: const Duration(milliseconds: 300),
                             duration: const Duration(milliseconds: 500),
                           ),
-                      const SizedBox(height: 16),
-                      _buildInfoField(
-                        context,
-                        'Location',
-                        profile.location ?? 'Not set',
-                        Icons.location_on_outlined,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
-                            delay: const Duration(milliseconds: 600),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 16),
-                      _buildInfoField(
-                        context,
-                        'Language',
-                        profile.preferredLanguage,
-                        Icons.language_outlined,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
-                            delay: const Duration(milliseconds: 700),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 16),
-                      _buildInfoField(
-                        context,
-                        'Pronouns',
-                        profile.pronouns ?? 'Not set',
-                        Icons.person_outline,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
-                            delay: const Duration(milliseconds: 800),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 32),
-                      // Edit Profile Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.limeGreen,
-                            foregroundColor: AppColors.navyBlue,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () => context.push('/profile/edit'),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Icon(
-                                Icons.edit_outlined,
-                                color: AppColors.navyBlue,
-                              ),
-                            ],
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile.email,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 16,
                         ),
                       ).animate().fadeIn().slideY(
-                            begin: 0.2,
-                            delay: const Duration(milliseconds: 900),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 16),
-                      // Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side:
-                                const BorderSide(color: Colors.red, width: 1.5),
-                            foregroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final shouldLogout =
-                                await _showLogoutConfirmationDialog(context);
-                            if (shouldLogout && context.mounted) {
-                              try {
-                                await authNotifier.logout();
-                                if (context.mounted) {
-                                  context.go('/login');
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error logging out: $e'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Logout',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.logout_rounded,
-                                color: Colors.red,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.2,
-                            delay: const Duration(milliseconds: 1000),
+                            begin: 0.3,
+                            delay: const Duration(milliseconds: 400),
                             duration: const Duration(milliseconds: 500),
                           ),
                     ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        // Profile Info - Expanded to fill remaining space
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoField(
+                    context,
+                    'Nickname',
+                    profile.nickname ?? 'Not set',
+                    Icons.person_outline,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 500),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+                  _buildInfoField(
+                    context,
+                    'Location',
+                    profile.location ?? 'Not set',
+                    Icons.location_on_outlined,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+                  _buildInfoField(
+                    context,
+                    'Language',
+                    profile.languagePreference ?? 'Not set',
+                    Icons.language_outlined,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 700),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+                  _buildInfoField(
+                    context,
+                    'Pronouns',
+                    profile.pronouns ?? 'Not set',
+                    Icons.person_outline,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 32),
+                  // Edit Profile Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.limeGreen,
+                        foregroundColor: AppColors.navyBlue,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => context.push('/profile/edit'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.navyBlue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 900),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 24),
+
+                  // Statistics Section
+                  Text(
+                    'Your Statistics',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.navyBlue,
+                        ),
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 950),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+
+                  // Statistics Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Rank',
+                          profile.rank != null ? '#${profile.rank}' : 'N/A',
+                          Icons.leaderboard_outlined,
+                          AppColors.limeGreen,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Total Users',
+                          profile.totalUsers != null
+                              ? '${profile.totalUsers}'
+                              : 'N/A',
+                          Icons.people_outline,
+                          AppColors.navyBlue,
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 1000),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Completed Quizzes',
+                          profile.completedQuizzes != null
+                              ? '${profile.completedQuizzes}'
+                              : '0',
+                          Icons.check_circle_outline,
+                          Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Login Streak',
+                          profile.currentLoginStreak != null
+                              ? '${profile.currentLoginStreak} days'
+                              : 'N/A',
+                          Icons.local_fire_department_outlined,
+                          Colors.purple,
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 1050),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 24),
+
+                  // Logout Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red, width: 1.5),
+                        foregroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final shouldLogout =
+                            await _showLogoutConfirmationDialog(context);
+                        if (shouldLogout && context.mounted) {
+                          try {
+                            await authNotifier.logout();
+                            if (context.mounted) {
+                              context.go('/login');
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error logging out: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.red,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn().slideY(
+                        begin: 0.2,
+                        delay: const Duration(milliseconds: 1000),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -390,6 +477,55 @@ class ProfileScreen extends HookConsumerWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

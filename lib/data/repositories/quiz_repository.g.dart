@@ -1,12 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'quiz_provider.dart';
+part of 'quiz_repository.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$quizNotifierHash() => r'5c45ea54d034888dbaa01fb30f0a3fc809f942e8';
+String _$quizRepositoryHash() => r'4a223ab5ef56673db3af2da1d6d4ed4a773c2785';
+
+/// See also [quizRepository].
+@ProviderFor(quizRepository)
+final quizRepositoryProvider = AutoDisposeProvider<QuizRepository>.internal(
+  quizRepository,
+  name: r'quizRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$quizRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef QuizRepositoryRef = AutoDisposeProviderRef<QuizRepository>;
+String _$storyQuizHash() => r'4dd2dcaee27560d210105c1c6642792b5bca2b35';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,36 +46,27 @@ class _SystemHash {
   }
 }
 
-abstract class _$QuizNotifier
-    extends BuildlessAutoDisposeNotifier<AsyncValue<Quiz>> {
-  late final String storyId;
+/// See also [storyQuiz].
+@ProviderFor(storyQuiz)
+const storyQuizProvider = StoryQuizFamily();
 
-  AsyncValue<Quiz> build(
-    String storyId,
-  );
-}
+/// See also [storyQuiz].
+class StoryQuizFamily extends Family<AsyncValue<Quiz?>> {
+  /// See also [storyQuiz].
+  const StoryQuizFamily();
 
-/// See also [QuizNotifier].
-@ProviderFor(QuizNotifier)
-const quizNotifierProvider = QuizNotifierFamily();
-
-/// See also [QuizNotifier].
-class QuizNotifierFamily extends Family<AsyncValue<Quiz>> {
-  /// See also [QuizNotifier].
-  const QuizNotifierFamily();
-
-  /// See also [QuizNotifier].
-  QuizNotifierProvider call(
+  /// See also [storyQuiz].
+  StoryQuizProvider call(
     String storyId,
   ) {
-    return QuizNotifierProvider(
+    return StoryQuizProvider(
       storyId,
     );
   }
 
   @override
-  QuizNotifierProvider getProviderOverride(
-    covariant QuizNotifierProvider provider,
+  StoryQuizProvider getProviderOverride(
+    covariant StoryQuizProvider provider,
   ) {
     return call(
       provider.storyId,
@@ -77,30 +85,31 @@ class QuizNotifierFamily extends Family<AsyncValue<Quiz>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'quizNotifierProvider';
+  String? get name => r'storyQuizProvider';
 }
 
-/// See also [QuizNotifier].
-class QuizNotifierProvider
-    extends AutoDisposeNotifierProviderImpl<QuizNotifier, AsyncValue<Quiz>> {
-  /// See also [QuizNotifier].
-  QuizNotifierProvider(
+/// See also [storyQuiz].
+class StoryQuizProvider extends AutoDisposeFutureProvider<Quiz?> {
+  /// See also [storyQuiz].
+  StoryQuizProvider(
     String storyId,
   ) : this._internal(
-          () => QuizNotifier()..storyId = storyId,
-          from: quizNotifierProvider,
-          name: r'quizNotifierProvider',
+          (ref) => storyQuiz(
+            ref as StoryQuizRef,
+            storyId,
+          ),
+          from: storyQuizProvider,
+          name: r'storyQuizProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$quizNotifierHash,
-          dependencies: QuizNotifierFamily._dependencies,
-          allTransitiveDependencies:
-              QuizNotifierFamily._allTransitiveDependencies,
+                  : _$storyQuizHash,
+          dependencies: StoryQuizFamily._dependencies,
+          allTransitiveDependencies: StoryQuizFamily._allTransitiveDependencies,
           storyId: storyId,
         );
 
-  QuizNotifierProvider._internal(
+  StoryQuizProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -113,20 +122,13 @@ class QuizNotifierProvider
   final String storyId;
 
   @override
-  AsyncValue<Quiz> runNotifierBuild(
-    covariant QuizNotifier notifier,
+  Override overrideWith(
+    FutureOr<Quiz?> Function(StoryQuizRef provider) create,
   ) {
-    return notifier.build(
-      storyId,
-    );
-  }
-
-  @override
-  Override overrideWith(QuizNotifier Function() create) {
     return ProviderOverride(
       origin: this,
-      override: QuizNotifierProvider._internal(
-        () => create()..storyId = storyId,
+      override: StoryQuizProvider._internal(
+        (ref) => create(ref as StoryQuizRef),
         from: from,
         name: null,
         dependencies: null,
@@ -138,14 +140,13 @@ class QuizNotifierProvider
   }
 
   @override
-  AutoDisposeNotifierProviderElement<QuizNotifier, AsyncValue<Quiz>>
-      createElement() {
-    return _QuizNotifierProviderElement(this);
+  AutoDisposeFutureProviderElement<Quiz?> createElement() {
+    return _StoryQuizProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is QuizNotifierProvider && other.storyId == storyId;
+    return other is StoryQuizProvider && other.storyId == storyId;
   }
 
   @override
@@ -159,18 +160,17 @@ class QuizNotifierProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin QuizNotifierRef on AutoDisposeNotifierProviderRef<AsyncValue<Quiz>> {
+mixin StoryQuizRef on AutoDisposeFutureProviderRef<Quiz?> {
   /// The parameter `storyId` of this provider.
   String get storyId;
 }
 
-class _QuizNotifierProviderElement
-    extends AutoDisposeNotifierProviderElement<QuizNotifier, AsyncValue<Quiz>>
-    with QuizNotifierRef {
-  _QuizNotifierProviderElement(super.provider);
+class _StoryQuizProviderElement extends AutoDisposeFutureProviderElement<Quiz?>
+    with StoryQuizRef {
+  _StoryQuizProviderElement(super.provider);
 
   @override
-  String get storyId => (origin as QuizNotifierProvider).storyId;
+  String get storyId => (origin as StoryQuizProvider).storyId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

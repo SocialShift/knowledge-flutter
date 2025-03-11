@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/history_item.dart';
+import 'package:knowledge/data/models/timeline.dart';
+import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/presentation/widgets/history_card.dart';
-import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
@@ -16,6 +17,9 @@ class ElearningScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
+
+    // Watch the timelines provider
+    final timelinesAsync = ref.watch(timelinesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,
@@ -106,18 +110,111 @@ class ElearningScreen extends HookConsumerWidget {
                               topLeft: Radius.circular(30),
                               topRight: Radius.circular(30),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 10,
+                                offset: Offset(0, -2),
+                              ),
+                            ],
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const SizedBox(height: 24),
+                              // History items grid
+                              SizedBox(
+                                height:
+                                    500, // Fixed height for the grid container
+                                child: _HistoryGrid(items: _demoItems),
+                              ),
+
+                              // Timeline section title
                               Padding(
-                                padding: const EdgeInsets.only(top: 24),
-                                child: SizedBox(
-                                  height:
-                                      500, // Fixed height for the grid container
-                                  child: _HistoryGrid(items: _demoItems),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 32, 16, 16),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Explore Timelines',
+                                      style: TextStyle(
+                                        color: Colors.black.withOpacity(0.9),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        // TODO: Navigate to all timelines
+                                      },
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AppColors.navyBlue,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                      icon: const Icon(Icons.arrow_forward,
+                                          size: 16),
+                                      label: const Text(
+                                        'See All',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              // Extra padding at the bottom to cover navigation bar corners
+
+                              // Timeline cards
+                              timelinesAsync.when(
+                                data: (timelines) {
+                                  if (timelines.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Center(
+                                        child: Text('No timelines available'),
+                                      ),
+                                    );
+                                  }
+
+                                  return SizedBox(
+                                    height: 220,
+                                    child: ListView.builder(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 0, 16, 24),
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: timelines.length,
+                                      itemBuilder: (context, index) {
+                                        final timeline = timelines[index];
+                                        return _buildTimelineCard(
+                                            context, timeline, index);
+                                      },
+                                    ),
+                                  );
+                                },
+                                loading: () => const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                                error: (error, stack) => Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Center(
+                                    child: Text(
+                                      'Error loading timelines: $error',
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Add bottom padding to account for navigation bar
                               SizedBox(height: bottomPadding),
                             ],
                           ),
@@ -134,37 +231,183 @@ class ElearningScreen extends HookConsumerWidget {
     );
   }
 
-  static const List<HistoryItem> _demoItems = [
-    HistoryItem(
-      id: '1',
-      title: 'Ancient Greece',
-      subtitle: 'The birthplace of democracy and philosophy',
-      imageUrl: 'https://images.unsplash.com/photo-1608730973360-cc2b8a0a9447',
-      year: 1967,
-    ),
-    HistoryItem(
-      id: '2',
-      title: 'Roman Empire',
-      subtitle: 'The rise and fall of an ancient superpower',
-      imageUrl: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-      year: 1970,
-    ),
-    HistoryItem(
-      id: '3',
-      title: 'Medieval Europe',
-      subtitle: 'The age of knights and castles',
-      imageUrl: 'https://images.unsplash.com/photo-1599946347371-68eb71b16afc',
-      year: 1976,
-    ),
-    HistoryItem(
-      id: '4',
-      title: 'Renaissance',
-      subtitle: 'The rebirth of art and learning',
-      imageUrl: 'https://images.unsplash.com/photo-1578925518470-4def7a0f08bb',
-      year: 1980,
-    ),
-  ];
+  Widget _buildTimelineCard(
+      BuildContext context, Timeline timeline, int index) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to timeline detail
+        context.push('/timeline/${timeline.id}');
+      },
+      child: Container(
+        width: 280,
+        margin: EdgeInsets.only(
+          right: 16,
+          top: 8,
+          bottom: 8,
+          left: index == 0 ? 0 : 0,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Background image
+              Positioned.fill(
+                child: CachedNetworkImage(
+                  imageUrl: timeline.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.error, color: Colors.white),
+                  ),
+                ),
+              ),
+              // Gradient overlay
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                      stops: const [0.5, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+              // Content
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Year
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.limeGreen,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${timeline.year}',
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Title
+                      Text(
+                        timeline.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      // Description
+                      Text(
+                        timeline.description,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 12,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).animate().fadeIn(
+            duration: const Duration(milliseconds: 600),
+            delay: Duration(milliseconds: 100 * index),
+          ),
+    );
+  }
 }
+
+// Demo items for the history grid
+final List<HistoryItem> _demoItems = [
+  HistoryItem(
+    id: '1',
+    title: 'World War II',
+    subtitle: 'Global conflict that lasted from 1939 to 1945',
+    imageUrl: 'https://picsum.photos/200/300?random=1',
+    year: 1939,
+  ),
+  HistoryItem(
+    id: '2',
+    title: 'Renaissance',
+    subtitle: 'Period of cultural rebirth across Europe',
+    imageUrl: 'https://picsum.photos/200/300?random=2',
+    year: 1400,
+  ),
+  HistoryItem(
+    id: '3',
+    title: 'Industrial Revolution',
+    subtitle: 'Transition to new manufacturing processes',
+    imageUrl: 'https://picsum.photos/200/300?random=3',
+    year: 1760,
+  ),
+  HistoryItem(
+    id: '4',
+    title: 'French Revolution',
+    subtitle: 'Period of radical social and political upheaval',
+    imageUrl: 'https://picsum.photos/200/300?random=4',
+    year: 1789,
+  ),
+  HistoryItem(
+    id: '5',
+    title: 'Ancient Egypt',
+    subtitle: 'One of the world\'s oldest civilizations',
+    imageUrl: 'https://picsum.photos/200/300?random=5',
+    year: -3000,
+  ),
+  HistoryItem(
+    id: '6',
+    title: 'Space Race',
+    subtitle: 'Competition between Cold War rivals',
+    imageUrl: 'https://picsum.photos/200/300?random=6',
+    year: 1957,
+  ),
+];
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection();

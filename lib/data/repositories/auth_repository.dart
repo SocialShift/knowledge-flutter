@@ -5,12 +5,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:knowledge/data/models/user_profile.dart';
+import 'package:knowledge/data/repositories/profile_repository.dart';
 
 part 'auth_repository.g.dart';
 
 class AuthRepository {
   final ApiService _apiService;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final ProfileRepository _profileRepository = ProfileRepository();
 
   AuthRepository() : _apiService = ApiService();
 
@@ -125,17 +127,8 @@ class AuthRepository {
 
   Future<bool> hasCompletedProfileSetup() async {
     try {
-      final response = await _apiService.get('/auth/user/me');
-
-      // Check if response is successful and has user data
-      if (response.statusCode == 200 && response.data != null) {
-        final userData = response.data['user'] ?? response.data;
-
-        // Check if nickname exists and is not empty
-        final nickname = userData['nickname'] as String?;
-        return nickname != null && nickname.isNotEmpty;
-      }
-      return false;
+      // Use the ProfileRepository's hasCompletedProfile method
+      return await _profileRepository.hasCompletedProfile();
     } catch (e) {
       print('Error checking profile setup: $e');
       return false;
@@ -147,13 +140,16 @@ class AuthRepository {
       final response = await _apiService.get('/auth/user/me');
 
       if (response.statusCode == 200) {
-        final userData = response.data['user'] ?? response.data;
+        // Handle the new nested response structure
+        final userData = response.data['user'] ?? {};
+        final profileData = response.data['profile'] ?? {};
+
         return UserProfile(
           email: userData['email'] ?? '',
-          nickname: userData['nickname'],
-          location: userData['location'],
-          preferredLanguage: userData['preferred_language'] ?? 'English',
-          pronouns: userData['pronouns'],
+          nickname: profileData['nickname'],
+          location: profileData['location'],
+          preferredLanguage: profileData['language_preference'] ?? 'English',
+          pronouns: profileData['pronouns'],
         );
       }
       throw 'Failed to load profile';

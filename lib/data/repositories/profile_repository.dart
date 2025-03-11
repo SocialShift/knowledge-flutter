@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:knowledge/data/models/profile.dart';
@@ -18,20 +20,34 @@ class ProfileRepository {
     Map<String, dynamic>? personalizationQuestions,
   }) async {
     try {
-      final Map<String, dynamic> data = {
-        'nickname': nickname,
-        'pronouns': pronouns,
-        'location': location,
-        'languagePreference': languagePreference,
-      };
+      // Create FormData instance
+      final formData = FormData();
 
-      if (personalizationQuestions != null) {
-        data['personalization_questions'] = personalizationQuestions;
+      // Add basic fields
+      formData.fields.add(MapEntry('nickname', nickname));
+      formData.fields.add(MapEntry('pronouns', pronouns));
+      formData.fields.add(MapEntry('email', email));
+
+      // Add optional fields if they exist
+      if (location != null) {
+        formData.fields.add(MapEntry('location', location));
       }
 
-      final response = await _apiService.patch(
+      if (languagePreference != null) {
+        formData.fields.add(MapEntry('languagePreference', languagePreference));
+      }
+
+      // Handle personalization questions
+      if (personalizationQuestions != null) {
+        // Convert the map to a proper JSON string
+        final questionsJson = jsonEncode(personalizationQuestions);
+        formData.fields
+            .add(MapEntry('personalization_questions', questionsJson));
+      }
+
+      final response = await _apiService.patchFormData(
         '/auth/profile/update',
-        data: data,
+        formData: formData,
       );
 
       if (response.statusCode == 401) {
@@ -55,12 +71,39 @@ class ProfileRepository {
       final response = await _apiService.get('/auth/user/me');
 
       if (response.statusCode == 200) {
-        return Profile.fromJson(response.data);
+        // Use the new fromApiResponse method to handle the nested structure
+        return Profile.fromApiResponse(response.data);
       } else {
         throw response.data['detail'] ?? 'Failed to fetch profile';
       }
     } catch (e) {
+      print('Error fetching profile: $e');
       throw 'Failed to fetch profile: $e';
+    }
+  }
+
+  // Check if the user has completed their profile setup
+  Future<bool> hasCompletedProfile() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      if (response.statusCode == 200) {
+        final profileData = response.data['profile'] ?? {};
+
+        // Check if nickname and pronouns are set
+        final nickname = profileData['nickname'];
+        final pronouns = profileData['pronouns'];
+
+        return nickname != null &&
+            nickname.toString().isNotEmpty &&
+            pronouns != null &&
+            pronouns.toString().isNotEmpty;
+      }
+
+      return false;
+    } catch (e) {
+      print('Error checking profile completion: $e');
+      return false;
     }
   }
 }
@@ -68,4 +111,11 @@ class ProfileRepository {
 @riverpod
 ProfileRepository profileRepository(ProfileRepositoryRef ref) {
   return ProfileRepository();
+}
+
+// Provider for getting the user profile
+@riverpod
+Future<Profile> userProfile(UserProfileRef ref) async {
+  final repository = ref.watch(profileRepositoryProvider);
+  return repository.getUserProfile();
 }

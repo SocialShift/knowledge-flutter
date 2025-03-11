@@ -13,9 +13,10 @@ _$TimelineImpl _$$TimelineImplFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
       year: (json['year'] as num).toInt(),
-      stories: (json['stories'] as List<dynamic>)
-          .map((e) => Story.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      stories: (json['stories'] as List<dynamic>?)
+              ?.map((e) => Story.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
@@ -34,13 +35,19 @@ _$StoryImpl _$$StoryImplFromJson(Map<String, dynamic> json) => _$StoryImpl(
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
       year: (json['year'] as num).toInt(),
-      isCompleted: json['isCompleted'] as bool,
-      mediaType: json['mediaType'] as String,
-      mediaUrl: json['mediaUrl'] as String,
-      content: json['content'] as String,
-      timestamps: (json['timestamps'] as List<dynamic>)
-          .map((e) => Timestamp.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      mediaType: json['mediaType'] as String? ?? '',
+      mediaUrl: json['mediaUrl'] as String? ?? '',
+      content: json['content'] as String? ?? '',
+      timestamps: (json['timestamps'] as List<dynamic>?)
+              ?.map((e) => Timestamp.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      likes: (json['likes'] as num?)?.toInt() ?? 0,
+      views: (json['views'] as num?)?.toInt() ?? 0,
+      timelineId: json['timelineId'] as String?,
+      createdAt: json['createdAt'] as String?,
+      storyDate: json['storyDate'] as String?,
     );
 
 Map<String, dynamic> _$$StoryImplToJson(_$StoryImpl instance) =>
@@ -55,6 +62,11 @@ Map<String, dynamic> _$$StoryImplToJson(_$StoryImpl instance) =>
       'mediaUrl': instance.mediaUrl,
       'content': instance.content,
       'timestamps': instance.timestamps,
+      'likes': instance.likes,
+      'views': instance.views,
+      'timelineId': instance.timelineId,
+      'createdAt': instance.createdAt,
+      'storyDate': instance.storyDate,
     };
 
 _$TimestampImpl _$$TimestampImplFromJson(Map<String, dynamic> json) =>

@@ -21,9 +21,11 @@ Quiz _$QuizFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Quiz {
   String get id => throw _privateConstructorUsedError;
-  String get storyId => throw _privateConstructorUsedError;
-  List<Question> get questions => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  String get description => throw _privateConstructorUsedError;
+  List<Question> get questions => throw _privateConstructorUsedError;
+  String? get storyId => throw _privateConstructorUsedError;
+  int get totalPoints => throw _privateConstructorUsedError;
   bool get isCompleted => throw _privateConstructorUsedError;
 
   /// Serializes this Quiz to a JSON map.
@@ -42,9 +44,11 @@ abstract class $QuizCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String storyId,
-      List<Question> questions,
       String title,
+      String description,
+      List<Question> questions,
+      String? storyId,
+      int totalPoints,
       bool isCompleted});
 }
 
@@ -64,9 +68,11 @@ class _$QuizCopyWithImpl<$Res, $Val extends Quiz>
   @override
   $Res call({
     Object? id = null,
-    Object? storyId = null,
-    Object? questions = null,
     Object? title = null,
+    Object? description = null,
+    Object? questions = null,
+    Object? storyId = freezed,
+    Object? totalPoints = null,
     Object? isCompleted = null,
   }) {
     return _then(_value.copyWith(
@@ -74,18 +80,26 @@ class _$QuizCopyWithImpl<$Res, $Val extends Quiz>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      storyId: null == storyId
-          ? _value.storyId
-          : storyId // ignore: cast_nullable_to_non_nullable
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
               as String,
       questions: null == questions
           ? _value.questions
           : questions // ignore: cast_nullable_to_non_nullable
               as List<Question>,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
+      storyId: freezed == storyId
+          ? _value.storyId
+          : storyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      totalPoints: null == totalPoints
+          ? _value.totalPoints
+          : totalPoints // ignore: cast_nullable_to_non_nullable
+              as int,
       isCompleted: null == isCompleted
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
@@ -103,9 +117,11 @@ abstract class _$$QuizImplCopyWith<$Res> implements $QuizCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String storyId,
-      List<Question> questions,
       String title,
+      String description,
+      List<Question> questions,
+      String? storyId,
+      int totalPoints,
       bool isCompleted});
 }
 
@@ -122,9 +138,11 @@ class __$$QuizImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? storyId = null,
-    Object? questions = null,
     Object? title = null,
+    Object? description = null,
+    Object? questions = null,
+    Object? storyId = freezed,
+    Object? totalPoints = null,
     Object? isCompleted = null,
   }) {
     return _then(_$QuizImpl(
@@ -132,18 +150,26 @@ class __$$QuizImplCopyWithImpl<$Res>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      storyId: null == storyId
-          ? _value.storyId
-          : storyId // ignore: cast_nullable_to_non_nullable
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
               as String,
       questions: null == questions
           ? _value._questions
           : questions // ignore: cast_nullable_to_non_nullable
               as List<Question>,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
+      storyId: freezed == storyId
+          ? _value.storyId
+          : storyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      totalPoints: null == totalPoints
+          ? _value.totalPoints
+          : totalPoints // ignore: cast_nullable_to_non_nullable
+              as int,
       isCompleted: null == isCompleted
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
@@ -155,11 +181,13 @@ class __$$QuizImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$QuizImpl implements _Quiz {
-  const _$QuizImpl(
+  _$QuizImpl(
       {required this.id,
-      required this.storyId,
-      required final List<Question> questions,
       required this.title,
+      required this.description,
+      required final List<Question> questions,
+      this.storyId,
+      this.totalPoints = 0,
       this.isCompleted = false})
       : _questions = questions;
 
@@ -169,7 +197,9 @@ class _$QuizImpl implements _Quiz {
   @override
   final String id;
   @override
-  final String storyId;
+  final String title;
+  @override
+  final String description;
   final List<Question> _questions;
   @override
   List<Question> get questions {
@@ -179,14 +209,17 @@ class _$QuizImpl implements _Quiz {
   }
 
   @override
-  final String title;
+  final String? storyId;
+  @override
+  @JsonKey()
+  final int totalPoints;
   @override
   @JsonKey()
   final bool isCompleted;
 
   @override
   String toString() {
-    return 'Quiz(id: $id, storyId: $storyId, questions: $questions, title: $title, isCompleted: $isCompleted)';
+    return 'Quiz(id: $id, title: $title, description: $description, questions: $questions, storyId: $storyId, totalPoints: $totalPoints, isCompleted: $isCompleted)';
   }
 
   @override
@@ -195,18 +228,29 @@ class _$QuizImpl implements _Quiz {
         (other.runtimeType == runtimeType &&
             other is _$QuizImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.storyId, storyId) || other.storyId == storyId) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             const DeepCollectionEquality()
                 .equals(other._questions, _questions) &&
-            (identical(other.title, title) || other.title == title) &&
+            (identical(other.storyId, storyId) || other.storyId == storyId) &&
+            (identical(other.totalPoints, totalPoints) ||
+                other.totalPoints == totalPoints) &&
             (identical(other.isCompleted, isCompleted) ||
                 other.isCompleted == isCompleted));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, storyId,
-      const DeepCollectionEquality().hash(_questions), title, isCompleted);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      title,
+      description,
+      const DeepCollectionEquality().hash(_questions),
+      storyId,
+      totalPoints,
+      isCompleted);
 
   /// Create a copy of Quiz
   /// with the given fields replaced by the non-null parameter values.
@@ -225,11 +269,13 @@ class _$QuizImpl implements _Quiz {
 }
 
 abstract class _Quiz implements Quiz {
-  const factory _Quiz(
+  factory _Quiz(
       {required final String id,
-      required final String storyId,
-      required final List<Question> questions,
       required final String title,
+      required final String description,
+      required final List<Question> questions,
+      final String? storyId,
+      final int totalPoints,
       final bool isCompleted}) = _$QuizImpl;
 
   factory _Quiz.fromJson(Map<String, dynamic> json) = _$QuizImpl.fromJson;
@@ -237,11 +283,15 @@ abstract class _Quiz implements Quiz {
   @override
   String get id;
   @override
-  String get storyId;
+  String get title;
+  @override
+  String get description;
   @override
   List<Question> get questions;
   @override
-  String get title;
+  String? get storyId;
+  @override
+  int get totalPoints;
   @override
   bool get isCompleted;
 
@@ -262,7 +312,9 @@ mixin _$Question {
   String get id => throw _privateConstructorUsedError;
   String get text => throw _privateConstructorUsedError;
   List<Option> get options => throw _privateConstructorUsedError;
-  int get correctOptionIndex => throw _privateConstructorUsedError;
+  String? get correctOptionId => throw _privateConstructorUsedError;
+  int get points => throw _privateConstructorUsedError;
+  String get explanation => throw _privateConstructorUsedError;
 
   /// Serializes this Question to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -280,7 +332,12 @@ abstract class $QuestionCopyWith<$Res> {
       _$QuestionCopyWithImpl<$Res, Question>;
   @useResult
   $Res call(
-      {String id, String text, List<Option> options, int correctOptionIndex});
+      {String id,
+      String text,
+      List<Option> options,
+      String? correctOptionId,
+      int points,
+      String explanation});
 }
 
 /// @nodoc
@@ -301,7 +358,9 @@ class _$QuestionCopyWithImpl<$Res, $Val extends Question>
     Object? id = null,
     Object? text = null,
     Object? options = null,
-    Object? correctOptionIndex = null,
+    Object? correctOptionId = freezed,
+    Object? points = null,
+    Object? explanation = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -316,10 +375,18 @@ class _$QuestionCopyWithImpl<$Res, $Val extends Question>
           ? _value.options
           : options // ignore: cast_nullable_to_non_nullable
               as List<Option>,
-      correctOptionIndex: null == correctOptionIndex
-          ? _value.correctOptionIndex
-          : correctOptionIndex // ignore: cast_nullable_to_non_nullable
+      correctOptionId: freezed == correctOptionId
+          ? _value.correctOptionId
+          : correctOptionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
               as int,
+      explanation: null == explanation
+          ? _value.explanation
+          : explanation // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -333,7 +400,12 @@ abstract class _$$QuestionImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id, String text, List<Option> options, int correctOptionIndex});
+      {String id,
+      String text,
+      List<Option> options,
+      String? correctOptionId,
+      int points,
+      String explanation});
 }
 
 /// @nodoc
@@ -352,7 +424,9 @@ class __$$QuestionImplCopyWithImpl<$Res>
     Object? id = null,
     Object? text = null,
     Object? options = null,
-    Object? correctOptionIndex = null,
+    Object? correctOptionId = freezed,
+    Object? points = null,
+    Object? explanation = null,
   }) {
     return _then(_$QuestionImpl(
       id: null == id
@@ -367,10 +441,18 @@ class __$$QuestionImplCopyWithImpl<$Res>
           ? _value._options
           : options // ignore: cast_nullable_to_non_nullable
               as List<Option>,
-      correctOptionIndex: null == correctOptionIndex
-          ? _value.correctOptionIndex
-          : correctOptionIndex // ignore: cast_nullable_to_non_nullable
+      correctOptionId: freezed == correctOptionId
+          ? _value.correctOptionId
+          : correctOptionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
               as int,
+      explanation: null == explanation
+          ? _value.explanation
+          : explanation // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -378,11 +460,13 @@ class __$$QuestionImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$QuestionImpl implements _Question {
-  const _$QuestionImpl(
+  _$QuestionImpl(
       {required this.id,
       required this.text,
       required final List<Option> options,
-      required this.correctOptionIndex})
+      this.correctOptionId,
+      this.points = 10,
+      this.explanation = ''})
       : _options = options;
 
   factory _$QuestionImpl.fromJson(Map<String, dynamic> json) =>
@@ -401,11 +485,17 @@ class _$QuestionImpl implements _Question {
   }
 
   @override
-  final int correctOptionIndex;
+  final String? correctOptionId;
+  @override
+  @JsonKey()
+  final int points;
+  @override
+  @JsonKey()
+  final String explanation;
 
   @override
   String toString() {
-    return 'Question(id: $id, text: $text, options: $options, correctOptionIndex: $correctOptionIndex)';
+    return 'Question(id: $id, text: $text, options: $options, correctOptionId: $correctOptionId, points: $points, explanation: $explanation)';
   }
 
   @override
@@ -416,14 +506,23 @@ class _$QuestionImpl implements _Question {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.text, text) || other.text == text) &&
             const DeepCollectionEquality().equals(other._options, _options) &&
-            (identical(other.correctOptionIndex, correctOptionIndex) ||
-                other.correctOptionIndex == correctOptionIndex));
+            (identical(other.correctOptionId, correctOptionId) ||
+                other.correctOptionId == correctOptionId) &&
+            (identical(other.points, points) || other.points == points) &&
+            (identical(other.explanation, explanation) ||
+                other.explanation == explanation));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, text,
-      const DeepCollectionEquality().hash(_options), correctOptionIndex);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      text,
+      const DeepCollectionEquality().hash(_options),
+      correctOptionId,
+      points,
+      explanation);
 
   /// Create a copy of Question
   /// with the given fields replaced by the non-null parameter values.
@@ -442,11 +541,13 @@ class _$QuestionImpl implements _Question {
 }
 
 abstract class _Question implements Question {
-  const factory _Question(
+  factory _Question(
       {required final String id,
       required final String text,
       required final List<Option> options,
-      required final int correctOptionIndex}) = _$QuestionImpl;
+      final String? correctOptionId,
+      final int points,
+      final String explanation}) = _$QuestionImpl;
 
   factory _Question.fromJson(Map<String, dynamic> json) =
       _$QuestionImpl.fromJson;
@@ -458,7 +559,11 @@ abstract class _Question implements Question {
   @override
   List<Option> get options;
   @override
-  int get correctOptionIndex;
+  String? get correctOptionId;
+  @override
+  int get points;
+  @override
+  String get explanation;
 
   /// Create a copy of Question
   /// with the given fields replaced by the non-null parameter values.
@@ -476,6 +581,7 @@ Option _$OptionFromJson(Map<String, dynamic> json) {
 mixin _$Option {
   String get id => throw _privateConstructorUsedError;
   String get text => throw _privateConstructorUsedError;
+  bool get isCorrect => throw _privateConstructorUsedError;
 
   /// Serializes this Option to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -491,7 +597,7 @@ abstract class $OptionCopyWith<$Res> {
   factory $OptionCopyWith(Option value, $Res Function(Option) then) =
       _$OptionCopyWithImpl<$Res, Option>;
   @useResult
-  $Res call({String id, String text});
+  $Res call({String id, String text, bool isCorrect});
 }
 
 /// @nodoc
@@ -511,6 +617,7 @@ class _$OptionCopyWithImpl<$Res, $Val extends Option>
   $Res call({
     Object? id = null,
     Object? text = null,
+    Object? isCorrect = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -521,6 +628,10 @@ class _$OptionCopyWithImpl<$Res, $Val extends Option>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
+      isCorrect: null == isCorrect
+          ? _value.isCorrect
+          : isCorrect // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -532,7 +643,7 @@ abstract class _$$OptionImplCopyWith<$Res> implements $OptionCopyWith<$Res> {
       __$$OptionImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String text});
+  $Res call({String id, String text, bool isCorrect});
 }
 
 /// @nodoc
@@ -550,6 +661,7 @@ class __$$OptionImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? text = null,
+    Object? isCorrect = null,
   }) {
     return _then(_$OptionImpl(
       id: null == id
@@ -560,6 +672,10 @@ class __$$OptionImplCopyWithImpl<$Res>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
+      isCorrect: null == isCorrect
+          ? _value.isCorrect
+          : isCorrect // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -567,7 +683,7 @@ class __$$OptionImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$OptionImpl implements _Option {
-  const _$OptionImpl({required this.id, required this.text});
+  _$OptionImpl({required this.id, required this.text, this.isCorrect = false});
 
   factory _$OptionImpl.fromJson(Map<String, dynamic> json) =>
       _$$OptionImplFromJson(json);
@@ -576,10 +692,13 @@ class _$OptionImpl implements _Option {
   final String id;
   @override
   final String text;
+  @override
+  @JsonKey()
+  final bool isCorrect;
 
   @override
   String toString() {
-    return 'Option(id: $id, text: $text)';
+    return 'Option(id: $id, text: $text, isCorrect: $isCorrect)';
   }
 
   @override
@@ -588,12 +707,14 @@ class _$OptionImpl implements _Option {
         (other.runtimeType == runtimeType &&
             other is _$OptionImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.text, text) || other.text == text));
+            (identical(other.text, text) || other.text == text) &&
+            (identical(other.isCorrect, isCorrect) ||
+                other.isCorrect == isCorrect));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, text);
+  int get hashCode => Object.hash(runtimeType, id, text, isCorrect);
 
   /// Create a copy of Option
   /// with the given fields replaced by the non-null parameter values.
@@ -612,8 +733,10 @@ class _$OptionImpl implements _Option {
 }
 
 abstract class _Option implements Option {
-  const factory _Option(
-      {required final String id, required final String text}) = _$OptionImpl;
+  factory _Option(
+      {required final String id,
+      required final String text,
+      final bool isCorrect}) = _$OptionImpl;
 
   factory _Option.fromJson(Map<String, dynamic> json) = _$OptionImpl.fromJson;
 
@@ -621,6 +744,8 @@ abstract class _Option implements Option {
   String get id;
   @override
   String get text;
+  @override
+  bool get isCorrect;
 
   /// Create a copy of Option
   /// with the given fields replaced by the non-null parameter values.
