@@ -3,10 +3,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/history_item.dart';
 import 'package:knowledge/data/models/timeline.dart';
-import 'package:knowledge/data/repositories/timeline_repository.dart';
+import 'package:knowledge/data/providers/timeline_provider.dart';
 import 'package:knowledge/presentation/widgets/history_card.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 
@@ -18,8 +18,10 @@ class ElearningScreen extends HookConsumerWidget {
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
 
-    // Watch the timelines provider
-    final timelinesAsync = ref.watch(timelinesProvider);
+    // Watch the paginated timelines provider
+    final paginatedTimelines = ref.watch(paginatedTimelinesProvider);
+    final paginatedTimelinesNotifier =
+        ref.watch(paginatedTimelinesProvider.notifier);
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,
@@ -54,9 +56,6 @@ class ElearningScreen extends HookConsumerWidget {
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 8),
                       ),
-                      const SliverToBoxAdapter(
-                        child: _FeaturedSection(),
-                      ),
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
@@ -76,7 +75,8 @@ class ElearningScreen extends HookConsumerWidget {
                               const Spacer(),
                               TextButton.icon(
                                 onPressed: () {
-                                  // TODO: Navigate to all history items
+                                  // Refresh the timelines
+                                  paginatedTimelinesNotifier.refresh();
                                 },
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.limeGreen,
@@ -86,9 +86,9 @@ class ElearningScreen extends HookConsumerWidget {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                 ),
-                                icon: const Icon(Icons.arrow_forward, size: 16),
+                                icon: const Icon(Icons.refresh, size: 16),
                                 label: const Text(
-                                  'See All',
+                                  'Refresh',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -122,97 +122,54 @@ class ElearningScreen extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 24),
-                              // History items grid
-                              SizedBox(
-                                height:
-                                    500, // Fixed height for the grid container
-                                child: _HistoryGrid(items: _demoItems),
-                              ),
-
-                              // Timeline section title
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 32, 16, 16),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'Explore Timelines',
-                                      style: TextStyle(
-                                        color: Colors.black.withOpacity(0.9),
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                              // Timeline grid with pagination
+                              paginatedTimelines.items.isEmpty &&
+                                      paginatedTimelines.isLoading
+                                  ? const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(32.0),
+                                        child: CircularProgressIndicator(),
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    TextButton.icon(
-                                      onPressed: () {
-                                        // TODO: Navigate to all timelines
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: AppColors.navyBlue,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                    )
+                                  : paginatedTimelines.items.isEmpty &&
+                                          paginatedTimelines.error != null
+                                      ? Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(32.0),
+                                            child: Column(
+                                              children: [
+                                                const Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red,
+                                                  size: 48,
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'Error loading timelines: ${paginatedTimelines.error}',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      color: Colors.red),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                ElevatedButton(
+                                                  onPressed: () =>
+                                                      paginatedTimelinesNotifier
+                                                          .refresh(),
+                                                  child: const Text('Retry'),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      : _TimelineGrid(
+                                          timelines: paginatedTimelines.items,
+                                          onLoadMore: paginatedTimelines.hasMore
+                                              ? () => paginatedTimelinesNotifier
+                                                  .loadNextPage()
+                                              : null,
+                                          isLoading:
+                                              paginatedTimelines.isLoading,
                                         ),
-                                      ),
-                                      icon: const Icon(Icons.arrow_forward,
-                                          size: 16),
-                                      label: const Text(
-                                        'See All',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Timeline cards
-                              timelinesAsync.when(
-                                data: (timelines) {
-                                  if (timelines.isEmpty) {
-                                    return const Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Center(
-                                        child: Text('No timelines available'),
-                                      ),
-                                    );
-                                  }
-
-                                  return SizedBox(
-                                    height: 220,
-                                    child: ListView.builder(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16, 0, 16, 24),
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: timelines.length,
-                                      itemBuilder: (context, index) {
-                                        final timeline = timelines[index];
-                                        return _buildTimelineCard(
-                                            context, timeline, index);
-                                      },
-                                    ),
-                                  );
-                                },
-                                loading: () => const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ),
-                                error: (error, stack) => Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Center(
-                                    child: Text(
-                                      'Error loading timelines: $error',
-                                      style: const TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ),
-                              ),
 
                               // Add bottom padding to account for navigation bar
                               SizedBox(height: bottomPadding),
@@ -230,184 +187,108 @@ class ElearningScreen extends HookConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildTimelineCard(
-      BuildContext context, Timeline timeline, int index) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to timeline detail
-        context.push('/timeline/${timeline.id}');
-      },
-      child: Container(
-        width: 280,
-        margin: EdgeInsets.only(
-          right: 16,
-          top: 8,
-          bottom: 8,
-          left: index == 0 ? 0 : 0,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+class _TimelineGrid extends StatefulWidget {
+  final List<Timeline> timelines;
+  final VoidCallback? onLoadMore;
+  final bool isLoading;
+
+  const _TimelineGrid({
+    required this.timelines,
+    this.onLoadMore,
+    this.isLoading = false,
+  });
+
+  @override
+  State<_TimelineGrid> createState() => _TimelineGridState();
+}
+
+class _TimelineGridState extends State<_TimelineGrid> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (widget.onLoadMore != null &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !widget.isLoading) {
+      widget.onLoadMore!();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 500, // Fixed height for the grid container
+          child: GridView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.85,
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              // Background image
-              Positioned.fill(
-                child: CachedNetworkImage(
-                  imageUrl: timeline.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.error, color: Colors.white),
-                  ),
-                ),
-              ),
-              // Gradient overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                      ],
-                      stops: const [0.5, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-              // Content
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Year
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.limeGreen,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '${timeline.year}',
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Title
-                      Text(
-                        timeline.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      // Description
-                      Text(
-                        timeline.description,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 12,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            itemCount: widget.timelines.length,
+            itemBuilder: (context, index) {
+              final timeline = widget.timelines[index];
+              // Convert Timeline to HistoryItem for use with HistoryCard
+              final historyItem = HistoryItem(
+                id: timeline.id,
+                title: timeline.title,
+                subtitle: timeline.description,
+                imageUrl: timeline.imageUrl,
+                year: timeline.year,
+              );
+
+              return HistoryCard(
+                item: historyItem,
+                onTap: () {
+                  context.push('/timeline/${timeline.id}');
+                },
+              )
+                  .animate(
+                    delay: Duration(milliseconds: index * 100 + 600),
+                  )
+                  .slideY(
+                    begin: 0.2,
+                    end: 0,
+                    curve: Curves.easeOutCubic,
+                    duration: const Duration(milliseconds: 600),
+                  )
+                  .fadeIn(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeOut,
+                  );
+            },
           ),
         ),
-      ).animate().fadeIn(
-            duration: const Duration(milliseconds: 600),
-            delay: Duration(milliseconds: 100 * index),
+        if (widget.isLoading)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
+      ],
     );
   }
 }
-
-// Demo items for the history grid
-final List<HistoryItem> _demoItems = [
-  HistoryItem(
-    id: '1',
-    title: 'World War II',
-    subtitle: 'Global conflict that lasted from 1939 to 1945',
-    imageUrl: 'https://picsum.photos/200/300?random=1',
-    year: 1939,
-  ),
-  HistoryItem(
-    id: '2',
-    title: 'Renaissance',
-    subtitle: 'Period of cultural rebirth across Europe',
-    imageUrl: 'https://picsum.photos/200/300?random=2',
-    year: 1400,
-  ),
-  HistoryItem(
-    id: '3',
-    title: 'Industrial Revolution',
-    subtitle: 'Transition to new manufacturing processes',
-    imageUrl: 'https://picsum.photos/200/300?random=3',
-    year: 1760,
-  ),
-  HistoryItem(
-    id: '4',
-    title: 'French Revolution',
-    subtitle: 'Period of radical social and political upheaval',
-    imageUrl: 'https://picsum.photos/200/300?random=4',
-    year: 1789,
-  ),
-  HistoryItem(
-    id: '5',
-    title: 'Ancient Egypt',
-    subtitle: 'One of the world\'s oldest civilizations',
-    imageUrl: 'https://picsum.photos/200/300?random=5',
-    year: -3000,
-  ),
-  HistoryItem(
-    id: '6',
-    title: 'Space Race',
-    subtitle: 'Competition between Cold War rivals',
-    imageUrl: 'https://picsum.photos/200/300?random=6',
-    year: 1957,
-  ),
-];
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection();
@@ -754,219 +635,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           }).toList(),
         ),
       ],
-    );
-  }
-}
-
-class _FeaturedSection extends StatelessWidget {
-  const _FeaturedSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/timeline/featured'),
-      child: Container(
-        height: 200,
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Hero(
-                tag: 'timeline_featured',
-                child: CachedNetworkImage(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[800],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[800],
-                    child: const Icon(Icons.error, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.8),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.limeGreen,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Featured Story',
-                      style: TextStyle(
-                        color: AppColors.navyBlue,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'The Rise of Roman Empire',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black54,
-                          blurRadius: 2,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        '1970',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              color: Colors.white,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '10 min read',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Play button overlay for video content
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.bookmark_border,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn().slideX(
-          begin: -0.1,
-          end: 0,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOutQuart,
-        );
-  }
-}
-
-class _HistoryGrid extends StatelessWidget {
-  final List<HistoryItem> items;
-
-  const _HistoryGrid({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return HistoryCard(
-          item: item,
-          onTap: () {
-            context.push('/timeline/${item.id}');
-          },
-        )
-            .animate(
-              delay: Duration(milliseconds: index * 100 + 600),
-            )
-            .slideY(
-              begin: 0.2,
-              end: 0,
-              curve: Curves.easeOutCubic,
-              duration: const Duration(milliseconds: 600),
-            )
-            .fadeIn(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOut,
-            );
-      },
     );
   }
 }

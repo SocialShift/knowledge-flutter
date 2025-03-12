@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/data/repositories/leaderboard_repository.dart';
+import 'package:knowledge/data/models/leaderboard.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class LeaderboardScreen extends HookConsumerWidget {
   const LeaderboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fetch leaderboard data
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -46,63 +52,81 @@ class LeaderboardScreen extends HookConsumerWidget {
                         color: Colors.white.withOpacity(0.1),
                       ),
                       // Content
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // App Logo
-                          Image.asset(
-                            'assets/images/logo/logo.png',
-                            height: 50,
-                            width: 50,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Your Achievements',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                      leaderboardAsync.when(
+                        data: (leaderboardData) => Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // App Logo
+                            Image.asset(
+                              'assets/images/logo/logo.png',
+                              height: 50,
+                              width: 50,
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Your Achievements',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.star,
-                                  color: AppColors.limeGreen,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Rank #42',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    color: AppColors.limeGreen,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Rank #${leaderboardData.userRank}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ).animate().fadeIn(),
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.limeGreen),
+                          ),
+                        ),
+                        error: (error, _) => Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'Error loading leaderboard: $error',
+                              style: const TextStyle(color: Colors.white),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                        ],
-                      ).animate().fadeIn(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -232,20 +256,44 @@ class LeaderboardScreen extends HookConsumerWidget {
                       ),
 
                       // Leaderboard List
-                      ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _demoUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = _demoUsers[index];
-                          return _LeaderboardItem(
-                            rank: index + 1,
-                            user: user,
-                          ).animate().fadeIn(
-                                delay: Duration(milliseconds: index * 100),
-                              );
+                      leaderboardAsync.when(
+                        data: (leaderboardData) {
+                          final users = leaderboardData.leaderboard;
+                          return ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: users.length > 5 ? 5 : users.length,
+                            itemBuilder: (context, index) {
+                              final user = users[index];
+                              return _LeaderboardItem(
+                                rank: user.rank,
+                                user: user,
+                              ).animate().fadeIn(
+                                    delay: Duration(milliseconds: index * 100),
+                                  );
+                            },
+                          );
                         },
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.limeGreen),
+                            ),
+                          ),
+                        ),
+                        error: (error, _) => Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Text(
+                              'Error loading leaderboard: $error',
+                              style: TextStyle(color: AppColors.navyBlue),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
                       ),
 
                       // Add bottom padding to account for navigation bar
@@ -402,20 +450,6 @@ class _AchievementCard extends StatelessWidget {
   }
 }
 
-class LeaderboardUser {
-  final String name;
-  final String avatarUrl;
-  final int points;
-  final String badge;
-
-  const LeaderboardUser({
-    required this.name,
-    required this.avatarUrl,
-    required this.points,
-    required this.badge,
-  });
-}
-
 class _LeaderboardItem extends StatelessWidget {
   final int rank;
   final LeaderboardUser user;
@@ -473,7 +507,7 @@ class _LeaderboardItem extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           CircleAvatar(
-            backgroundImage: NetworkImage(user.avatarUrl),
+            backgroundImage: CachedNetworkImageProvider(user.avatarUrl),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -481,7 +515,7 @@ class _LeaderboardItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.name,
+                  user.nickname,
                   style: TextStyle(
                     color: AppColors.navyBlue,
                     fontSize: 16,
@@ -534,7 +568,7 @@ class _LeaderboardItem extends StatelessWidget {
   }
 }
 
-// Demo Data
+// Keep the demo achievements for now
 final List<Achievement> _demoAchievements = [
   Achievement(
     title: 'History Buff',
@@ -559,38 +593,5 @@ final List<Achievement> _demoAchievements = [
     description: 'Read 50 stories',
     icon: Icons.auto_stories,
     color: AppColors.lightPurple,
-  ),
-];
-
-final List<LeaderboardUser> _demoUsers = [
-  LeaderboardUser(
-    name: 'Sarah Johnson',
-    avatarUrl: 'https://i.pravatar.cc/150?img=1',
-    points: 2500,
-    badge: 'History Master',
-  ),
-  LeaderboardUser(
-    name: 'Michael Chen',
-    avatarUrl: 'https://i.pravatar.cc/150?img=2',
-    points: 2350,
-    badge: 'Quiz Champion',
-  ),
-  LeaderboardUser(
-    name: 'Emma Wilson',
-    avatarUrl: 'https://i.pravatar.cc/150?img=3',
-    points: 2200,
-    badge: 'Knowledge Seeker',
-  ),
-  LeaderboardUser(
-    name: 'James Miller',
-    avatarUrl: 'https://i.pravatar.cc/150?img=4',
-    points: 2100,
-    badge: 'Rising Star',
-  ),
-  LeaderboardUser(
-    name: 'Lisa Anderson',
-    avatarUrl: 'https://i.pravatar.cc/150?img=5',
-    points: 2000,
-    badge: 'Dedicated Learner',
   ),
 ];

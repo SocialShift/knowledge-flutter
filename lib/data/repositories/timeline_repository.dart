@@ -94,8 +94,10 @@ class TimelineRepository {
           final timestampsData = response.data['timestamps'];
           timestamps = timestampsData
               .map<Timestamp>((json) => Timestamp(
-                    time: json['time'] ?? '',
-                    title: json['title'] ?? '',
+                    id: json['id']?.toString(),
+                    storyId: json['story_id']?.toString(),
+                    timeSec: json['time_sec'] ?? 0,
+                    label: json['label'] ?? '',
                   ))
               .toList();
         }

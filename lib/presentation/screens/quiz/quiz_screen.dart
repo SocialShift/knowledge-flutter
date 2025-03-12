@@ -115,39 +115,6 @@ class QuizScreen extends HookConsumerWidget {
                           ),
                         ),
                       ),
-
-                      // Hint button
-                      GestureDetector(
-                        onTap: () {
-                          // Show hint dialog
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Hint'),
-                              content: Text(
-                                  'Hint for question ${currentQuestionIndex.value + 1}'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Close'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.navyBlue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.lightbulb_outline,
-                            color: AppColors.navyBlue,
-                            size: 20,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

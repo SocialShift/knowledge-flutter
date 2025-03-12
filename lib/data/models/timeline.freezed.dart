@@ -750,8 +750,10 @@ Timestamp _$TimestampFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Timestamp {
-  String get time => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
+  String? get id => throw _privateConstructorUsedError;
+  String? get storyId => throw _privateConstructorUsedError;
+  int get timeSec => throw _privateConstructorUsedError;
+  String get label => throw _privateConstructorUsedError;
 
   /// Serializes this Timestamp to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -768,7 +770,7 @@ abstract class $TimestampCopyWith<$Res> {
   factory $TimestampCopyWith(Timestamp value, $Res Function(Timestamp) then) =
       _$TimestampCopyWithImpl<$Res, Timestamp>;
   @useResult
-  $Res call({String time, String title});
+  $Res call({String? id, String? storyId, int timeSec, String label});
 }
 
 /// @nodoc
@@ -786,17 +788,27 @@ class _$TimestampCopyWithImpl<$Res, $Val extends Timestamp>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? time = null,
-    Object? title = null,
+    Object? id = freezed,
+    Object? storyId = freezed,
+    Object? timeSec = null,
+    Object? label = null,
   }) {
     return _then(_value.copyWith(
-      time: null == time
-          ? _value.time
-          : time // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storyId: freezed == storyId
+          ? _value.storyId
+          : storyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeSec: null == timeSec
+          ? _value.timeSec
+          : timeSec // ignore: cast_nullable_to_non_nullable
+              as int,
+      label: null == label
+          ? _value.label
+          : label // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -810,7 +822,7 @@ abstract class _$$TimestampImplCopyWith<$Res>
       __$$TimestampImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String time, String title});
+  $Res call({String? id, String? storyId, int timeSec, String label});
 }
 
 /// @nodoc
@@ -826,17 +838,27 @@ class __$$TimestampImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? time = null,
-    Object? title = null,
+    Object? id = freezed,
+    Object? storyId = freezed,
+    Object? timeSec = null,
+    Object? label = null,
   }) {
     return _then(_$TimestampImpl(
-      time: null == time
-          ? _value.time
-          : time // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storyId: freezed == storyId
+          ? _value.storyId
+          : storyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeSec: null == timeSec
+          ? _value.timeSec
+          : timeSec // ignore: cast_nullable_to_non_nullable
+              as int,
+      label: null == label
+          ? _value.label
+          : label // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -845,19 +867,24 @@ class __$$TimestampImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$TimestampImpl implements _Timestamp {
-  const _$TimestampImpl({required this.time, required this.title});
+  const _$TimestampImpl(
+      {this.id, this.storyId, required this.timeSec, required this.label});
 
   factory _$TimestampImpl.fromJson(Map<String, dynamic> json) =>
       _$$TimestampImplFromJson(json);
 
   @override
-  final String time;
+  final String? id;
   @override
-  final String title;
+  final String? storyId;
+  @override
+  final int timeSec;
+  @override
+  final String label;
 
   @override
   String toString() {
-    return 'Timestamp(time: $time, title: $title)';
+    return 'Timestamp(id: $id, storyId: $storyId, timeSec: $timeSec, label: $label)';
   }
 
   @override
@@ -865,13 +892,15 @@ class _$TimestampImpl implements _Timestamp {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TimestampImpl &&
-            (identical(other.time, time) || other.time == time) &&
-            (identical(other.title, title) || other.title == title));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.storyId, storyId) || other.storyId == storyId) &&
+            (identical(other.timeSec, timeSec) || other.timeSec == timeSec) &&
+            (identical(other.label, label) || other.label == label));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, time, title);
+  int get hashCode => Object.hash(runtimeType, id, storyId, timeSec, label);
 
   /// Create a copy of Timestamp
   /// with the given fields replaced by the non-null parameter values.
@@ -891,16 +920,22 @@ class _$TimestampImpl implements _Timestamp {
 
 abstract class _Timestamp implements Timestamp {
   const factory _Timestamp(
-      {required final String time,
-      required final String title}) = _$TimestampImpl;
+      {final String? id,
+      final String? storyId,
+      required final int timeSec,
+      required final String label}) = _$TimestampImpl;
 
   factory _Timestamp.fromJson(Map<String, dynamic> json) =
       _$TimestampImpl.fromJson;
 
   @override
-  String get time;
+  String? get id;
   @override
-  String get title;
+  String? get storyId;
+  @override
+  int get timeSec;
+  @override
+  String get label;
 
   /// Create a copy of Timestamp
   /// with the given fields replaced by the non-null parameter values.

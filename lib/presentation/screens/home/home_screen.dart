@@ -38,6 +38,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .toList();
   }
 
+  // Extract timeline IDs from the timelines list
+  List<String> _extractTimelineIds(List<Timeline> timelines) {
+    return timelines.map((timeline) => timeline.id).toList();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -206,6 +211,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           CircularTimeline(
                             periods: timelinePeriods,
                             selectedIndex: _selectedTimelineIndex,
+                            timelineIds: _extractTimelineIds(timelines),
                             onPeriodSelected: (index) {
                               setState(() {
                                 _selectedTimelineIndex = index;
@@ -244,7 +250,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              'Stories from ${timelines[_selectedTimelineIndex].year}s Era',
+                              'Stories from ${timelines[_selectedTimelineIndex].title}',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 20,
@@ -257,23 +263,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ),
                           ),
                           const SizedBox(width: 8),
-                          TextButton.icon(
-                            onPressed: () {
-                              // TODO: Navigate to all stories
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.limeGreen,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                          Tooltip(
+                            message:
+                                'View all timelines in the ELearning screen',
+                            child: TextButton.icon(
+                              onPressed: () {
+                                context.go('/elearning');
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.limeGreen,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
-                            ),
-                            icon: const Icon(Icons.arrow_forward, size: 16),
-                            label: const Text(
-                              'See All',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                              icon: const Icon(Icons.arrow_forward, size: 16),
+                              label: const Text(
+                                'See All Timelines',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ).animate().fadeIn().slideX(

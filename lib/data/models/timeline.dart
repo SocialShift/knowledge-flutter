@@ -147,8 +147,10 @@ class Story with _$Story {
 @freezed
 class Timestamp with _$Timestamp {
   const factory Timestamp({
-    required String time,
-    required String title,
+    String? id,
+    String? storyId,
+    required int timeSec,
+    required String label,
   }) = _Timestamp;
 
   factory Timestamp.fromJson(Map<String, dynamic> json) =>

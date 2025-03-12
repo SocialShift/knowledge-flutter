@@ -96,10 +96,7 @@ class StoryDetailScreen extends HookConsumerWidget {
           final isVideo = story.mediaType == 'video';
           final pageController = PageController();
           final currentPage = ValueNotifier<int>(0);
-
-          // Calculate number of pages based on content length
-          final contentLength = story.content.length;
-          final pageCount = (contentLength / 1000).ceil().clamp(1, 10);
+          final videoControllerRef = useState<VideoPlayerController?>(null);
 
           return Column(
             children: [
@@ -112,7 +109,7 @@ class StoryDetailScreen extends HookConsumerWidget {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        pageCount,
+                        2, // Fixed 2 pages: Media+Timestamps and Story Text
                         (index) => Container(
                           width: index == value ? 24 : 8,
                           height: 8,
@@ -138,12 +135,15 @@ class StoryDetailScreen extends HookConsumerWidget {
                     currentPage.value = index;
                   },
                   children: [
-                    for (int i = 0; i < pageCount; i++)
-                      _ContentPage(
-                        story: story,
-                        isVideo: isVideo,
-                        pageIndex: i,
-                      ),
+                    // First slide: Video/Image, Likes, Views, Timestamps
+                    _MediaCard(
+                      story: story,
+                      isVideo: isVideo,
+                      videoControllerRef: videoControllerRef,
+                    ),
+
+                    // Second slide: Story Text
+                    _StoryTextCard(story: story),
                   ],
                 ),
               ),
@@ -154,7 +154,7 @@ class StoryDetailScreen extends HookConsumerWidget {
                 child: ValueListenableBuilder<int>(
                   valueListenable: currentPage,
                   builder: (context, pageValue, child) {
-                    final isLastPage = pageValue == pageCount - 1;
+                    final isLastPage = pageValue == 1;
 
                     return Row(
                       children: [
@@ -198,86 +198,32 @@ class StoryDetailScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(width: 12),
 
-                        // Next button or Take Quiz button on last page
+                        // Next/Quiz button
                         Expanded(
                           child: isLastPage
                               ? quizAsync.when(
-                                  data: (quiz) {
-                                    // Show Take Quiz button if quiz is available
-                                    if (quiz != null) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          // Navigate to quiz with the story ID, not the quiz ID
-                                          context.push('/quiz/$storyId');
-                                        },
-                                        child: Container(
-                                          height: 48,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.limeGreen,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Center(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                const Icon(
-                                                  Icons.quiz_outlined,
-                                                  color: AppColors.navyBlue,
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Take Quiz',
-                                                  style: TextStyle(
-                                                    color: AppColors.navyBlue,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                  data: (quiz) => GestureDetector(
+                                    onTap: () {
+                                      context.push('/quiz/$storyId');
+                                    },
+                                    child: Container(
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.limeGreen,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'Take Quiz',
+                                          style: TextStyle(
+                                            color: AppColors.navyBlue,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                      );
-                                    } else {
-                                      // If no quiz, show a finish button
-                                      return GestureDetector(
-                                        onTap: () => context.pop(),
-                                        child: Container(
-                                          height: 48,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.limeGreen,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Center(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                const Icon(
-                                                  Icons.check,
-                                                  color: AppColors.navyBlue,
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Finish',
-                                                  style: TextStyle(
-                                                    color: AppColors.navyBlue,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
+                                      ),
+                                    ),
+                                  ),
                                   loading: () => Container(
                                     height: 48,
                                     decoration: BoxDecoration(
@@ -285,15 +231,10 @@ class StoryDetailScreen extends HookConsumerWidget {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Center(
-                                      child: SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  AppColors.navyBlue),
-                                          strokeWidth: 2,
-                                        ),
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.navyBlue),
                                       ),
                                     ),
                                   ),
@@ -373,115 +314,164 @@ class StoryDetailScreen extends HookConsumerWidget {
   }
 }
 
-class _ContentPage extends StatelessWidget {
+// First slide: Media (Video/Image), Likes, Views, and Timestamps
+class _MediaCard extends HookConsumerWidget {
   final Story story;
   final bool isVideo;
-  final int pageIndex;
+  final ValueNotifier<VideoPlayerController?> videoControllerRef;
 
-  const _ContentPage({
+  const _MediaCard({
     required this.story,
     required this.isVideo,
-    required this.pageIndex,
+    required this.videoControllerRef,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
-
-    // Calculate content for this page
-    final contentChunkSize = 1000; // Approximate characters per page
-    final startIndex = pageIndex * contentChunkSize;
-    final endIndex = (pageIndex + 1) * contentChunkSize;
-    final pageContent = story.content.length > startIndex
-        ? story.content.substring(
-            startIndex,
-            endIndex < story.content.length ? endIndex : story.content.length,
-          )
-        : '';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Media (Image or Video)
-          if (pageIndex == 0) ...[
-            ClipRRect(
+          // Media (Video/Image)
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              child: SizedBox(
-                width: size.width - 48,
-                height: (size.width - 48) * 0.6,
-                child: isVideo
-                    ? _VideoPlayer(videoUrl: story.mediaUrl)
-                    : CachedNetworkImage(
-                        imageUrl: story.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[800],
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.limeGreen),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Video/Image
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: (size.width - 48) * 0.6,
+                    child: isVideo
+                        ? _VideoPlayer(
+                            videoUrl: story.mediaUrl,
+                            onControllerCreated: (controller) {
+                              videoControllerRef.value = controller;
+                            },
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: story.imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[800],
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.limeGreen),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[800],
+                              child:
+                                  const Icon(Icons.error, color: Colors.white),
                             ),
                           ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[800],
-                          child: const Icon(Icons.error, color: Colors.white),
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Content
-          Text(
-            pageIndex == 0 ? story.description : '',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              height: 1.4,
-            ),
-          ),
-
-          // Display story date if available
-          if (pageIndex == 0 &&
-              story.storyDate != null &&
-              story.storyDate!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: AppColors.limeGreen,
-                  size: 16,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(story.storyDate!),
-                  style: TextStyle(
-                    color: AppColors.limeGreen,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+
+                // Likes and Views
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Likes
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${story.likes}',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 24),
+
+                      // Views
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.visibility,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${story.views}',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Date if available
+                      if (story.storyDate != null &&
+                          story.storyDate!.isNotEmpty) ...[
+                        const Spacer(),
+                        Text(
+                          _formatDate(story.storyDate!),
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
-          ],
+          ),
 
           const SizedBox(height: 16),
 
-          Text(
-            pageContent,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              height: 1.6,
-              letterSpacing: 0.3,
+          // Timestamps
+          if (story.timestamps.isNotEmpty) ...[
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Timestamps',
+                      style: TextStyle(
+                        color: AppColors.navyBlue,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...story.timestamps.map(
+                        (timestamp) => _buildTimestampItem(timestamp, context)),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
 
           const SizedBox(height: 24),
         ],
@@ -489,16 +479,88 @@ class _ContentPage extends StatelessWidget {
     );
   }
 
-  // Helper method to format the date from "YYYY-MM-DD" to a more readable format
+  Widget _buildTimestampItem(Timestamp timestamp, BuildContext context) {
+    // Format seconds to MM:SS with null safety check
+    final int timeSeconds = timestamp.timeSec ?? 0; // Default to 0 if null
+    final minutes = (timeSeconds / 60).floor();
+    final seconds = timeSeconds % 60;
+    final timeFormatted =
+        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () {
+          // Seek to timestamp in video if video controller is available
+          if (videoControllerRef.value != null &&
+              isVideo &&
+              timestamp.timeSec != null) {
+            videoControllerRef.value!
+                .seekTo(Duration(seconds: timestamp.timeSec!));
+            videoControllerRef.value!.play();
+          }
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.navyBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              // Time
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.limeGreen,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  timeFormatted,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Label
+              Expanded(
+                child: Text(
+                  timestamp.label,
+                  style: const TextStyle(
+                    color: AppColors.navyBlue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              // Play icon
+              const Icon(
+                Icons.play_circle_outline,
+                color: AppColors.limeGreen,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatDate(String dateString) {
     try {
+      // Parse the date string (format: "YYYY-MM-DD")
       final parts = dateString.split('-');
-      if (parts.length == 3) {
-        final year = parts[0];
-        final month = _getMonthName(int.parse(parts[1]));
+      if (parts.length >= 3) {
+        final year = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
         final day = int.parse(parts[2]);
 
-        return '$month $day, $year';
+        final monthName = _getMonthName(month);
+        return '$monthName $day, $year';
       }
       return dateString;
     } catch (e) {
@@ -531,10 +593,61 @@ class _ContentPage extends StatelessWidget {
   }
 }
 
+// Second slide: Story Text
+class _StoryTextCard extends StatelessWidget {
+  final Story story;
+
+  const _StoryTextCard({
+    required this.story,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Story',
+                style: TextStyle(
+                  color: AppColors.navyBlue,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                story.content.isNotEmpty ? story.content : story.description,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 16,
+                  height: 1.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _VideoPlayer extends HookWidget {
   final String videoUrl;
+  final Function(VideoPlayerController)? onControllerCreated;
 
-  const _VideoPlayer({required this.videoUrl});
+  const _VideoPlayer({
+    required this.videoUrl,
+    this.onControllerCreated,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -563,6 +676,9 @@ class _VideoPlayer extends HookWidget {
         controller.initialize().then((_) {
           print('Video initialized successfully');
           isInitialized.value = true;
+          if (onControllerCreated != null) {
+            onControllerCreated!(controller);
+          }
           // Auto-play once initialized (optional)
           // controller.play();
           // isPlaying.value = true;

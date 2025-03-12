@@ -71,12 +71,16 @@ Map<String, dynamic> _$$StoryImplToJson(_$StoryImpl instance) =>
 
 _$TimestampImpl _$$TimestampImplFromJson(Map<String, dynamic> json) =>
     _$TimestampImpl(
-      time: json['time'] as String,
-      title: json['title'] as String,
+      id: json['id'] as String?,
+      storyId: json['storyId'] as String?,
+      timeSec: (json['timeSec'] as num).toInt(),
+      label: json['label'] as String,
     );
 
 Map<String, dynamic> _$$TimestampImplToJson(_$TimestampImpl instance) =>
     <String, dynamic>{
-      'time': instance.time,
-      'title': instance.title,
+      'id': instance.id,
+      'storyId': instance.storyId,
+      'timeSec': instance.timeSec,
+      'label': instance.label,
     };
