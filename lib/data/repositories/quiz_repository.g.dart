@@ -172,5 +172,154 @@ class _StoryQuizProviderElement extends AutoDisposeFutureProviderElement<Quiz?>
   @override
   String get storyId => (origin as StoryQuizProvider).storyId;
 }
+
+String _$submitQuizHash() => r'8a4ede16055383cf497ea03e86d8536ba5038b8a';
+
+/// See also [submitQuiz].
+@ProviderFor(submitQuiz)
+const submitQuizProvider = SubmitQuizFamily();
+
+/// See also [submitQuiz].
+class SubmitQuizFamily extends Family<AsyncValue<Map<String, dynamic>>> {
+  /// See also [submitQuiz].
+  const SubmitQuizFamily();
+
+  /// See also [submitQuiz].
+  SubmitQuizProvider call(
+    String quizId,
+    List<QuizAnswer> answers,
+  ) {
+    return SubmitQuizProvider(
+      quizId,
+      answers,
+    );
+  }
+
+  @override
+  SubmitQuizProvider getProviderOverride(
+    covariant SubmitQuizProvider provider,
+  ) {
+    return call(
+      provider.quizId,
+      provider.answers,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'submitQuizProvider';
+}
+
+/// See also [submitQuiz].
+class SubmitQuizProvider
+    extends AutoDisposeFutureProvider<Map<String, dynamic>> {
+  /// See also [submitQuiz].
+  SubmitQuizProvider(
+    String quizId,
+    List<QuizAnswer> answers,
+  ) : this._internal(
+          (ref) => submitQuiz(
+            ref as SubmitQuizRef,
+            quizId,
+            answers,
+          ),
+          from: submitQuizProvider,
+          name: r'submitQuizProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$submitQuizHash,
+          dependencies: SubmitQuizFamily._dependencies,
+          allTransitiveDependencies:
+              SubmitQuizFamily._allTransitiveDependencies,
+          quizId: quizId,
+          answers: answers,
+        );
+
+  SubmitQuizProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.quizId,
+    required this.answers,
+  }) : super.internal();
+
+  final String quizId;
+  final List<QuizAnswer> answers;
+
+  @override
+  Override overrideWith(
+    FutureOr<Map<String, dynamic>> Function(SubmitQuizRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: SubmitQuizProvider._internal(
+        (ref) => create(ref as SubmitQuizRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        quizId: quizId,
+        answers: answers,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Map<String, dynamic>> createElement() {
+    return _SubmitQuizProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SubmitQuizProvider &&
+        other.quizId == quizId &&
+        other.answers == answers;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, quizId.hashCode);
+    hash = _SystemHash.combine(hash, answers.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin SubmitQuizRef on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
+  /// The parameter `quizId` of this provider.
+  String get quizId;
+
+  /// The parameter `answers` of this provider.
+  List<QuizAnswer> get answers;
+}
+
+class _SubmitQuizProviderElement
+    extends AutoDisposeFutureProviderElement<Map<String, dynamic>>
+    with SubmitQuizRef {
+  _SubmitQuizProviderElement(super.provider);
+
+  @override
+  String get quizId => (origin as SubmitQuizProvider).quizId;
+  @override
+  List<QuizAnswer> get answers => (origin as SubmitQuizProvider).answers;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

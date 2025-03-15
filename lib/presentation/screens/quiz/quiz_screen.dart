@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/quiz_provider.dart';
+import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
@@ -23,11 +24,70 @@ class QuizScreen extends HookConsumerWidget {
     final hasSubmitted = useState(false);
     final isCorrect = useState(false);
 
+    // Track user answers for all questions
+    final userAnswers = useState<Map<String, String>>({});
+
+    // Track submission state
+    final isSubmittingQuiz = useState(false);
+    final quizSubmissionError = useState<String?>(null);
+
     // Fetch quiz data
     final quizAsync = ref.watch(quizNotifierProvider(storyId));
 
     // Fetch story data to get the title
     final storyAsync = ref.watch(storyDetailProvider(storyId));
+
+    // Function to submit all answers when quiz is completed
+    Future<void> submitQuizAnswers(
+        String quizId, Map<String, String> answers) async {
+      if (answers.isEmpty) return;
+
+      isSubmittingQuiz.value = true;
+      quizSubmissionError.value = null;
+
+      try {
+        // Convert answers map to list of QuizAnswer objects
+        final answersList = answers.entries
+            .map((entry) => QuizAnswer(
+                  questionId: entry.key,
+                  selectedOptionId: entry.value,
+                ))
+            .toList();
+
+        // Submit answers to the API
+        await ref.read(quizRepositoryProvider).submitQuizAnswers(
+              quizId,
+              answersList,
+            );
+
+        // Show success message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Quiz submitted successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate back
+          context.pop();
+        }
+      } catch (error) {
+        quizSubmissionError.value = error.toString();
+
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to submit quiz: ${error.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        isSubmittingQuiz.value = false;
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -199,7 +259,7 @@ class QuizScreen extends HookConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 16),
                           child: GestureDetector(
                             onTap: hasSubmitted.value
-                                ? null // Disable selection after submission
+                                ? null
                                 : () {
                                     selectedOptionId.value = option.id;
                                   },
@@ -212,8 +272,15 @@ class QuizScreen extends HookConsumerWidget {
                                   color: isSelected
                                       ? AppColors.navyBlue
                                       : Colors.grey.shade300,
-                                  width: 1,
+                                  width: 1.5,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
@@ -229,8 +296,7 @@ class QuizScreen extends HookConsumerWidget {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        String.fromCharCode(
-                                            65 + index), // A, B, C, D
+                                        String.fromCharCode(65 + index),
                                         style: TextStyle(
                                           color: isSelected
                                               ? Colors.white
@@ -249,34 +315,37 @@ class QuizScreen extends HookConsumerWidget {
                                         color: AppColors.navyBlue,
                                         fontSize: 16,
                                         fontWeight: isSelected
-                                            ? FontWeight.bold
+                                            ? FontWeight.w600
                                             : FontWeight.normal,
                                       ),
                                     ),
                                   ),
-                                  // Correct/incorrect indicator
-                                  if (hasSubmitted.value)
+                                  // Checkmark for selected option
+                                  if (isSelected)
                                     Icon(
-                                      option.isCorrect
-                                          ? Icons.check_circle
-                                          : (isSelected ? Icons.cancel : null),
-                                      color: option.isCorrect
-                                          ? Colors.green
-                                          : Colors.red,
+                                      hasSubmitted.value
+                                          ? (option.isCorrect
+                                              ? Icons.check_circle
+                                              : Icons.cancel)
+                                          : Icons.check_circle,
+                                      color: hasSubmitted.value
+                                          ? (option.isCorrect
+                                              ? Colors.green
+                                              : Colors.red)
+                                          : AppColors.navyBlue,
+                                      size: 24,
                                     ),
                                 ],
                               ),
                             ),
-                          ).animate().fadeIn(
-                                delay: Duration(milliseconds: 100 * index),
-                              ),
+                          ),
                         );
                       },
                     ),
                   ),
                 ),
 
-                // Feedback text when answer is submitted
+                // Explanation text (shown after submission)
                 if (hasSubmitted.value)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -293,7 +362,7 @@ class QuizScreen extends HookConsumerWidget {
                     ),
                   ),
 
-                // Bottom navigation
+                // Bottom button area
                 Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
@@ -313,7 +382,8 @@ class QuizScreen extends HookConsumerWidget {
                           ],
                         ),
                         child: ElevatedButton(
-                          onPressed: selectedOptionId.value == null
+                          onPressed: selectedOptionId.value == null ||
+                                  isSubmittingQuiz.value
                               ? null
                               : () {
                                   if (!hasSubmitted.value) {
@@ -325,6 +395,13 @@ class QuizScreen extends HookConsumerWidget {
                                     );
                                     isCorrect.value = selectedOption.isCorrect;
                                     hasSubmitted.value = true;
+
+                                    // Store the answer
+                                    userAnswers.value = {
+                                      ...userAnswers.value,
+                                      currentQuestion.id:
+                                          selectedOptionId.value!,
+                                    };
                                   } else {
                                     // Move to next question
                                     if (currentQuestionIndex.value <
@@ -333,8 +410,9 @@ class QuizScreen extends HookConsumerWidget {
                                       selectedOptionId.value = null;
                                       hasSubmitted.value = false;
                                     } else {
-                                      // Quiz completed
-                                      context.pop();
+                                      // Quiz completed - submit all answers
+                                      submitQuizAnswers(
+                                          quiz.id, userAnswers.value);
                                     }
                                   }
                                 },
@@ -351,21 +429,45 @@ class QuizScreen extends HookConsumerWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Text(
-                            !hasSubmitted.value
-                                ? 'Submit'
-                                : (currentQuestionIndex.value <
-                                        totalQuestions - 1
-                                    ? 'Next'
-                                    : 'Finish'),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                          child: isSubmittingQuiz.value
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.navyBlue),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  !hasSubmitted.value
+                                      ? 'Submit'
+                                      : (currentQuestionIndex.value <
+                                              totalQuestions - 1
+                                          ? 'Next'
+                                          : 'Finish'),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                         ),
                       ),
+
+                      // Error message if quiz submission failed
+                      if (quizSubmissionError.value != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            'Error: ${quizSubmissionError.value}',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                     ],
                   ),
                 ),

@@ -48,11 +48,22 @@ class QuizRepository {
 
   // Submit quiz answers and get results
   Future<Map<String, dynamic>> submitQuizAnswers(
-      String quizId, Map<String, String> answers) async {
+      String quizId, List<QuizAnswer> answers) async {
     try {
+      // Format the answers as required by the API
+      final List<Map<String, dynamic>> formattedAnswers = answers
+          .map((answer) => {
+                'question_id': answer.questionId,
+                'selected_option_id': answer.selectedOptionId,
+              })
+          .toList();
+
       final response = await _apiService.post(
-        '/quiz/$quizId/submit',
-        data: {'answers': answers},
+        '/quiz/submit',
+        data: {
+          'quiz_id': quizId,
+          'answers': formattedAnswers,
+        },
       );
 
       if (response.statusCode == 401) {
@@ -74,6 +85,17 @@ class QuizRepository {
   }
 }
 
+// Class to represent a quiz answer for submission
+class QuizAnswer {
+  final String questionId;
+  final String selectedOptionId;
+
+  QuizAnswer({
+    required this.questionId,
+    required this.selectedOptionId,
+  });
+}
+
 @riverpod
 QuizRepository quizRepository(QuizRepositoryRef ref) {
   return QuizRepository();
@@ -83,4 +105,15 @@ QuizRepository quizRepository(QuizRepositoryRef ref) {
 Future<Quiz?> storyQuiz(StoryQuizRef ref, String storyId) async {
   final repository = ref.watch(quizRepositoryProvider);
   return repository.getStoryQuiz(storyId);
+}
+
+// Provider for submitting quiz answers
+@riverpod
+Future<Map<String, dynamic>> submitQuiz(
+  SubmitQuizRef ref,
+  String quizId,
+  List<QuizAnswer> answers,
+) async {
+  final repository = ref.watch(quizRepositoryProvider);
+  return repository.submitQuizAnswers(quizId, answers);
 }

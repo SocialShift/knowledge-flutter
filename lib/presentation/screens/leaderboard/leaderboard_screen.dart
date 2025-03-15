@@ -14,298 +14,325 @@ class LeaderboardScreen extends HookConsumerWidget {
     // Fetch leaderboard data
     final leaderboardAsync = ref.watch(leaderboardProvider);
 
+    // Function to refresh leaderboard data
+    void refreshLeaderboard() {
+      ref.invalidate(leaderboardProvider);
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Background gradient only for the top section
-          Container(
-            height: 220, // Just enough for the header
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.lightPurple,
-                  AppColors.navyBlue,
-                ],
-                stops: [0.0, 0.7],
-              ),
-            ),
-          ),
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Header
-              SliverAppBar(
-                expandedHeight: 200,
-                pinned: true,
-                backgroundColor: Colors.transparent,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Trophy Background
-                      Icon(
-                        Icons.emoji_events,
-                        size: 150,
-                        color: Colors.white.withOpacity(0.1),
-                      ),
-                      // Content
-                      leaderboardAsync.when(
-                        data: (leaderboardData) => Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // App Logo
-                            Image.asset(
-                              'assets/images/logo/logo.png',
-                              height: 50,
-                              width: 50,
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Your Achievements',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: AppColors.limeGreen,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Rank #${leaderboardData.userRank}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ).animate().fadeIn(),
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.limeGreen),
-                          ),
-                        ),
-                        error: (error, _) => Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              'Error loading leaderboard: $error',
-                              style: const TextStyle(color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          refreshLeaderboard();
+          // Wait for the refresh to complete
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: AppColors.limeGreen,
+        backgroundColor: Colors.white,
+        child: Stack(
+          children: [
+            // Background gradient only for the top section
+            Container(
+              height: 220, // Just enough for the header
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.lightPurple,
+                    AppColors.navyBlue,
+                  ],
+                  stops: [0.0, 0.7],
                 ),
               ),
-
-              // White background container that scrolls with content
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+            ),
+            CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                // Header
+                SliverAppBar(
+                  expandedHeight: 200,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  actions: [
+                    // Refresh button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                      onPressed: refreshLeaderboard,
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      // Stats Section
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                        child: Row(
-                          children: [
-                            _StatCard(
-                              icon: Icons.military_tech,
-                              value: '12',
-                              label: 'Medals',
-                              color: AppColors.limeGreen,
-                            ),
-                            _StatCard(
-                              icon: Icons.psychology,
-                              value: '85%',
-                              label: 'Quiz Score',
-                              color: AppColors.navyBlue,
-                            ),
-                            _StatCard(
-                              icon: Icons.local_fire_department,
-                              value: '7',
-                              label: 'Day Streak',
-                              color: AppColors.lightPurple,
-                            ),
-                          ],
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Trophy Background
+                        Icon(
+                          Icons.emoji_events,
+                          size: 150,
+                          color: Colors.white.withOpacity(0.1),
                         ),
-                      ).animate().fadeIn().slideY(begin: 0.2),
-
-                      // Achievements Section
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Recent Achievements',
-                              style: TextStyle(
-                                color: AppColors.navyBlue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                        // Content
+                        leaderboardAsync.when(
+                          data: (leaderboardData) => Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // App Logo
+                              Image.asset(
+                                'assets/images/logo/logo.png',
+                                height: 50,
+                                width: 50,
                               ),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to all achievements
-                              },
-                              child: Text(
-                                'See All',
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Your Achievements',
                                 style: TextStyle(
-                                  color: AppColors.limeGreen,
-                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Achievements Cards
-                      SizedBox(
-                        height: 180,
-                        child: GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          scrollDirection: Axis.horizontal,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 1,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.2,
-                          ),
-                          itemCount: _demoAchievements.length,
-                          itemBuilder: (context, index) {
-                            final achievement = _demoAchievements[index];
-                            return _AchievementCard(
-                              achievement: achievement,
-                            ).animate().fadeIn(
-                                  delay: Duration(milliseconds: index * 100),
-                                );
-                          },
-                        ),
-                      ),
-
-                      // Leaderboard Section
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Top Learners',
-                              style: TextStyle(
-                                color: AppColors.navyBlue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to full leaderboard
-                              },
-                              child: Text(
-                                'View All',
-                                style: TextStyle(
-                                  color: AppColors.limeGreen,
-                                  fontWeight: FontWeight.w600,
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: AppColors.limeGreen,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Rank #${leaderboardData.userRank}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Leaderboard List
-                      leaderboardAsync.when(
-                        data: (leaderboardData) {
-                          final users = leaderboardData.leaderboard;
-                          return ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: users.length > 5 ? 5 : users.length,
-                            itemBuilder: (context, index) {
-                              final user = users[index];
-                              return _LeaderboardItem(
-                                rank: user.rank,
-                                user: user,
-                              ).animate().fadeIn(
-                                    delay: Duration(milliseconds: index * 100),
-                                  );
-                            },
-                          );
-                        },
-                        loading: () => const Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Center(
+                            ],
+                          ).animate().fadeIn(),
+                          loading: () => const Center(
                             child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
                                   AppColors.limeGreen),
                             ),
                           ),
-                        ),
-                        error: (error, _) => Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Center(
-                            child: Text(
-                              'Error loading leaderboard: $error',
-                              style: TextStyle(color: AppColors.navyBlue),
-                              textAlign: TextAlign.center,
+                          error: (error, _) => Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                'Error loading leaderboard: $error',
+                                style: const TextStyle(color: Colors.white),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-
-                      // Add bottom padding to account for navigation bar
-                      SizedBox(
-                          height: MediaQuery.of(context).padding.bottom + 70),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+
+                // White background container that scrolls with content
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Stats Section
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                          child: Row(
+                            children: [
+                              _StatCard(
+                                icon: Icons.military_tech,
+                                value: '12',
+                                label: 'Medals',
+                                color: AppColors.limeGreen,
+                              ),
+                              _StatCard(
+                                icon: Icons.psychology,
+                                value: '85%',
+                                label: 'Quiz Score',
+                                color: AppColors.navyBlue,
+                              ),
+                              _StatCard(
+                                icon: Icons.local_fire_department,
+                                value: '7',
+                                label: 'Day Streak',
+                                color: AppColors.lightPurple,
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn().slideY(begin: 0.2),
+
+                        // Achievements Section
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Recent Achievements',
+                                style: TextStyle(
+                                  color: AppColors.navyBlue,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  // Navigate to all achievements
+                                },
+                                child: Text(
+                                  'See All',
+                                  style: TextStyle(
+                                    color: AppColors.limeGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Achievements Cards
+                        SizedBox(
+                          height: 180,
+                          child: GridView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            scrollDirection: Axis.horizontal,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 1,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 1.2,
+                            ),
+                            itemCount: _demoAchievements.length,
+                            itemBuilder: (context, index) {
+                              final achievement = _demoAchievements[index];
+                              return _AchievementCard(
+                                achievement: achievement,
+                              ).animate().fadeIn(
+                                    delay: Duration(milliseconds: index * 100),
+                                  );
+                            },
+                          ),
+                        ),
+
+                        // Leaderboard Section
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Top Learners',
+                                style: TextStyle(
+                                  color: AppColors.navyBlue,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  // Navigate to full leaderboard
+                                },
+                                child: Text(
+                                  'View All',
+                                  style: TextStyle(
+                                    color: AppColors.limeGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Leaderboard List
+                        leaderboardAsync.when(
+                          data: (leaderboardData) {
+                            final users = leaderboardData.leaderboard;
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: users.length > 5 ? 5 : users.length,
+                              itemBuilder: (context, index) {
+                                final user = users[index];
+                                return _LeaderboardItem(
+                                  rank: user.rank,
+                                  user: user,
+                                ).animate().fadeIn(
+                                      delay:
+                                          Duration(milliseconds: index * 100),
+                                    );
+                              },
+                            );
+                          },
+                          loading: () => const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.limeGreen),
+                              ),
+                            ),
+                          ),
+                          error: (error, _) => Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Center(
+                              child: Text(
+                                'Error loading leaderboard: $error',
+                                style: TextStyle(color: AppColors.navyBlue),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Add bottom padding to account for navigation bar
+                        SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 70),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
