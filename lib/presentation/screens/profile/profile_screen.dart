@@ -95,7 +95,7 @@ class ProfileScreen extends HookConsumerWidget {
       children: [
         // Header with gradient and avatar
         SizedBox(
-          height: 280,
+          height: 245,
           child: Stack(
             children: [
               // Gradient background
@@ -191,7 +191,7 @@ class ProfileScreen extends HookConsumerWidget {
             ),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
+              padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 100.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -206,6 +206,17 @@ class ProfileScreen extends HookConsumerWidget {
                         duration: const Duration(milliseconds: 500),
                       ),
                   const SizedBox(height: 16),
+                  _buildInfoField(
+                    context,
+                    'Pronouns',
+                    profile.pronouns ?? 'Not set',
+                    Icons.person_outline,
+                  ).animate().fadeIn().slideX(
+                        begin: -0.2,
+                        delay: const Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 500),
+                      ),
+                  const SizedBox(height: 32),
                   _buildInfoField(
                     context,
                     'Location',
@@ -228,17 +239,17 @@ class ProfileScreen extends HookConsumerWidget {
                         duration: const Duration(milliseconds: 500),
                       ),
                   const SizedBox(height: 16),
-                  _buildInfoField(
-                    context,
-                    'Pronouns',
-                    profile.pronouns ?? 'Not set',
-                    Icons.person_outline,
-                  ).animate().fadeIn().slideX(
-                        begin: -0.2,
-                        delay: const Duration(milliseconds: 800),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 32),
+                  // _buildInfoField(
+                  //   context,
+                  //   'Pronouns',
+                  //   profile.pronouns ?? 'Not set',
+                  //   Icons.person_outline,
+                  // ).animate().fadeIn().slideX(
+                  //       begin: -0.2,
+                  //       delay: const Duration(milliseconds: 800),
+                  //       duration: const Duration(milliseconds: 500),
+                  //     ),
+                  // const SizedBox(height: 32),
                   // Edit Profile Button
                   SizedBox(
                     width: double.infinity,
@@ -352,23 +363,31 @@ class ProfileScreen extends HookConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
+        border: Border.all(
+          color: Colors.grey.shade100,
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.limeGreen.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.limeGreen.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.limeGreen.withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
@@ -384,17 +403,18 @@ class ProfileScreen extends HookConsumerWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: Colors.grey[500],
                     fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   value,
                   style: TextStyle(
                     color: Colors.grey[800],
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

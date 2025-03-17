@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/quiz_provider.dart';
 import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+// import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 
 class QuizScreen extends HookConsumerWidget {
