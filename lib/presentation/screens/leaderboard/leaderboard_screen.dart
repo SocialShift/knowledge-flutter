@@ -170,31 +170,79 @@ class LeaderboardScreen extends HookConsumerWidget {
                     child: Column(
                       children: [
                         // Stats Section
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                          child: Row(
-                            children: [
-                              _StatCard(
-                                icon: Icons.military_tech,
-                                value: '12',
-                                label: 'Medals',
-                                color: AppColors.limeGreen,
+                        leaderboardAsync.when(
+                          data: (leaderboardData) {
+                            // Get the current user data
+                            final currentUserData =
+                                leaderboardData.leaderboard.isNotEmpty
+                                    ? leaderboardData.leaderboard.first
+                                    : null;
+                            final currentStreak =
+                                currentUserData?.currentStreak.toString() ??
+                                    '0';
+
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                              child: Row(
+                                children: [
+                                  _StatCard(
+                                    icon: Icons.military_tech,
+                                    value: '12',
+                                    label: 'Medals',
+                                    color: AppColors.limeGreen,
+                                  ),
+                                  _StatCard(
+                                    icon: Icons.psychology,
+                                    value: '85%',
+                                    label: 'Quiz Score',
+                                    color: AppColors.navyBlue,
+                                  ),
+                                  _StatCard(
+                                    icon: Icons.local_fire_department,
+                                    value: currentStreak,
+                                    label: 'Day Streak',
+                                    color: AppColors.lightPurple,
+                                  ),
+                                ],
                               ),
-                              _StatCard(
-                                icon: Icons.psychology,
-                                value: '85%',
-                                label: 'Quiz Score',
-                                color: AppColors.navyBlue,
+                            ).animate().fadeIn().slideY(begin: 0.2);
+                          },
+                          loading: () => const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.limeGreen),
                               ),
-                              _StatCard(
-                                icon: Icons.local_fire_department,
-                                value: '7',
-                                label: 'Day Streak',
-                                color: AppColors.lightPurple,
-                              ),
-                            ],
+                            ),
                           ),
-                        ).animate().fadeIn().slideY(begin: 0.2),
+                          error: (error, _) => Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                            child: Row(
+                              children: [
+                                _StatCard(
+                                  icon: Icons.military_tech,
+                                  value: '0',
+                                  label: 'Medals',
+                                  color: AppColors.limeGreen,
+                                ),
+                                _StatCard(
+                                  icon: Icons.psychology,
+                                  value: '0%',
+                                  label: 'Quiz Score',
+                                  color: AppColors.navyBlue,
+                                ),
+                                _StatCard(
+                                  icon: Icons.local_fire_department,
+                                  value: '0',
+                                  label: 'Day Streak',
+                                  color: AppColors.lightPurple,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
                         // Achievements Section
                         Padding(

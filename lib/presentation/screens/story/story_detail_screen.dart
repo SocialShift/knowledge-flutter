@@ -5,7 +5,7 @@ import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+// import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -757,11 +757,11 @@ class _VideoPlayer extends HookWidget {
     final controller = videoPlayerController.value!;
 
     // Use a fixed aspect ratio if the video's aspect ratio is invalid
-    final aspectRatio = controller.value.aspectRatio <= 0 ||
-            controller.value.aspectRatio.isNaN ||
-            controller.value.aspectRatio.isInfinite
-        ? 16 / 9 // Default 16:9 aspect ratio
-        : controller.value.aspectRatio;
+    // final aspectRatio = controller.value.aspectRatio <= 0 ||
+    //         controller.value.aspectRatio.isNaN ||
+    //         controller.value.aspectRatio.isInfinite
+    //     ? 16 / 9 // Default 16:9 aspect ratio
+    //     : controller.value.aspectRatio;
 
     return Container(
       color: Colors.black,
