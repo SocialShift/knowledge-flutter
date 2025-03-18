@@ -47,22 +47,23 @@ class Timeline with _$Timeline {
         return 2000;
       }
 
-      // Handle different formats
-      if (yearRange.contains('-')) {
-        final parts = yearRange.split('-');
+      // Check for all possible separator formats: hyphen, en dash, or spaces
+      // Handle special dash character (en dash) in "1920–1935"
+      String normalizedRange = yearRange
+          .replaceAll('–', '-') // Replace en dash with regular hyphen
+          .replaceAll('—', '-'); // Replace em dash with regular hyphen
+
+      if (normalizedRange.contains('-')) {
+        // Split by hyphen and handle both formats with or without spaces
+        final parts = normalizedRange.split('-');
         if (parts.isNotEmpty) {
           // Trim any whitespace and parse
           final yearStr = parts[0].trim();
           return int.parse(yearStr);
         }
-      } else if (yearRange.contains(' - ')) {
-        final parts = yearRange.split(' - ');
-        if (parts.isNotEmpty) {
-          return int.parse(parts[0]);
-        }
       } else {
         // If it's just a single year
-        return int.parse(yearRange.trim());
+        return int.parse(normalizedRange.trim());
       }
 
       return 2000; // Default year if parsing fails
