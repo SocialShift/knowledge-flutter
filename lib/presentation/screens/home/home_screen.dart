@@ -358,73 +358,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Timeline info text with enhanced styling
-                              Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Section title
-                                    Row(
-                                      children: [
-                                        Container(
-                                          height: 24,
-                                          width: 4,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.limeGreen,
-                                            borderRadius:
-                                                BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Timeline Overview',
-                                          style: TextStyle(
-                                            color: AppColors.navyBlue,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
+                              // Container(
+                              //   padding:
+                              //       const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                              //   child: Column(
+                              //     crossAxisAlignment: CrossAxisAlignment.start,
+                              //     children: [
+                              //       // Section title
+                              //       Row(
+                              //         children: [
+                              //           Container(
+                              //             height: 24,
+                              //             width: 4,
+                              //             decoration: BoxDecoration(
+                              //               color: AppColors.limeGreen,
+                              //               borderRadius:
+                              //                   BorderRadius.circular(2),
+                              //             ),
+                              //           ),
+                              //           const SizedBox(width: 8),
+                              //           Text(
+                              //             'Timeline Overview',
+                              //             style: TextStyle(
+                              //               color: AppColors.navyBlue,
+                              //               fontSize: 18,
+                              //               fontWeight: FontWeight.bold,
+                              //               letterSpacing: 0.5,
+                              //             ),
+                              //           ),
+                              //         ],
+                              //       ),
+                              //       const SizedBox(height: 12),
 
-                                    // Description text with styled container
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.grey.shade200,
-                                          width: 1,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.03),
-                                            blurRadius: 8,
-                                            spreadRadius: 0,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        _getTimelineInfo(
-                                            timelines, _selectedTimelineIndex),
-                                        style: TextStyle(
-                                          color: Colors.black87,
-                                          fontSize: 15,
-                                          height: 1.5,
-                                          fontWeight: FontWeight.w500,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              //       // Description text with styled container
+                              //       Container(
+                              //         padding: const EdgeInsets.all(16),
+                              //         decoration: BoxDecoration(
+                              //           color: Colors.grey.shade50,
+                              //           borderRadius: BorderRadius.circular(12),
+                              //           border: Border.all(
+                              //             color: Colors.grey.shade200,
+                              //             width: 1,
+                              //           ),
+                              //           boxShadow: [
+                              //             BoxShadow(
+                              //               color:
+                              //                   Colors.black.withOpacity(0.03),
+                              //               blurRadius: 8,
+                              //               spreadRadius: 0,
+                              //               offset: const Offset(0, 2),
+                              //             ),
+                              //           ],
+                              //         ),
+                              //         child: Text(
+                              //           _getTimelineInfo(
+                              //               timelines, _selectedTimelineIndex),
+                              //           style: TextStyle(
+                              //             color: Colors.black87,
+                              //             fontSize: 15,
+                              //             height: 1.5,
+                              //             fontWeight: FontWeight.w500,
+                              //             letterSpacing: 0.2,
+                              //           ),
+                              //         ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
 
                               // Stories header
                               Padding(
