@@ -163,8 +163,10 @@ class OnboardingScreen extends HookConsumerWidget {
       'Other'
     ];
 
-    // Selected social media platform
-    String selectedSocialMedia = socialMediaOptions.first;
+    // Selected social media platform - get from state or default to first option
+    String selectedSocialMedia = state.socialMediaPlatform.isEmpty
+        ? socialMediaOptions.first
+        : state.socialMediaPlatform;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,9 +283,8 @@ class OnboardingScreen extends HookConsumerWidget {
                         }).toList(),
                         onChanged: (newValue) {
                           if (newValue != null) {
-                            // Update the selected social media
-                            selectedSocialMedia = newValue;
-                            // You would need to update your state here
+                            // Update the selected social media in the state
+                            notifier.updateSocialMediaPlatform(newValue);
                           }
                         },
                       ),

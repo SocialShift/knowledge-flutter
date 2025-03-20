@@ -80,6 +80,13 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     );
   }
 
+  void updateSocialMediaPlatform(String platform) {
+    state = state.copyWith(
+      socialMediaPlatform: platform,
+      responses: {...state.responses, 'social_media_platform': platform},
+    );
+  }
+
   void updatePrimaryInterest(String interest) {
     state = state.copyWith(
       primaryInterest: interest,

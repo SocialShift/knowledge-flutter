@@ -1,27 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'onboarding_provider.dart';
+part of 'filter_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$onboardingNotifierHash() =>
-    r'2e7a4513f2d95aa71e6d55e9f2e76015c6b61ce0';
+String _$filterNotifierHash() => r'2b113b7f7aefc609392d1741b8b017b34a50ae62';
 
-/// See also [OnboardingNotifier].
-@ProviderFor(OnboardingNotifier)
-final onboardingNotifierProvider =
-    AutoDisposeNotifierProvider<OnboardingNotifier, OnboardingState>.internal(
-  OnboardingNotifier.new,
-  name: r'onboardingNotifierProvider',
+/// See also [FilterNotifier].
+@ProviderFor(FilterNotifier)
+final filterNotifierProvider =
+    AutoDisposeNotifierProvider<FilterNotifier, FilterState>.internal(
+  FilterNotifier.new,
+  name: r'filterNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$onboardingNotifierHash,
+      : _$filterNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$OnboardingNotifier = AutoDisposeNotifier<OnboardingState>;
+typedef _$FilterNotifier = AutoDisposeNotifier<FilterState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

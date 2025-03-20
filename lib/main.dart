@@ -3,26 +3,46 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/presentation/navigation/router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:knowledge/data/repositories/notification_repository.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load .env file
   await dotenv.load(fileName: ".env");
-  runApp(const ProviderScope(child: MyApp()));
+
+  runApp(
+    ProviderScope(
+      child: Knowledge(),
+    ),
+  );
 }
 
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+class Knowledge extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<Knowledge> createState() => _KnowledgeState();
+}
+
+class _KnowledgeState extends ConsumerState<Knowledge> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Preload OTD notifications when the app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(onThisDayNotificationsProvider);
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
-    final themeMode = ref.watch(themeModeNotifierProvider);
 
     return MaterialApp.router(
       title: 'Know[Ledge]',
-      themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),

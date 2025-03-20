@@ -4,11 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/history_item.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/providers/timeline_provider.dart';
+import 'package:knowledge/data/providers/filter_provider.dart';
 import 'package:knowledge/presentation/widgets/history_card.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
+import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/data/repositories/notification_repository.dart';
+import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
 
 class ElearningScreen extends HookConsumerWidget {
   const ElearningScreen({super.key});
@@ -347,45 +351,60 @@ class _HeaderSection extends StatelessWidget {
               // Notification icon
               GestureDetector(
                 onTap: () {
-                  // TODO: Show notifications
+                  // Show notifications screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  );
                 },
-                child: Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          height: 8,
-                          width: 8,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.limeGreen,
-                          ),
+                child: Consumer(builder: (context, ref, child) {
+                  // Watch for notifications to display badge
+                  final notificationsAsync =
+                      ref.watch(onThisDayNotificationsProvider);
+                  final hasNotifications =
+                      notificationsAsync.valueOrNull?.isNotEmpty ?? false;
+
+                  return Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        if (hasNotifications)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              height: 8,
+                              width: 8,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.limeGreen,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
               ).animate().fadeIn().scale(
                     delay: const Duration(milliseconds: 400),
                     duration: const Duration(milliseconds: 500),
@@ -410,12 +429,17 @@ class _HeaderSection extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SearchBarWidget(
-      onSearch: (value) {
-        // TODO: Implement search functionality
-      },
-      onFilterTap: () {
-        _showFilterBottomSheet(context);
+    return Consumer(
+      builder: (context, ref, child) {
+        return SearchBarWidget(
+          onSearch: (value) {
+            // Update the search query in the filter state
+            ref.read(filterNotifierProvider.notifier).updateSearchQuery(value);
+          },
+          onFilterTap: () {
+            _showFilterBottomSheet(context);
+          },
+        );
       },
     );
   }
@@ -423,218 +447,9 @@ class _SearchBar extends StatelessWidget {
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.navyBlue,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => const _FilterBottomSheet(),
-    );
-  }
-}
-
-class _FilterBottomSheet extends StatefulWidget {
-  const _FilterBottomSheet();
-
-  @override
-  State<_FilterBottomSheet> createState() => _FilterBottomSheetState();
-}
-
-class _FilterBottomSheetState extends State<_FilterBottomSheet> {
-  String _selectedEra = 'All';
-  String _selectedRegion = 'All';
-  String _selectedType = 'All';
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.lightPurple,
-                  AppColors.navyBlue,
-                ],
-                stops: [0.0, 1.0],
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Filter Stories',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Filter Content
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildFilterSection(
-                    title: 'Historical Era',
-                    options: [
-                      'All',
-                      'Ancient',
-                      'Medieval',
-                      'Modern',
-                      'Contemporary'
-                    ],
-                    selectedValue: _selectedEra,
-                    onChanged: (value) => setState(() => _selectedEra = value),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildFilterSection(
-                    title: 'Region',
-                    options: [
-                      'All',
-                      'Europe',
-                      'Asia',
-                      'Americas',
-                      'Africa',
-                      'Oceania'
-                    ],
-                    selectedValue: _selectedRegion,
-                    onChanged: (value) =>
-                        setState(() => _selectedRegion = value),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildFilterSection(
-                    title: 'Content Type',
-                    options: ['All', 'Stories', 'Videos', 'Quizzes'],
-                    selectedValue: _selectedType,
-                    onChanged: (value) => setState(() => _selectedType = value),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Apply Button
-          Container(
-            padding: EdgeInsets.fromLTRB(
-                24, 16, 24, MediaQuery.of(context).padding.bottom + 16),
-            decoration: BoxDecoration(
-              color: AppColors.navyBlue,
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Apply filters
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.limeGreen,
-                  foregroundColor: AppColors.navyBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  'Apply Filters',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterSection({
-    required String title,
-    required List<String> options,
-    required String selectedValue,
-    required ValueChanged<String> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 12,
-          children: options.map((option) {
-            final isSelected = option == selectedValue;
-            return AnimatedScale(
-              scale: isSelected ? 1.05 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              child: FilterChip(
-                selected: isSelected,
-                label: Text(
-                  option,
-                  style: TextStyle(
-                    color: isSelected ? AppColors.navyBlue : Colors.black87,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                backgroundColor: Colors.white.withOpacity(0.9),
-                selectedColor: AppColors.limeGreen,
-                checkmarkColor: AppColors.navyBlue,
-                onSelected: (_) => onChanged(option),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+      builder: (context) => const FilterBottomSheet(),
     );
   }
 }

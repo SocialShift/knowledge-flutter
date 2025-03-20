@@ -26,6 +26,7 @@ mixin _$OnboardingState {
   String get gender => throw _privateConstructorUsedError;
   String get ethnicity => throw _privateConstructorUsedError;
   String get discoverySource => throw _privateConstructorUsedError;
+  String get socialMediaPlatform => throw _privateConstructorUsedError;
   String get primaryInterest => throw _privateConstructorUsedError;
   List<String> get selectedTopics => throw _privateConstructorUsedError;
   List<String> get selectedInterests => throw _privateConstructorUsedError;
@@ -54,6 +55,7 @@ abstract class $OnboardingStateCopyWith<$Res> {
       String gender,
       String ethnicity,
       String discoverySource,
+      String socialMediaPlatform,
       String primaryInterest,
       List<String> selectedTopics,
       List<String> selectedInterests,
@@ -81,6 +83,7 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
     Object? gender = null,
     Object? ethnicity = null,
     Object? discoverySource = null,
+    Object? socialMediaPlatform = null,
     Object? primaryInterest = null,
     Object? selectedTopics = null,
     Object? selectedInterests = null,
@@ -110,6 +113,10 @@ class _$OnboardingStateCopyWithImpl<$Res, $Val extends OnboardingState>
       discoverySource: null == discoverySource
           ? _value.discoverySource
           : discoverySource // ignore: cast_nullable_to_non_nullable
+              as String,
+      socialMediaPlatform: null == socialMediaPlatform
+          ? _value.socialMediaPlatform
+          : socialMediaPlatform // ignore: cast_nullable_to_non_nullable
               as String,
       primaryInterest: null == primaryInterest
           ? _value.primaryInterest
@@ -146,6 +153,7 @@ abstract class _$$OnboardingStateImplCopyWith<$Res>
       String gender,
       String ethnicity,
       String discoverySource,
+      String socialMediaPlatform,
       String primaryInterest,
       List<String> selectedTopics,
       List<String> selectedInterests,
@@ -171,6 +179,7 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
     Object? gender = null,
     Object? ethnicity = null,
     Object? discoverySource = null,
+    Object? socialMediaPlatform = null,
     Object? primaryInterest = null,
     Object? selectedTopics = null,
     Object? selectedInterests = null,
@@ -200,6 +209,10 @@ class __$$OnboardingStateImplCopyWithImpl<$Res>
       discoverySource: null == discoverySource
           ? _value.discoverySource
           : discoverySource // ignore: cast_nullable_to_non_nullable
+              as String,
+      socialMediaPlatform: null == socialMediaPlatform
+          ? _value.socialMediaPlatform
+          : socialMediaPlatform // ignore: cast_nullable_to_non_nullable
               as String,
       primaryInterest: null == primaryInterest
           ? _value.primaryInterest
@@ -231,6 +244,7 @@ class _$OnboardingStateImpl implements _OnboardingState {
       this.gender = '',
       this.ethnicity = '',
       this.discoverySource = '',
+      this.socialMediaPlatform = '',
       this.primaryInterest = '',
       final List<String> selectedTopics = const [],
       final List<String> selectedInterests = const [],
@@ -260,6 +274,9 @@ class _$OnboardingStateImpl implements _OnboardingState {
   @override
   @JsonKey()
   final String discoverySource;
+  @override
+  @JsonKey()
+  final String socialMediaPlatform;
   @override
   @JsonKey()
   final String primaryInterest;
@@ -293,7 +310,7 @@ class _$OnboardingStateImpl implements _OnboardingState {
 
   @override
   String toString() {
-    return 'OnboardingState(isCompleted: $isCompleted, currentStep: $currentStep, race: $race, gender: $gender, ethnicity: $ethnicity, discoverySource: $discoverySource, primaryInterest: $primaryInterest, selectedTopics: $selectedTopics, selectedInterests: $selectedInterests, responses: $responses)';
+    return 'OnboardingState(isCompleted: $isCompleted, currentStep: $currentStep, race: $race, gender: $gender, ethnicity: $ethnicity, discoverySource: $discoverySource, socialMediaPlatform: $socialMediaPlatform, primaryInterest: $primaryInterest, selectedTopics: $selectedTopics, selectedInterests: $selectedInterests, responses: $responses)';
   }
 
   @override
@@ -311,6 +328,8 @@ class _$OnboardingStateImpl implements _OnboardingState {
                 other.ethnicity == ethnicity) &&
             (identical(other.discoverySource, discoverySource) ||
                 other.discoverySource == discoverySource) &&
+            (identical(other.socialMediaPlatform, socialMediaPlatform) ||
+                other.socialMediaPlatform == socialMediaPlatform) &&
             (identical(other.primaryInterest, primaryInterest) ||
                 other.primaryInterest == primaryInterest) &&
             const DeepCollectionEquality()
@@ -331,6 +350,7 @@ class _$OnboardingStateImpl implements _OnboardingState {
       gender,
       ethnicity,
       discoverySource,
+      socialMediaPlatform,
       primaryInterest,
       const DeepCollectionEquality().hash(_selectedTopics),
       const DeepCollectionEquality().hash(_selectedInterests),
@@ -361,6 +381,7 @@ abstract class _OnboardingState implements OnboardingState {
       final String gender,
       final String ethnicity,
       final String discoverySource,
+      final String socialMediaPlatform,
       final String primaryInterest,
       final List<String> selectedTopics,
       final List<String> selectedInterests,
@@ -381,6 +402,8 @@ abstract class _OnboardingState implements OnboardingState {
   String get ethnicity;
   @override
   String get discoverySource;
+  @override
+  String get socialMediaPlatform;
   @override
   String get primaryInterest;
   @override

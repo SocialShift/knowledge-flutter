@@ -15,6 +15,7 @@ _$OnboardingStateImpl _$$OnboardingStateImplFromJson(
       gender: json['gender'] as String? ?? '',
       ethnicity: json['ethnicity'] as String? ?? '',
       discoverySource: json['discoverySource'] as String? ?? '',
+      socialMediaPlatform: json['socialMediaPlatform'] as String? ?? '',
       primaryInterest: json['primaryInterest'] as String? ?? '',
       selectedTopics: (json['selectedTopics'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -36,6 +37,7 @@ Map<String, dynamic> _$$OnboardingStateImplToJson(
       'gender': instance.gender,
       'ethnicity': instance.ethnicity,
       'discoverySource': instance.discoverySource,
+      'socialMediaPlatform': instance.socialMediaPlatform,
       'primaryInterest': instance.primaryInterest,
       'selectedTopics': instance.selectedTopics,
       'selectedInterests': instance.selectedInterests,

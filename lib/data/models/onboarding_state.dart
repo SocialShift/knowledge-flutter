@@ -12,6 +12,7 @@ class OnboardingState with _$OnboardingState {
     @Default('') String gender,
     @Default('') String ethnicity,
     @Default('') String discoverySource,
+    @Default('') String socialMediaPlatform,
     @Default('') String primaryInterest,
     @Default([]) List<String> selectedTopics,
     @Default([]) List<String> selectedInterests,

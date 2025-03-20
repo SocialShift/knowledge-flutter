@@ -9,6 +9,10 @@ import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/presentation/widgets/story_list_item.dart';
 import 'package:knowledge/presentation/widgets/circular_timeline.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
+import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
+import 'package:knowledge/data/providers/filter_provider.dart';
+import 'package:knowledge/data/repositories/notification_repository.dart';
+import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -174,45 +178,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           // Notification icon
                           GestureDetector(
                             onTap: () {
-                              // TODO: Show notifications
+                              // Show notifications screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NotificationsScreen(),
+                                ),
+                              );
                             },
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.notifications_outlined,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: Container(
-                                      height: 8,
-                                      width: 8,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: AppColors.limeGreen,
-                                      ),
+                            child: Consumer(builder: (context, ref, child) {
+                              // Watch for notifications to display badge
+                              final notificationsAsync =
+                                  ref.watch(onThisDayNotificationsProvider);
+                              final hasNotifications =
+                                  notificationsAsync.valueOrNull?.isNotEmpty ??
+                                      false;
+
+                              return Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withOpacity(0.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                  ],
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.notifications_outlined,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    if (hasNotifications)
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          height: 8,
+                                          width: 8,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.limeGreen,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }),
                           ).animate().fadeIn().scale(
                                 delay: const Duration(milliseconds: 400),
                                 duration: const Duration(milliseconds: 500),
@@ -229,7 +250,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           horizontal: 16, vertical: 16),
                       child: SearchBarWidget(
                         onSearch: (value) {
-                          // TODO: Implement search functionality
+                          // Update the search query in the filter state
+                          ref
+                              .read(filterNotifierProvider.notifier)
+                              .updateSearchQuery(value);
                         },
                         onFilterTap: () {
                           _showFilterBottomSheet(context);
@@ -536,50 +560,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Filter',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Filter options would go here
-              const Text('Filter options coming soon...'),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Apply'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const FilterBottomSheet(),
     );
   }
 }
