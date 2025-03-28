@@ -18,15 +18,15 @@ class TimelineDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Fetch the timeline details
-    final timelinesAsync = ref.watch(timelinesProvider);
+    // Fetch the timeline details using the new provider
+    final timelineAsync = ref.watch(timelineDetailProvider(timelineId));
 
     // Fetch stories for this timeline
     final timelineStoriesAsync = ref.watch(timelineStoriesProvider(timelineId));
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: timelinesAsync.when(
+      body: timelineAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
@@ -58,19 +58,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
             ),
           ),
         ),
-        data: (timelines) {
-          // Find the timeline with the matching ID
-          final timeline = timelines.firstWhere(
-            (t) => t.id == timelineId,
-            orElse: () => Timeline(
-              id: '0',
-              title: 'Timeline Not Found',
-              description: 'The requested timeline could not be found.',
-              imageUrl: '',
-              year: 0,
-            ),
-          );
-
+        data: (timeline) {
           return CustomScrollView(
             slivers: [
               // Hero Header with Image
@@ -203,36 +191,114 @@ class TimelineDetailScreen extends HookConsumerWidget {
                         ),
                       ),
 
-                      // Overview
+                      // Description
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Overview',
-                              style: TextStyle(
-                                color: AppColors.navyBlue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              timeline.description,
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                        child: Text(
+                          timeline.description,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            height: 1.6,
+                          ),
                         ),
                       ),
 
-                      // Stories Section
+                      // Main Character section
+                      if (timeline.mainCharacter != null) ...[
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                          child: Text(
+                            'Main Character',
+                            style: TextStyle(
+                              color: AppColors.navyBlue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  // Character Avatar
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(40),
+                                    child: CachedNetworkImage(
+                                      imageUrl:
+                                          timeline.mainCharacter!.avatarUrl,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    AppColors.limeGreen),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          CircleAvatar(
+                                        radius: 40,
+                                        backgroundColor:
+                                            AppColors.navyBlue.withOpacity(0.1),
+                                        child: const Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: AppColors.navyBlue,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  // Character Details
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          timeline.mainCharacter!.persona,
+                                          style: const TextStyle(
+                                            color: AppColors.navyBlue,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'Key Figure',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ).animate().fadeIn().slideX(
+                                begin: 0.3,
+                                duration: const Duration(milliseconds: 500),
+                              ),
+                        ),
+                      ],
+
+                      // Stories Heading
                       const Padding(
-                        padding: EdgeInsets.fromLTRB(20, 8, 20, 16),
+                        padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
                         child: Text(
                           'Stories',
                           style: TextStyle(

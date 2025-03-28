@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/auth_state.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
+import 'package:knowledge/data/models/user.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 
@@ -16,6 +17,17 @@ class AuthNotifier extends _$AuthNotifier {
   @override
   void dispose() {
     _sessionCheckTimer?.cancel();
+  }
+
+  // Restore user session from a valid session token
+  void restoreSession(User user, bool hasCompletedProfile) {
+    state = AuthState.authenticated(
+      user: user,
+      message: 'Welcome back, ${user.email}!',
+      hasCompletedProfile: hasCompletedProfile,
+    );
+
+    print('Session restored for user: ${user.email}');
   }
 
   Future<void> login(String email, String password) async {

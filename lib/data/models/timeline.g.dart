@@ -6,6 +6,22 @@ part of 'timeline.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$MainCharacterImpl _$$MainCharacterImplFromJson(Map<String, dynamic> json) =>
+    _$MainCharacterImpl(
+      id: json['id'] as String,
+      avatarUrl: json['avatarUrl'] as String,
+      persona: json['persona'] as String,
+      createdAt: json['createdAt'] as String?,
+    );
+
+Map<String, dynamic> _$$MainCharacterImplToJson(_$MainCharacterImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'avatarUrl': instance.avatarUrl,
+      'persona': instance.persona,
+      'createdAt': instance.createdAt,
+    };
+
 _$TimelineImpl _$$TimelineImplFromJson(Map<String, dynamic> json) =>
     _$TimelineImpl(
       id: json['id'] as String,
@@ -13,6 +29,10 @@ _$TimelineImpl _$$TimelineImplFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
       year: (json['year'] as num).toInt(),
+      mainCharacter: json['mainCharacter'] == null
+          ? null
+          : MainCharacter.fromJson(
+              json['mainCharacter'] as Map<String, dynamic>),
       stories: (json['stories'] as List<dynamic>?)
               ?.map((e) => Story.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -26,6 +46,7 @@ Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
       'description': instance.description,
       'imageUrl': instance.imageUrl,
       'year': instance.year,
+      'mainCharacter': instance.mainCharacter,
       'stories': instance.stories,
     };
 

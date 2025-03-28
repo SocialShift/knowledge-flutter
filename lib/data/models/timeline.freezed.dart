@@ -14,6 +14,214 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
+MainCharacter _$MainCharacterFromJson(Map<String, dynamic> json) {
+  return _MainCharacter.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MainCharacter {
+  String get id => throw _privateConstructorUsedError;
+  String get avatarUrl => throw _privateConstructorUsedError;
+  String get persona => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
+
+  /// Serializes this MainCharacter to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of MainCharacter
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MainCharacterCopyWith<MainCharacter> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MainCharacterCopyWith<$Res> {
+  factory $MainCharacterCopyWith(
+          MainCharacter value, $Res Function(MainCharacter) then) =
+      _$MainCharacterCopyWithImpl<$Res, MainCharacter>;
+  @useResult
+  $Res call({String id, String avatarUrl, String persona, String? createdAt});
+}
+
+/// @nodoc
+class _$MainCharacterCopyWithImpl<$Res, $Val extends MainCharacter>
+    implements $MainCharacterCopyWith<$Res> {
+  _$MainCharacterCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MainCharacter
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? avatarUrl = null,
+    Object? persona = null,
+    Object? createdAt = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      avatarUrl: null == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+      persona: null == persona
+          ? _value.persona
+          : persona // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$MainCharacterImplCopyWith<$Res>
+    implements $MainCharacterCopyWith<$Res> {
+  factory _$$MainCharacterImplCopyWith(
+          _$MainCharacterImpl value, $Res Function(_$MainCharacterImpl) then) =
+      __$$MainCharacterImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String avatarUrl, String persona, String? createdAt});
+}
+
+/// @nodoc
+class __$$MainCharacterImplCopyWithImpl<$Res>
+    extends _$MainCharacterCopyWithImpl<$Res, _$MainCharacterImpl>
+    implements _$$MainCharacterImplCopyWith<$Res> {
+  __$$MainCharacterImplCopyWithImpl(
+      _$MainCharacterImpl _value, $Res Function(_$MainCharacterImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of MainCharacter
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? avatarUrl = null,
+    Object? persona = null,
+    Object? createdAt = freezed,
+  }) {
+    return _then(_$MainCharacterImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      avatarUrl: null == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+      persona: null == persona
+          ? _value.persona
+          : persona // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MainCharacterImpl implements _MainCharacter {
+  const _$MainCharacterImpl(
+      {required this.id,
+      required this.avatarUrl,
+      required this.persona,
+      this.createdAt});
+
+  factory _$MainCharacterImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MainCharacterImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String avatarUrl;
+  @override
+  final String persona;
+  @override
+  final String? createdAt;
+
+  @override
+  String toString() {
+    return 'MainCharacter(id: $id, avatarUrl: $avatarUrl, persona: $persona, createdAt: $createdAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MainCharacterImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
+            (identical(other.persona, persona) || other.persona == persona) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, id, avatarUrl, persona, createdAt);
+
+  /// Create a copy of MainCharacter
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MainCharacterImplCopyWith<_$MainCharacterImpl> get copyWith =>
+      __$$MainCharacterImplCopyWithImpl<_$MainCharacterImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MainCharacterImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _MainCharacter implements MainCharacter {
+  const factory _MainCharacter(
+      {required final String id,
+      required final String avatarUrl,
+      required final String persona,
+      final String? createdAt}) = _$MainCharacterImpl;
+
+  factory _MainCharacter.fromJson(Map<String, dynamic> json) =
+      _$MainCharacterImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get avatarUrl;
+  @override
+  String get persona;
+  @override
+  String? get createdAt;
+
+  /// Create a copy of MainCharacter
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MainCharacterImplCopyWith<_$MainCharacterImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 Timeline _$TimelineFromJson(Map<String, dynamic> json) {
   return _Timeline.fromJson(json);
 }
@@ -25,6 +233,7 @@ mixin _$Timeline {
   String get description => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
   int get year => throw _privateConstructorUsedError;
+  MainCharacter? get mainCharacter => throw _privateConstructorUsedError;
   List<Story> get stories => throw _privateConstructorUsedError;
 
   /// Serializes this Timeline to a JSON map.
@@ -48,7 +257,10 @@ abstract class $TimelineCopyWith<$Res> {
       String description,
       String imageUrl,
       int year,
+      MainCharacter? mainCharacter,
       List<Story> stories});
+
+  $MainCharacterCopyWith<$Res>? get mainCharacter;
 }
 
 /// @nodoc
@@ -71,6 +283,7 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
     Object? description = null,
     Object? imageUrl = null,
     Object? year = null,
+    Object? mainCharacter = freezed,
     Object? stories = null,
   }) {
     return _then(_value.copyWith(
@@ -94,11 +307,29 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
               as int,
+      mainCharacter: freezed == mainCharacter
+          ? _value.mainCharacter
+          : mainCharacter // ignore: cast_nullable_to_non_nullable
+              as MainCharacter?,
       stories: null == stories
           ? _value.stories
           : stories // ignore: cast_nullable_to_non_nullable
               as List<Story>,
     ) as $Val);
+  }
+
+  /// Create a copy of Timeline
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MainCharacterCopyWith<$Res>? get mainCharacter {
+    if (_value.mainCharacter == null) {
+      return null;
+    }
+
+    return $MainCharacterCopyWith<$Res>(_value.mainCharacter!, (value) {
+      return _then(_value.copyWith(mainCharacter: value) as $Val);
+    });
   }
 }
 
@@ -116,7 +347,11 @@ abstract class _$$TimelineImplCopyWith<$Res>
       String description,
       String imageUrl,
       int year,
+      MainCharacter? mainCharacter,
       List<Story> stories});
+
+  @override
+  $MainCharacterCopyWith<$Res>? get mainCharacter;
 }
 
 /// @nodoc
@@ -137,6 +372,7 @@ class __$$TimelineImplCopyWithImpl<$Res>
     Object? description = null,
     Object? imageUrl = null,
     Object? year = null,
+    Object? mainCharacter = freezed,
     Object? stories = null,
   }) {
     return _then(_$TimelineImpl(
@@ -160,6 +396,10 @@ class __$$TimelineImplCopyWithImpl<$Res>
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
               as int,
+      mainCharacter: freezed == mainCharacter
+          ? _value.mainCharacter
+          : mainCharacter // ignore: cast_nullable_to_non_nullable
+              as MainCharacter?,
       stories: null == stories
           ? _value._stories
           : stories // ignore: cast_nullable_to_non_nullable
@@ -177,6 +417,7 @@ class _$TimelineImpl implements _Timeline {
       required this.description,
       required this.imageUrl,
       required this.year,
+      this.mainCharacter,
       final List<Story> stories = const []})
       : _stories = stories;
 
@@ -193,6 +434,8 @@ class _$TimelineImpl implements _Timeline {
   final String imageUrl;
   @override
   final int year;
+  @override
+  final MainCharacter? mainCharacter;
   final List<Story> _stories;
   @override
   @JsonKey()
@@ -204,7 +447,7 @@ class _$TimelineImpl implements _Timeline {
 
   @override
   String toString() {
-    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, stories: $stories)';
+    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, mainCharacter: $mainCharacter, stories: $stories)';
   }
 
   @override
@@ -219,13 +462,15 @@ class _$TimelineImpl implements _Timeline {
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
             (identical(other.year, year) || other.year == year) &&
+            (identical(other.mainCharacter, mainCharacter) ||
+                other.mainCharacter == mainCharacter) &&
             const DeepCollectionEquality().equals(other._stories, _stories));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, title, description, imageUrl,
-      year, const DeepCollectionEquality().hash(_stories));
+      year, mainCharacter, const DeepCollectionEquality().hash(_stories));
 
   /// Create a copy of Timeline
   /// with the given fields replaced by the non-null parameter values.
@@ -250,6 +495,7 @@ abstract class _Timeline implements Timeline {
       required final String description,
       required final String imageUrl,
       required final int year,
+      final MainCharacter? mainCharacter,
       final List<Story> stories}) = _$TimelineImpl;
 
   factory _Timeline.fromJson(Map<String, dynamic> json) =
@@ -265,6 +511,8 @@ abstract class _Timeline implements Timeline {
   String get imageUrl;
   @override
   int get year;
+  @override
+  MainCharacter? get mainCharacter;
   @override
   List<Story> get stories;
 

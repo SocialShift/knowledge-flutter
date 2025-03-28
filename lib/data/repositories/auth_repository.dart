@@ -106,10 +106,41 @@ class AuthRepository {
 
   Future<bool> checkSession() async {
     try {
+      // Check if we have a session cookie
+      final cookie = await _storage.read(key: 'session_cookie');
+      if (cookie == null || cookie.isEmpty) {
+        return false;
+      }
+
+      // Verify the session with the server
       final response = await _apiService.get('/auth/user/me');
       return response.statusCode == 200;
     } catch (e) {
+      print('Session check error: $e');
       return false;
+    }
+  }
+
+  // Get user from existing session
+  Future<User> getUserFromSession() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      if (response.statusCode == 200) {
+        final userData = response.data['user'] ?? {};
+
+        return User(
+          id: userData['id']?.toString() ?? '',
+          email: userData['email'] ?? '',
+          username: (userData['email'] ?? '').toString().split('@')[0],
+          isEmailVerified: userData['is_verified'] ?? false,
+        );
+      } else {
+        throw 'Failed to get user data from session';
+      }
+    } catch (e) {
+      print('Error getting user from session: $e');
+      throw 'Failed to restore session: ${e.toString()}';
     }
   }
 

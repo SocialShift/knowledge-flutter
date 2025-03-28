@@ -270,25 +270,25 @@ class LoginScreen extends HookConsumerWidget {
                           ),
                       const SizedBox(height: 16),
                       // Skip Button
-                      Center(
-                        child: TextButton(
-                          onPressed: () => ref
-                              .read(authNotifierProvider.notifier)
-                              .loginAsGuest(),
-                          child: Text(
-                            'Skip for now',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.2,
-                            delay: const Duration(milliseconds: 800),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 20),
+                      // Center(
+                      //   child: TextButton(
+                      //     onPressed: () => ref
+                      //         .read(authNotifierProvider.notifier)
+                      //         .loginAsGuest(),
+                      //     child: Text(
+                      //       'Skip for now',
+                      //       style: TextStyle(
+                      //         color: Colors.grey.shade500,
+                      //         fontSize: 14,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ).animate().fadeIn().slideY(
+                      //       begin: 0.2,
+                      //       delay: const Duration(milliseconds: 800),
+                      //       duration: const Duration(milliseconds: 500),
+                      //     ),
+                      // const SizedBox(height: 20),
                     ],
                   ),
                 ),

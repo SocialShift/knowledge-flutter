@@ -37,6 +37,34 @@ class TimelineRepository {
     }
   }
 
+  // Fetch a single timeline by ID
+  Future<Timeline> getTimelineById(String timelineId) async {
+    try {
+      final response = await _apiService.get('/timeline/$timelineId');
+
+      if (response.statusCode == 401) {
+        throw 'Please log in again to continue';
+      }
+
+      if (response.statusCode != 200) {
+        final errorMessage = response.data['detail'] ??
+            response.data['message'] ??
+            'Failed to fetch timeline details';
+        throw errorMessage.toString();
+      }
+
+      // Parse the response data
+      if (response.data is Map<String, dynamic>) {
+        return Timeline.fromApiResponse(response.data);
+      } else {
+        throw 'Invalid response format for timeline';
+      }
+    } catch (e) {
+      print('Error fetching timeline $timelineId: $e');
+      rethrow;
+    }
+  }
+
   // Fetch stories for a specific timeline
   Future<List<Story>> getTimelineStories(String timelineId) async {
     try {
@@ -160,6 +188,14 @@ TimelineRepository timelineRepository(TimelineRepositoryRef ref) {
 Future<List<Timeline>> timelines(TimelinesRef ref) async {
   final repository = ref.watch(timelineRepositoryProvider);
   return repository.getTimelines();
+}
+
+// Provider for fetching a single timeline
+@riverpod
+Future<Timeline> timelineDetail(
+    TimelineDetailRef ref, String timelineId) async {
+  final repository = ref.watch(timelineRepositoryProvider);
+  return repository.getTimelineById(timelineId);
 }
 
 // Provider for fetching stories for a specific timeline

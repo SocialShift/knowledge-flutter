@@ -17,6 +17,7 @@ class ProfileNotifier extends _$ProfileNotifier {
     required String email,
     String? location,
     String? languagePreference,
+    String? avatarUrl,
     Map<String, dynamic>? personalizationQuestions,
   }) async {
     state = const AsyncLoading();
@@ -28,6 +29,7 @@ class ProfileNotifier extends _$ProfileNotifier {
             email: email,
             location: location,
             languagePreference: languagePreference,
+            avatarUrl: avatarUrl,
             personalizationQuestions: personalizationQuestions,
           );
       state = const AsyncData(null);

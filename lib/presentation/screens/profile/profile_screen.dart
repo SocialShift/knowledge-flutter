@@ -16,32 +16,41 @@ class ProfileScreen extends HookConsumerWidget {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              backgroundColor: Theme.of(context).cardColor,
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: Text(
+              title: const Text(
                 'Confirm Logout',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: TextStyle(
+                  color: AppColors.navyBlue,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              content: Text(
+              content: const Text(
                 'Are you sure you want to logout?',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: TextStyle(
+                  color: Colors.black87,
+                ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(
-                    'No',
-                    style: TextStyle(color: Colors.grey[400]),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text(
-                    'Yes',
-                    style: TextStyle(color: Colors.red),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Logout'),
                 ),
               ],
             );
@@ -54,10 +63,29 @@ class ProfileScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider);
     final authNotifier = ref.watch(authNotifierProvider.notifier);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.navyBlue,
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.navyBlue,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: AppColors.navyBlue),
+            onPressed: () => context.push('/profile/edit'),
+            tooltip: 'Edit Profile',
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: profileAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
@@ -65,356 +93,326 @@ class ProfileScreen extends HookConsumerWidget {
           ),
         ),
         error: (error, stack) => Center(
-          child: SelectableText.rich(
-            TextSpan(
-              children: [
-                const TextSpan(
-                  text: 'Error loading profile: ',
-                  style: TextStyle(color: Colors.red),
-                ),
-                TextSpan(
-                  text: error.toString(),
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-        ),
-        data: (profile) =>
-            _buildProfileContent(context, profile as Profile, authNotifier),
-      ),
-    );
-  }
-
-  Widget _buildProfileContent(
-    BuildContext context,
-    Profile profile,
-    AuthNotifier authNotifier,
-  ) {
-    return Column(
-      children: [
-        // Header with gradient and avatar
-        SizedBox(
-          height: 245,
-          child: Stack(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Gradient background
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.lightPurple,
-                      AppColors.navyBlue,
-                    ],
-                  ),
-                ),
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 48,
               ),
-              // Profile content
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 60.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.push('/profile/edit'),
-                        child: Hero(
-                          tag: 'profileAvatar',
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.limeGreen,
-                                width: 3,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: const UserAvatar(size: 100),
-                          ),
-                        ),
-                      ).animate().fadeIn().scale(
-                            delay: const Duration(milliseconds: 200),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 16),
-                      Text(
-                        profile.nickname ?? 'User',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
-                                ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.3,
-                            delay: const Duration(milliseconds: 300),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 4),
-                      Text(
-                        profile.email,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 16,
-                        ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.3,
-                            delay: const Duration(milliseconds: 400),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                    ],
-                  ),
+              const SizedBox(height: 16),
+              SelectableText.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Error loading profile: ',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: error.toString(),
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ],
                 ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.limeGreen,
+                  foregroundColor: AppColors.navyBlue,
+                ),
+                onPressed: () => ref.refresh(userProfileProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
               ),
             ],
           ),
         ),
-        // Profile Info - Expanded to fill remaining space
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-            ),
+        data: (profile) => SafeArea(
+          child: RefreshIndicator(
+            color: AppColors.limeGreen,
+            onRefresh: () => ref.refresh(userProfileProvider.future),
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 100.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoField(
-                    context,
-                    'Nickname',
-                    profile.nickname ?? 'Not set',
-                    Icons.person_outline,
-                  ).animate().fadeIn().slideX(
-                        begin: -0.2,
-                        delay: const Duration(milliseconds: 500),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 16),
-                  _buildInfoField(
-                    context,
-                    'Pronouns',
-                    profile.pronouns ?? 'Not set',
-                    Icons.person_outline,
-                  ).animate().fadeIn().slideX(
-                        begin: -0.2,
-                        delay: const Duration(milliseconds: 800),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 32),
-                  _buildInfoField(
-                    context,
-                    'Location',
-                    profile.location ?? 'Not set',
-                    Icons.location_on_outlined,
-                  ).animate().fadeIn().slideX(
-                        begin: -0.2,
-                        delay: const Duration(milliseconds: 600),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 16),
-                  _buildInfoField(
-                    context,
-                    'Language',
-                    profile.languagePreference ?? 'Not set',
-                    Icons.language_outlined,
-                  ).animate().fadeIn().slideX(
-                        begin: -0.2,
-                        delay: const Duration(milliseconds: 700),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 16),
-                  // _buildInfoField(
-                  //   context,
-                  //   'Pronouns',
-                  //   profile.pronouns ?? 'Not set',
-                  //   Icons.person_outline,
-                  // ).animate().fadeIn().slideX(
-                  //       begin: -0.2,
-                  //       delay: const Duration(milliseconds: 800),
-                  //       duration: const Duration(milliseconds: 500),
-                  //     ),
-                  // const SizedBox(height: 32),
-                  // Edit Profile Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.limeGreen,
-                        foregroundColor: AppColors.navyBlue,
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  children: [
+                    // Profile Header
+                    _buildProfileHeader(context, profile),
+
+                    const SizedBox(height: 24),
+
+                    // Personal Info Section
+                    _buildInfoSection(
+                      context,
+                      title: 'Personal Information',
+                      icon: Icons.person,
+                      items: [
+                        InfoItem(
+                          label: 'Nickname',
+                          value: profile.nickname ?? 'Not set',
+                          icon: Icons.person_outline,
                         ),
-                      ),
-                      onPressed: () => context.push('/profile/edit'),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Edit Profile',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                        InfoItem(
+                          label: 'Email',
+                          value: profile.email,
+                          icon: Icons.email_outlined,
+                        ),
+                        InfoItem(
+                          label: 'Pronouns',
+                          value: profile.pronouns ?? 'Not set',
+                          icon: Icons.person_pin_outlined,
+                        ),
+                      ],
+                    ).animate().fadeIn().slideY(
+                          begin: 0.1,
+                          delay: const Duration(milliseconds: 200),
+                          duration: const Duration(milliseconds: 300),
+                        ),
+
+                    const SizedBox(height: 16),
+
+                    // Preferences Section
+                    _buildInfoSection(
+                      context,
+                      title: 'Preferences',
+                      icon: Icons.settings,
+                      items: [
+                        InfoItem(
+                          label: 'Location',
+                          value: profile.location ?? 'Not set',
+                          icon: Icons.location_on_outlined,
+                        ),
+                        InfoItem(
+                          label: 'Language',
+                          value: profile.languagePreference ?? 'English',
+                          icon: Icons.language_outlined,
+                        ),
+                      ],
+                    ).animate().fadeIn().slideY(
+                          begin: 0.1,
+                          delay: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 300),
+                        ),
+
+                    // Logout Button Section - only keep this one button
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side:
+                                const BorderSide(color: Colors.red, width: 1.5),
+                            foregroundColor: Colors.red,
+                            backgroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.edit_outlined,
-                            color: AppColors.navyBlue,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ).animate().fadeIn().slideY(
-                        begin: 0.2,
-                        delay: const Duration(milliseconds: 900),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                  const SizedBox(height: 24),
-
-                  // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red, width: 1.5),
-                        foregroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () async {
-                        final shouldLogout =
-                            await _showLogoutConfirmationDialog(context);
-                        if (shouldLogout && context.mounted) {
-                          try {
-                            await authNotifier.logout();
-                            if (context.mounted) {
-                              context.go('/login');
+                          onPressed: () async {
+                            final shouldLogout =
+                                await _showLogoutConfirmationDialog(context);
+                            if (shouldLogout && context.mounted) {
+                              try {
+                                await authNotifier.logout();
+                                if (context.mounted) {
+                                  context.go('/login');
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error logging out: $e'),
+                                      backgroundColor: Colors.red,
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      margin: const EdgeInsets.all(12),
+                                    ),
+                                  );
+                                }
+                              }
                             }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error logging out: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
+                          },
+                          icon: const Icon(Icons.logout_rounded),
+                          label: const Text(
                             'Logout',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.logout_rounded,
-                            color: Colors.red,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ).animate().fadeIn().slideY(
-                        begin: 0.2,
-                        delay: const Duration(milliseconds: 1000),
-                        duration: const Duration(milliseconds: 500),
-                      ),
-                ],
+                    ).animate().fadeIn().slideY(
+                          begin: 0.1,
+                          delay: const Duration(milliseconds: 400),
+                          duration: const Duration(milliseconds: 300),
+                        ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildInfoField(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
+  Widget _buildProfileHeader(BuildContext context, Profile profile) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Column(
+        children: [
+          // Avatar with border
+          Hero(
+            tag: 'profileAvatar',
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.limeGreen, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: UserAvatar(size: 110),
+            ),
+          ).animate().fadeIn().scale(
+                delay: const Duration(milliseconds: 100),
+                duration: const Duration(milliseconds: 300),
+              ),
+
+          const SizedBox(height: 16),
+
+          // Name and Email
+          Column(
+            children: [
+              Text(
+                profile.nickname ?? 'User',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                ),
+              ).animate().fadeIn(),
+              const SizedBox(height: 4),
+              Text(
+                profile.email,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ).animate().fadeIn(),
+            ],
           ),
         ],
-        border: Border.all(
-          color: Colors.grey.shade100,
-          width: 1,
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required List<InfoItem> items,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section Header
+              Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: AppColors.navyBlue,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.navyBlue,
+                    ),
+                  ),
+                ],
+              ),
+
+              const Divider(height: 24),
+
+              // Info items
+              ...items.map((item) => _buildInfoItem(context, item)),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoItem(BuildContext context, InfoItem item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.limeGreen.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.limeGreen.withOpacity(0.3),
-                width: 1,
-              ),
+              color: AppColors.limeGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              icon,
+              item.icon,
               color: AppColors.navyBlue,
-              size: 24,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  item.label,
                   style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  value,
+                  item.value,
                   style: TextStyle(
-                    color: Colors.grey[800],
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -424,4 +422,16 @@ class ProfileScreen extends HookConsumerWidget {
       ),
     );
   }
+}
+
+class InfoItem {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const InfoItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 }

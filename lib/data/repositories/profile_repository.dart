@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
@@ -17,6 +18,8 @@ class ProfileRepository {
     required String email,
     String? location,
     String? languagePreference,
+    String?
+        avatarUrl, // We'll keep the parameter name, but treat it as a file path
     Map<String, dynamic>? personalizationQuestions,
   }) async {
     try {
@@ -35,6 +38,30 @@ class ProfileRepository {
 
       if (languagePreference != null) {
         formData.fields.add(MapEntry('languagePreference', languagePreference));
+      }
+
+      // Handle avatar as a MultipartFile
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        // Extract the file path from the "file://" URL format
+        final filePath = avatarUrl.startsWith('file://')
+            ? avatarUrl.substring(7)
+            : avatarUrl;
+
+        // Create a File object to check if the file exists
+        final file = File(filePath);
+        if (await file.exists()) {
+          // Create a MultipartFile from the file
+          final fileName = filePath.split('/').last;
+          final multipartFile = await MultipartFile.fromFile(
+            file.path,
+            filename: fileName,
+          );
+
+          // Add the file to the form data with the correct field name
+          formData.files.add(MapEntry('avatar_file', multipartFile));
+        } else {
+          print('Avatar file does not exist: $filePath');
+        }
       }
 
       // Handle personalization questions

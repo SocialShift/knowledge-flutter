@@ -5,6 +5,37 @@ part 'timeline.freezed.dart';
 part 'timeline.g.dart';
 
 @freezed
+class MainCharacter with _$MainCharacter {
+  const factory MainCharacter({
+    required String id,
+    required String avatarUrl,
+    required String persona,
+    String? createdAt,
+  }) = _MainCharacter;
+
+  factory MainCharacter.fromJson(Map<String, dynamic> json) =>
+      _$MainCharacterFromJson(json);
+
+  // Factory constructor to create a MainCharacter from the API response
+  static MainCharacter fromApiResponse(Map<String, dynamic> json) {
+    final mediaBaseUrl = dotenv.env['MEDIA_BASE_URL'] ?? '';
+
+    // Get the avatar URL and prepend the base URL if it's a relative path
+    String avatarUrl = json['avatar_url'] ?? '';
+    if (avatarUrl.isNotEmpty && !avatarUrl.startsWith('http')) {
+      avatarUrl = '$mediaBaseUrl/$avatarUrl';
+    }
+
+    return MainCharacter(
+      id: json['id'].toString(),
+      avatarUrl: avatarUrl,
+      persona: json['persona'] ?? '',
+      createdAt: json['created_at'],
+    );
+  }
+}
+
+@freezed
 class Timeline with _$Timeline {
   factory Timeline({
     required String id,
@@ -12,6 +43,7 @@ class Timeline with _$Timeline {
     required String description,
     required String imageUrl,
     required int year,
+    MainCharacter? mainCharacter,
     @Default([]) List<Story> stories,
   }) = _Timeline;
 
@@ -28,12 +60,19 @@ class Timeline with _$Timeline {
       thumbnailUrl = '$mediaBaseUrl/$thumbnailUrl';
     }
 
+    // Parse main character if available
+    MainCharacter? mainCharacter;
+    if (json['main_character'] != null) {
+      mainCharacter = MainCharacter.fromApiResponse(json['main_character']);
+    }
+
     return Timeline(
       id: json['id'].toString(),
       title: json['title'] ?? '',
       description: json['overview'] ?? '',
       imageUrl: thumbnailUrl,
       year: _parseYearRange(json['year_range'] ?? ''),
+      mainCharacter: mainCharacter,
     );
   }
 

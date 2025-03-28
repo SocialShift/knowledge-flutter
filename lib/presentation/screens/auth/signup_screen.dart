@@ -297,42 +297,42 @@ class SignupScreen extends HookConsumerWidget {
                           ),
                       const SizedBox(height: 16),
                       // Skip Button
-                      Center(
-                        child: TextButton(
-                          onPressed: () => ref
-                              .read(authNotifierProvider.notifier)
-                              .loginAsGuest(),
-                          child: Text(
-                            'Skip for now',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.2,
-                            delay: const Duration(milliseconds: 800),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 20),
-                      // Terms and Privacy
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          'By signing up, you agree to our Terms of Service and Privacy Policy',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ).animate().fadeIn().slideY(
-                            begin: 0.2,
-                            delay: const Duration(milliseconds: 900),
-                            duration: const Duration(milliseconds: 500),
-                          ),
-                      const SizedBox(height: 20),
+                      // Center(
+                      //   child: TextButton(
+                      //     onPressed: () => ref
+                      //         .read(authNotifierProvider.notifier)
+                      //         .loginAsGuest(),
+                      //     child: Text(
+                      //       'Skip for now',
+                      //       style: TextStyle(
+                      //         color: Colors.grey.shade500,
+                      //         fontSize: 14,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ).animate().fadeIn().slideY(
+                      //       begin: 0.2,
+                      //       delay: const Duration(milliseconds: 800),
+                      //       duration: const Duration(milliseconds: 500),
+                      //     ),
+                      // const SizedBox(height: 20),
+                      // // Terms and Privacy
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      //   child: Text(
+                      //     'By signing up, you agree to our Terms of Service and Privacy Policy',
+                      //     style: TextStyle(
+                      //       color: Colors.grey.shade600,
+                      //       fontSize: 12,
+                      //     ),
+                      //     textAlign: TextAlign.center,
+                      //   ),
+                      // ).animate().fadeIn().slideY(
+                      //       begin: 0.2,
+                      //       delay: const Duration(milliseconds: 900),
+                      //       duration: const Duration(milliseconds: 500),
+                      //     ),
+                      // const SizedBox(height: 20),
                     ],
                   ),
                 ),

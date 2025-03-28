@@ -41,7 +41,7 @@ final timelinesProvider = AutoDisposeFutureProvider<List<Timeline>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TimelinesRef = AutoDisposeFutureProviderRef<List<Timeline>>;
-String _$timelineStoriesHash() => r'00a139a002d19ede74d91c7ab6185fc38562fad4';
+String _$timelineDetailHash() => r'cc8d71bd60467753c5deb21a3a73db71d1c73908';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -63,6 +63,136 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [timelineDetail].
+@ProviderFor(timelineDetail)
+const timelineDetailProvider = TimelineDetailFamily();
+
+/// See also [timelineDetail].
+class TimelineDetailFamily extends Family<AsyncValue<Timeline>> {
+  /// See also [timelineDetail].
+  const TimelineDetailFamily();
+
+  /// See also [timelineDetail].
+  TimelineDetailProvider call(
+    String timelineId,
+  ) {
+    return TimelineDetailProvider(
+      timelineId,
+    );
+  }
+
+  @override
+  TimelineDetailProvider getProviderOverride(
+    covariant TimelineDetailProvider provider,
+  ) {
+    return call(
+      provider.timelineId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'timelineDetailProvider';
+}
+
+/// See also [timelineDetail].
+class TimelineDetailProvider extends AutoDisposeFutureProvider<Timeline> {
+  /// See also [timelineDetail].
+  TimelineDetailProvider(
+    String timelineId,
+  ) : this._internal(
+          (ref) => timelineDetail(
+            ref as TimelineDetailRef,
+            timelineId,
+          ),
+          from: timelineDetailProvider,
+          name: r'timelineDetailProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$timelineDetailHash,
+          dependencies: TimelineDetailFamily._dependencies,
+          allTransitiveDependencies:
+              TimelineDetailFamily._allTransitiveDependencies,
+          timelineId: timelineId,
+        );
+
+  TimelineDetailProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.timelineId,
+  }) : super.internal();
+
+  final String timelineId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Timeline> Function(TimelineDetailRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TimelineDetailProvider._internal(
+        (ref) => create(ref as TimelineDetailRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        timelineId: timelineId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Timeline> createElement() {
+    return _TimelineDetailProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TimelineDetailProvider && other.timelineId == timelineId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, timelineId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TimelineDetailRef on AutoDisposeFutureProviderRef<Timeline> {
+  /// The parameter `timelineId` of this provider.
+  String get timelineId;
+}
+
+class _TimelineDetailProviderElement
+    extends AutoDisposeFutureProviderElement<Timeline> with TimelineDetailRef {
+  _TimelineDetailProviderElement(super.provider);
+
+  @override
+  String get timelineId => (origin as TimelineDetailProvider).timelineId;
+}
+
+String _$timelineStoriesHash() => r'00a139a002d19ede74d91c7ab6185fc38562fad4';
 
 /// See also [timelineStories].
 @ProviderFor(timelineStories)
