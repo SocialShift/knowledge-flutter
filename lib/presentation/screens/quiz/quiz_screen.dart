@@ -64,7 +64,7 @@ class QuizScreen extends HookConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Quiz submitted successfully!'),
+              content: Text('Milestones submitted successfully!'),
               backgroundColor: Colors.green,
             ),
           );

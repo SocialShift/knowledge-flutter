@@ -284,57 +284,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
 
                   // Stories title section
-                  SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Stories from ${timelines[_selectedTimelineIndex].title}',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.1,
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                          ),
-                          const SizedBox(width: 8),
-                          Tooltip(
-                            message:
-                                'View all timelines in the ELearning screen',
-                            child: TextButton.icon(
-                              onPressed: () {
-                                context.go('/elearning');
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.limeGreen,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              icon: const Icon(Icons.arrow_forward, size: 16),
-                              label: const Text(
-                                'See All Timelines',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ).animate().fadeIn().slideX(
-                                begin: 0.1,
-                                duration: const Duration(milliseconds: 500),
-                              ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // SliverToBoxAdapter(
+                  //   child: Container(
+                  //     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  //     child: Row(
+                  //       children: [
+                  //         Expanded(
+                  //           child: Text(
+                  //             'Stories from ${timelines[_selectedTimelineIndex].title}',
+                  //             style: TextStyle(
+                  //               color: Colors.white.withOpacity(0.9),
+                  //               fontSize: 20,
+                  //               fontWeight: FontWeight.bold,
+                  //             ),
+                  //             overflow: TextOverflow.ellipsis,
+                  //           ).animate().fadeIn().slideX(
+                  //                 begin: -0.1,
+                  //                 duration: const Duration(milliseconds: 500),
+                  //               ),
+                  //         ),
+                  //         const SizedBox(width: 8),
+                  //         Tooltip(
+                  //           message:
+                  //               'View all timelines in the ELearning screen',
+                  //           child: TextButton.icon(
+                  //             onPressed: () {
+                  //               context.go('/elearning');
+                  //             },
+                  //             style: TextButton.styleFrom(
+                  //               foregroundColor: AppColors.limeGreen,
+                  //               padding: const EdgeInsets.symmetric(
+                  //                   horizontal: 12, vertical: 8),
+                  //               shape: RoundedRectangleBorder(
+                  //                 borderRadius: BorderRadius.circular(20),
+                  //               ),
+                  //             ),
+                  //             icon: const Icon(Icons.arrow_forward, size: 16),
+                  //             label: const Text(
+                  //               'See All Timelines',
+                  //               style: TextStyle(
+                  //                 fontWeight: FontWeight.bold,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ).animate().fadeIn().slideX(
+                  //               begin: 0.1,
+                  //               duration: const Duration(milliseconds: 500),
+                  //             ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
 
                   // White background container with stories
                   SliverToBoxAdapter(
