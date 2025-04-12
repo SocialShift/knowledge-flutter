@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/data/providers/filter_provider.dart';
 
-class SearchBarWidget extends StatelessWidget {
+class SearchBarWidget extends ConsumerStatefulWidget {
   final VoidCallback onFilterTap;
   final ValueChanged<String> onSearch;
 
@@ -10,6 +12,27 @@ class SearchBarWidget extends StatelessWidget {
     required this.onFilterTap,
     required this.onSearch,
   });
+
+  @override
+  ConsumerState<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends ConsumerState<SearchBarWidget> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with the current search query from the filter state
+    final currentQuery = ref.read(filterNotifierProvider).searchQuery;
+    _controller.text = currentQuery;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +64,11 @@ class SearchBarWidget extends StatelessWidget {
           // Text field
           Expanded(
             child: TextField(
-              onChanged: onSearch,
+              controller: _controller,
+              onChanged: (value) {
+                setState(() {}); // Rebuild to show/hide clear button
+                widget.onSearch(value);
+              },
               style: TextStyle(
                 color: Colors.grey.shade800,
                 fontSize: 14,
@@ -58,6 +85,21 @@ class SearchBarWidget extends StatelessWidget {
                 errorBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                // Add clear button when text is entered
+                suffixIcon: _controller.text.isNotEmpty
+                    ? IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.clear,
+                            size: 18, color: Colors.grey),
+                        onPressed: () {
+                          setState(() {
+                            _controller.clear();
+                          });
+                          widget.onSearch('');
+                        },
+                      )
+                    : null,
               ),
               cursorColor: AppColors.navyBlue,
               cursorWidth: 1.5,
@@ -76,16 +118,41 @@ class SearchBarWidget extends StatelessWidget {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: onFilterTap,
+              onTap: widget.onFilterTap,
               borderRadius: BorderRadius.circular(24),
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(
-                  Icons.tune,
-                  color: AppColors.navyBlue,
-                  size: 20,
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final filterState = ref.watch(filterNotifierProvider);
+                    final hasActiveFilters = filterState.hasActiveFilters;
+
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(
+                          Icons.tune,
+                          color: AppColors.navyBlue,
+                          size: 20,
+                        ),
+                        if (hasActiveFilters)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              height: 8,
+                              width: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.limeGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

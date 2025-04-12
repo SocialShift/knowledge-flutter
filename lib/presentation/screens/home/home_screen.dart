@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
+import 'package:knowledge/data/providers/timeline_provider.dart';
 import 'package:knowledge/presentation/widgets/story_list_item.dart';
 import 'package:knowledge/presentation/widgets/circular_timeline.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
@@ -97,9 +98,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final timelinePeriods = _convertToTimelinePeriods(timelines);
             final selectedTimeline = timelines[_selectedTimelineIndex];
 
-            // Watch the stories provider for the selected timeline
+            // Watch the filtered stories provider for the selected timeline
             final storiesAsync =
-                ref.watch(timelineStoriesProvider(selectedTimeline.id));
+                ref.watch(filteredTimelineStoriesProvider(selectedTimeline.id));
 
             return RefreshIndicator(
               onRefresh: () async {

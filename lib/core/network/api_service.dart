@@ -279,6 +279,52 @@ class ApiService {
     }
   }
 
+  Future<Response> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      print('Making DELETE request to: ${_dio.options.baseUrl}$path');
+      print('Request data: $data');
+
+      final response = await _dio.delete(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(
+          validateStatus: (status) {
+            return status != null && status < 500;
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 401) {
+        throw 'Unauthorized access';
+      }
+
+      if (response.statusCode! >= 400) {
+        throw _handleDioError(
+          DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
+      return response;
+    } on DioException catch (e) {
+      print('DioException in delete: ${e.message}');
+      print('DioException type: ${e.type}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioError(e);
+    }
+  }
+
   String _handleDioError(DioException e) {
     if (e.response?.data != null && e.response?.data is Map) {
       final message = e.response?.data['detail'] ??

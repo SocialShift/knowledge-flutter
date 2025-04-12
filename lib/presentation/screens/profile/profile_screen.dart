@@ -7,6 +7,8 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/data/models/profile.dart';
+import 'package:knowledge/data/providers/subscription_provider.dart';
+import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
 
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
@@ -78,6 +80,31 @@ class ProfileScreen extends HookConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          // Pro Button
+          TextButton.icon(
+            onPressed: () => context.push('/subscription'),
+            icon: const Icon(
+              Icons.workspace_premium,
+              color: AppColors.limeGreen,
+              size: 20,
+            ),
+            label: const Text(
+              'PRO',
+              style: TextStyle(
+                color: AppColors.limeGreen,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.navyBlue.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.edit_outlined, color: AppColors.navyBlue),
             onPressed: () => context.push('/profile/edit'),
@@ -144,7 +171,7 @@ class ProfileScreen extends HookConsumerWidget {
                 child: Column(
                   children: [
                     // Profile Header
-                    _buildProfileHeader(context, profile),
+                    _buildProfileHeader(context, profile, ref),
 
                     const SizedBox(height: 24),
 
@@ -203,7 +230,7 @@ class ProfileScreen extends HookConsumerWidget {
 
                     // Logout Button Section - only keep this one button
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                       child: SizedBox(
                         width: double.infinity,
                         height: 56,
@@ -259,6 +286,46 @@ class ProfileScreen extends HookConsumerWidget {
                           delay: const Duration(milliseconds: 400),
                           duration: const Duration(milliseconds: 300),
                         ),
+
+                    // Delete Account Button
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey.shade700,
+                            backgroundColor: Colors.grey.shade100,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const DeleteAccountScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.delete_outline),
+                          label: const Text(
+                            'Delete Account',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn().slideY(
+                          begin: 0.1,
+                          delay: const Duration(milliseconds: 450),
+                          duration: const Duration(milliseconds: 300),
+                        ),
                   ],
                 ),
               ),
@@ -269,7 +336,10 @@ class ProfileScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context, Profile profile) {
+  Widget _buildProfileHeader(
+      BuildContext context, Profile profile, WidgetRef ref) {
+    final subscriptionState = ref.watch(subscriptionNotifierProvider);
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Column(
@@ -277,20 +347,51 @@ class ProfileScreen extends HookConsumerWidget {
           // Avatar with border
           Hero(
             tag: 'profileAvatar',
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.limeGreen, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.limeGreen, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: UserAvatar(size: 110),
+                  child: UserAvatar(size: 110),
+                ),
+
+                // PRO badge if subscribed
+                if (subscriptionState.isSubscribed)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.limeGreen,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(
+                        color: AppColors.navyBlue,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ).animate().fadeIn().scale(
                 delay: const Duration(milliseconds: 100),
@@ -318,6 +419,30 @@ class ProfileScreen extends HookConsumerWidget {
                   color: Colors.grey.shade600,
                 ),
               ).animate().fadeIn(),
+
+              // Show subscription status if subscribed
+              if (subscriptionState.isSubscribed) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.workspace_premium,
+                      size: 14,
+                      color: AppColors.limeGreen,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${subscriptionState.currentPlan.name.toUpperCase()} Plan',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.limeGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ],

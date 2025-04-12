@@ -18,6 +18,7 @@ import 'package:knowledge/presentation/screens/quiz/quiz_screen.dart';
 import 'package:knowledge/presentation/screens/leaderboard/leaderboard_screen.dart';
 import 'package:knowledge/presentation/screens/auth/profile_setup_screen.dart';
 import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
+import 'package:knowledge/presentation/screens/subscription/subscription_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -141,6 +142,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (storyId == null) return const SizedBox.shrink();
           return QuizScreen(storyId: storyId);
         },
+      ),
+
+      // Add subscription screen route
+      GoRoute(
+        path: '/subscription',
+        builder: (context, state) => const SubscriptionScreen(),
       ),
 
       // Shell route for bottom navigation

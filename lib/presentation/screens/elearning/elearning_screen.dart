@@ -22,8 +22,8 @@ class ElearningScreen extends HookConsumerWidget {
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
 
-    // Watch the paginated timelines provider
-    final paginatedTimelines = ref.watch(paginatedTimelinesProvider);
+    // Watch the filtered paginated timelines provider
+    final paginatedTimelines = ref.watch(filteredPaginatedTimelinesProvider);
     final paginatedTimelinesNotifier =
         ref.watch(paginatedTimelinesProvider.notifier);
 
@@ -161,15 +161,63 @@ class ElearningScreen extends HookConsumerWidget {
                                     ),
                                   ),
                                 )
-                              : _TimelineGrid(
-                                  timelines: paginatedTimelines.items,
-                                  onLoadMore: paginatedTimelines.hasMore
-                                      ? () => paginatedTimelinesNotifier
-                                          .loadNextPage()
-                                      : null,
-                                  isLoading: paginatedTimelines.isLoading,
-                                  bottomPadding: bottomPadding,
-                                ),
+                              : paginatedTimelines.items.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.search_off_outlined,
+                                            color: Colors.grey,
+                                            size: 48,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'No matches found',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade700,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Try a different search term or clear the filters',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              ref
+                                                  .read(filterNotifierProvider
+                                                      .notifier)
+                                                  .clearFilters();
+                                            },
+                                            icon: const Icon(Icons.clear),
+                                            label: const Text('Clear Search'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AppColors.limeGreen,
+                                              foregroundColor:
+                                                  AppColors.navyBlue,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : _TimelineGrid(
+                                      timelines: paginatedTimelines.items,
+                                      onLoadMore: paginatedTimelines.hasMore
+                                          ? () => paginatedTimelinesNotifier
+                                              .loadNextPage()
+                                          : null,
+                                      isLoading: paginatedTimelines.isLoading,
+                                      bottomPadding: bottomPadding,
+                                    ),
                     ),
                   ),
                 ),
@@ -319,7 +367,7 @@ class _HeaderSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Discover history today',
+                      'Echoes of the Past',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 14,

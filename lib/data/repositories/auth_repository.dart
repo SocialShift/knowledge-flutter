@@ -188,6 +188,50 @@ class AuthRepository {
       throw 'Error loading profile: $e';
     }
   }
+
+  Future<void> deleteAccount(String password,
+      {Map<String, dynamic>? feedback}) async {
+    try {
+      Map<String, dynamic> data = {
+        'password': password,
+      };
+
+      // Add feedback data if provided
+      if (feedback != null && feedback.isNotEmpty) {
+        // Add each feedback item individually to ensure type safety
+        feedback.forEach((key, value) {
+          data[key] = value;
+        });
+      }
+
+      final response = await _apiService.delete(
+        '/auth/delete-user',
+        data: data,
+      );
+
+      if (response.statusCode != 200) {
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Account deletion failed';
+        throw message.toString();
+      }
+
+      // Clear session storage after successful deletion
+      await _storage.delete(key: 'session_cookie');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw 'Incorrect password. Please try again.';
+      } else if (e.response?.data != null) {
+        final message = e.response?.data['detail'] ??
+            e.response?.data['message'] ??
+            'Account deletion failed';
+        throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    } catch (e) {
+      throw 'Account deletion failed: ${e.toString()}';
+    }
+  }
 }
 
 @riverpod

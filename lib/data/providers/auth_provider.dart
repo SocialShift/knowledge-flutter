@@ -183,4 +183,33 @@ class AuthNotifier extends _$AuthNotifier {
       (_) => checkSession(),
     );
   }
+
+  Future<void> deleteAccount(String password,
+      {Map<String, dynamic>? feedback}) async {
+    if (state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    state = const AuthState.loading();
+
+    try {
+      await ref
+          .read(authRepositoryProvider)
+          .deleteAccount(password, feedback: feedback);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = const AuthState.unauthenticated(
+        message: 'Your account has been deleted successfully.',
+      );
+    } catch (e) {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(e.toString());
+    }
+  }
 }
