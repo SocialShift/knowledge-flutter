@@ -41,6 +41,25 @@ final timelinesProvider = AutoDisposeFutureProvider<List<Timeline>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TimelinesRef = AutoDisposeFutureProviderRef<List<Timeline>>;
+String _$timelinesSortedByYearHash() =>
+    r'93fb4d59c079ab5c909dee8256625c55348eec17';
+
+/// See also [timelinesSortedByYear].
+@ProviderFor(timelinesSortedByYear)
+final timelinesSortedByYearProvider =
+    AutoDisposeFutureProvider<List<Timeline>>.internal(
+  timelinesSortedByYear,
+  name: r'timelinesSortedByYearProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$timelinesSortedByYearHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TimelinesSortedByYearRef = AutoDisposeFutureProviderRef<List<Timeline>>;
 String _$timelineDetailHash() => r'cc8d71bd60467753c5deb21a3a73db71d1c73908';
 
 /// Copied from Dart SDK

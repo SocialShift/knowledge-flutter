@@ -61,8 +61,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
     final topPadding = MediaQuery.of(context).padding.top;
 
-    // Watch the timelines provider
-    final timelinesAsync = ref.watch(timelinesProvider);
+    // Watch the timelines provider - use the sorted version
+    final timelinesAsync = ref.watch(timelinesSortedByYearProvider);
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,

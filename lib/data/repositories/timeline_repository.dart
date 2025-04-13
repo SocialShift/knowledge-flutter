@@ -190,6 +190,19 @@ Future<List<Timeline>> timelines(TimelinesRef ref) async {
   return repository.getTimelines();
 }
 
+// Provider for timelines sorted in descending order by year
+@riverpod
+Future<List<Timeline>> timelinesSortedByYear(
+    TimelinesSortedByYearRef ref) async {
+  final timelinesList = await ref.watch(timelinesProvider.future);
+  final sortedList = List<Timeline>.from(timelinesList);
+
+  // Sort timelines in descending order by year (newest first)
+  sortedList.sort((a, b) => b.year.compareTo(a.year));
+
+  return sortedList;
+}
+
 // Provider for fetching a single timeline
 @riverpod
 Future<Timeline> timelineDetail(

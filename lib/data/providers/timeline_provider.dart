@@ -73,6 +73,9 @@ final filteredPaginatedTimelinesProvider =
     return matchesTitle || matchesYear || matchesDescription;
   }).toList();
 
+  // Keep items sorted by year in descending order (newest first)
+  filteredItems.sort((a, b) => b.year.compareTo(a.year));
+
   return PaginatedData<Timeline>(
     items: filteredItems,
     hasMore: false, // No more pagination for filtered results
@@ -153,6 +156,9 @@ class PaginatedTimelinesNotifier
       if (_currentPage == 0) {
         final repository = _ref.read(timelineRepositoryProvider);
         _allTimelines = await repository.getTimelines();
+
+        // Sort timelines in descending order by year (newest first)
+        _allTimelines.sort((a, b) => b.year.compareTo(a.year));
       }
 
       // Simulate pagination by slicing the list

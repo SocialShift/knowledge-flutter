@@ -60,7 +60,7 @@ class ElearningScreen extends HookConsumerWidget {
                   child: Row(
                     children: [
                       Text(
-                        'Popular in History',
+                        'Echoes of the Past',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 20,
@@ -367,7 +367,7 @@ class _HeaderSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Echoes of the Past',
+                      'Discover History Today',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 14,

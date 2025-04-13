@@ -95,14 +95,54 @@ class ProfileSetupScreen extends HookConsumerWidget {
       orElse: () => '',
     );
 
+    // Get username from auth state if available (using username instead of nickname)
+    final userUsername = authState.maybeMap(
+      authenticated: (state) => state.user.username,
+      orElse: () => '',
+    );
+
     // Controllers and state variables
-    final nicknameController = useTextEditingController();
+    final nicknameController = useTextEditingController(text: userUsername);
     final emailController = useTextEditingController(text: userEmail);
     final isLoading = useState(false);
     final selectedPronouns = useState<String>('');
     final selectedState = useState<String>('');
     final selectedLanguage = useState<String>('English');
     final avatarFile = useState<XFile?>(null);
+
+    // Function to check if all required fields are filled
+    final isFormValid = useState(false);
+
+    // Function to validate the form
+    void _validateForm() {
+      final isValid = nicknameController.text.isNotEmpty &&
+          selectedPronouns.value.isNotEmpty &&
+          selectedState.value.isNotEmpty;
+      isFormValid.value = isValid;
+    }
+
+    // Initialize form validation
+    useEffect(() {
+      // Initial validation
+      _validateForm();
+
+      return null;
+    }, []);
+
+    // Update form validity whenever any field changes
+    useEffect(() {
+      void listener() => _validateForm();
+
+      // Add listeners to controller
+      nicknameController.addListener(listener);
+
+      // Initial check
+      _validateForm();
+
+      return () {
+        nicknameController.removeListener(listener);
+      };
+    }, [nicknameController, selectedPronouns.value, selectedState.value]);
 
     // Handle image selection
     Future<void> handleImageSelection() async {
@@ -115,9 +155,12 @@ class ProfileSetupScreen extends HookConsumerWidget {
 
     // Handle profile update
     Future<void> handleSave() async {
-      if (nicknameController.text.isEmpty) {
+      if (!isFormValid.value) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a nickname')),
+          const SnackBar(
+            content: Text('Please fill all required fields'),
+            backgroundColor: Colors.red,
+          ),
         );
         return;
       }
@@ -143,6 +186,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
           location: selectedState.value,
           languagePreference: selectedLanguage.value,
           personalizationQuestions: personalizationQuestions,
+          avatarUrl: avatarFile.value?.path,
         );
 
         if (context.mounted) {
@@ -151,7 +195,10 @@ class ProfileSetupScreen extends HookConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -248,12 +295,27 @@ class ProfileSetupScreen extends HookConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Complete Your Profile',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Complete Your Profile',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Required fields indicator
+                        Tooltip(
+                          message: 'All fields are required except avatar',
+                          child: Icon(
+                            Icons.info_outline,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 18,
+                          ),
+                        ),
+                      ],
                     ).animate().fadeIn().slideY(
                           begin: 0.3,
                           duration: const Duration(milliseconds: 500),
@@ -293,112 +355,77 @@ class ProfileSetupScreen extends HookConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Nickname field
                             _buildInfoField(
-                              context,
-                              'Nickname',
-                              nicknameController,
-                              Icons.person_outline,
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.2,
-                                  delay: const Duration(milliseconds: 200),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                            const SizedBox(height: 16),
-
-                            // Pronouns dropdown
-                            _buildDropdownField(
-                              context,
-                              'Pronouns',
-                              selectedPronouns.value.isEmpty
-                                  ? null
-                                  : selectedPronouns.value,
-                              pronounOptions,
-                              Icons.person_pin_outlined,
-                              (value) {
-                                if (value != null) {
-                                  selectedPronouns.value = value;
-                                }
-                              },
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.2,
-                                  delay: const Duration(milliseconds: 300),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                            const SizedBox(height: 16),
-
-                            // Email field (disabled)
+                              title: 'Nickname',
+                              subtitle: 'This is how you\'ll appear to others',
+                              controller: nicknameController,
+                              onChanged: (_) {},
+                              isRequired: true,
+                            ),
                             _buildInfoField(
-                              context,
-                              'Email',
-                              emailController,
-                              Icons.email_outlined,
-                              enabled: false,
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.2,
-                                  delay: const Duration(milliseconds: 400),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                            const SizedBox(height: 16),
-
-                            // Location dropdown
+                              title: 'Email',
+                              subtitle:
+                                  'Used for account recovery and notifications',
+                              controller: emailController,
+                              onChanged: (_) {},
+                              isEmail: true,
+                              isRequired: false,
+                            ),
                             _buildDropdownField(
-                              context,
-                              'Location',
-                              selectedState.value.isEmpty
-                                  ? null
-                                  : selectedState.value,
-                              states,
-                              Icons.location_on_outlined,
-                              (value) {
-                                if (value != null) {
-                                  selectedState.value = value;
-                                }
-                              },
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.2,
-                                  delay: const Duration(milliseconds: 500),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                            const SizedBox(height: 16),
-
-                            // Language preference dropdown
+                              title: 'Pronouns',
+                              subtitle: 'How would you like to be addressed?',
+                              value: selectedPronouns.value,
+                              items: const [
+                                'He/Him',
+                                'She/Her',
+                                'They/Them',
+                                'Prefer not to say',
+                              ],
+                              onChanged: (value) =>
+                                  selectedPronouns.value = value,
+                              isRequired: true,
+                            ),
                             _buildDropdownField(
-                              context,
-                              'Language',
-                              selectedLanguage.value,
-                              languages,
-                              Icons.language_outlined,
-                              (value) {
-                                if (value != null) {
-                                  selectedLanguage.value = value;
-                                }
-                              },
-                            ).animate().fadeIn().slideX(
-                                  begin: -0.2,
-                                  delay: const Duration(milliseconds: 600),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
+                              title: 'Location',
+                              subtitle: 'Which state do you live in?',
+                              value: selectedState.value,
+                              items: states,
+                              onChanged: (value) => selectedState.value = value,
+                              isRequired: true,
+                            ),
+                            _buildDropdownField(
+                              title: 'Language Preference',
+                              subtitle:
+                                  'Which language do you prefer for content?',
+                              value: selectedLanguage.value,
+                              items: const ['English', 'Spanish', 'French'],
+                              onChanged: (value) =>
+                                  selectedLanguage.value = value,
+                              isRequired: false,
+                            ),
                             const SizedBox(height: 32),
-
-                            // Save button
                             SizedBox(
                               width: double.infinity,
                               height: 56,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.limeGreen,
+                                  backgroundColor: isFormValid.value
+                                      ? AppColors.limeGreen
+                                      : Colors.grey.shade400,
                                   foregroundColor: AppColors.navyBlue,
-                                  elevation: 2,
-                                  shadowColor:
-                                      AppColors.limeGreen.withOpacity(0.5),
+                                  elevation: isFormValid.value ? 2 : 0,
+                                  shadowColor: isFormValid.value
+                                      ? AppColors.limeGreen.withOpacity(0.5)
+                                      : Colors.transparent,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                onPressed: isLoading.value ? null : handleSave,
+                                onPressed: isLoading.value || !isFormValid.value
+                                    ? null
+                                    : handleSave,
                                 child: isLoading.value
-                                    ? SizedBox(
+                                    ? const SizedBox(
                                         width: 24,
                                         height: 24,
                                         child: CircularProgressIndicator(
@@ -412,7 +439,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Text(
+                                          const Text(
                                             'Save Profile',
                                             style: TextStyle(
                                               fontSize: 16,
@@ -427,12 +454,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                                         ],
                                       ),
                               ),
-                            ).animate().fadeIn().slideY(
-                                  begin: 0.2,
-                                  delay: const Duration(milliseconds: 700),
-                                  duration: const Duration(milliseconds: 500),
-                                ),
-                            // Add extra space at the bottom to ensure white background extends
+                            ),
                             SizedBox(
                                 height:
                                     MediaQuery.of(context).padding.bottom + 20),
@@ -450,141 +472,135 @@ class ProfileSetupScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildInfoField(
-    BuildContext context,
-    String label,
-    TextEditingController controller,
-    IconData icon, {
-    bool enabled = true,
-    TextInputType? keyboardType,
+  Widget _buildInfoField({
+    required String title,
+    required String subtitle,
+    required TextEditingController controller,
+    required Function(String) onChanged,
+    bool isEmail = false,
+    bool isRequired = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+              if (isRequired)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
           ),
-          child: TextFormField(
-            controller: controller,
-            enabled: enabled,
-            keyboardType: keyboardType,
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
             style: TextStyle(
-              color: Colors.grey.shade800,
-              fontSize: 16,
+              fontSize: 12,
+              color: Colors.grey[600],
             ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controller,
+            onChanged: onChanged,
+            keyboardType:
+                isEmail ? TextInputType.emailAddress : TextInputType.text,
             decoration: InputDecoration(
-              hintText: 'Enter your $label',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              prefixIcon: Icon(
-                icon,
-                color: AppColors.navyBlue,
-              ),
-              border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16,
+                vertical: 12,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildDropdownField(
-    BuildContext context,
-    String label,
-    String? value,
-    List<String> items,
-    IconData icon,
-    Function(String?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+  Widget _buildDropdownField({
+    required String title,
+    required String subtitle,
+    required String value,
+    required List<String> items,
+    required Function(String) onChanged,
+    bool isRequired = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ],
-          ),
-          child: DropdownButtonFormField<String>(
-            value: value,
-            hint: Text(
-              'Select $label',
-              style: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
-              ),
-            ),
-            isExpanded: true,
-            decoration: InputDecoration(
-              prefixIcon: Icon(
-                icon,
-                color: AppColors.navyBlue,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-            ),
-            icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade400),
-            dropdownColor: Colors.white,
-            items: items.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
+              if (isRequired)
+                const Text(
+                  ' *',
                   style: TextStyle(
-                    color: Colors.grey.shade800,
+                    color: Colors.red,
                     fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              );
-            }).toList(),
-            onChanged: onChanged,
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: value.isEmpty ? null : value,
+            onChanged: (newValue) {
+              if (newValue != null) {
+                onChanged(newValue);
+              }
+            },
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            items: items
+                .map((item) => DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    ))
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
 }
