@@ -1,4 +1,4 @@
-package com.example.knowledge
+package com.knowhistory_knowledge.app
 
 import io.flutter.embedding.android.FlutterActivity
 
