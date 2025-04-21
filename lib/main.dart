@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/presentation/navigation/router.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:knowledge/data/repositories/notification_repository.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
+import 'package:knowledge/data/providers/feedback_provider.dart';
+import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +32,8 @@ class Knowledge extends ConsumerStatefulWidget {
 }
 
 class _KnowledgeState extends ConsumerState<Knowledge> {
+  DateTime? _lastBackPressTime;
+
   @override
   void initState() {
     super.initState();
@@ -71,18 +76,65 @@ class _KnowledgeState extends ConsumerState<Knowledge> {
     }
   }
 
+  // Show feedback dialog on first exit attempt
+  Future<bool> _handleAppExit() async {
+    // Get current time
+    final currentTime = DateTime.now();
+
+    // If pressed back button twice within 2 seconds, exit the app
+    if (_lastBackPressTime != null &&
+        currentTime.difference(_lastBackPressTime!) <=
+            const Duration(seconds: 2)) {
+      return true;
+    }
+
+    _lastBackPressTime = currentTime;
+
+    // Check if feedback dialog should be shown using the provider
+    final feedbackShown = await ref.read(feedbackNotifierProvider.future);
+
+    if (!feedbackShown) {
+      // Mark feedback as shown using the provider
+      ref.read(feedbackNotifierProvider.notifier).markFeedbackAsShown();
+
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const FeedbackDialog(),
+        );
+      }
+    } else {
+      // If feedback has been shown before, just show toast for back press again
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Press back again to exit'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
+    return false; // Don't exit the app yet
+  }
+
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'Know[Ledge]',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
+    return WillPopScope(
+      onWillPop: _handleAppExit,
+      child: MaterialApp.router(
+        title: 'Know[Ledge]',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.light,
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
+      ),
     );
   }
 }

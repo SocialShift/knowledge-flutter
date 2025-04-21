@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
@@ -8,7 +9,9 @@ import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/data/models/profile.dart';
 import 'package:knowledge/data/providers/subscription_provider.dart';
+import 'package:knowledge/data/providers/feedback_provider.dart';
 import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
+import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
@@ -61,10 +64,56 @@ class ProfileScreen extends HookConsumerWidget {
         false; // Return false if dialog is dismissed
   }
 
+  Future<void> _showFeedbackDialog(BuildContext context, WidgetRef ref,
+      {bool forceShow = false}) async {
+    // Use the feedback provider to check if feedback has been shown before
+    final feedbackState = await ref.read(feedbackNotifierProvider.future);
+
+    // If feedback has already been shown and not forcing display, don't show again
+    // When button is clicked explicitly (forceShow=true), show regardless of previous submissions
+    if (feedbackState && !forceShow && context.mounted) return;
+
+    // Mark feedback as shown using the notifier (if not already shown)
+    if (!feedbackState) {
+      ref.read(feedbackNotifierProvider.notifier).markFeedbackAsShown();
+    }
+
+    if (context.mounted) {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const FeedbackDialog(),
+      );
+
+      if (result == true && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Thank you for your feedback!'),
+            backgroundColor: AppColors.limeGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(12),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider);
     final authNotifier = ref.watch(authNotifierProvider.notifier);
+
+    // Hook to check if we need to show feedback dialog on first visit
+    useEffect(() {
+      // Check on app launch if feedback should be shown
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showFeedbackDialog(context, ref, forceShow: false);
+      });
+      return null;
+    }, []);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -79,6 +128,14 @@ class ProfileScreen extends HookConsumerWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.feedback_outlined,
+            color: AppColors.navyBlue,
+          ),
+          onPressed: () => _showFeedbackDialog(context, ref, forceShow: true),
+          tooltip: 'Give Feedback',
+        ),
         actions: [
           // Pro Button
           TextButton.icon(
