@@ -82,7 +82,7 @@ class HistoryCard extends ConsumerWidget {
 
               // Bottom section - optimized layout
               Expanded(
-                flex: 11,
+                flex: 7,
                 child: Container(
                   color: Colors.white,
                   padding:

@@ -16,6 +16,9 @@ class Profile with _$Profile {
     int? points,
     String? referralCode,
     int? totalReferrals,
+    String? joinedDate,
+    Map<String, dynamic>? followers,
+    Map<String, dynamic>? following,
     // Stats fields
     int? rank,
     int? totalUsers,
@@ -39,6 +42,7 @@ class Profile with _$Profile {
 
     return Profile(
       email: user['email'] ?? '',
+      joinedDate: user['joined_at'],
       nickname: profile['nickname'],
       avatarUrl: profile['avatar_url'],
       languagePreference: profile['language_preference'],
@@ -48,6 +52,8 @@ class Profile with _$Profile {
       points: profile['points'],
       referralCode: profile['referral_code'],
       totalReferrals: profile['total_referrals'],
+      followers: profile['followers'],
+      following: profile['following'],
       // Stats
       rank: stats['rank'],
       totalUsers: stats['total_users'],

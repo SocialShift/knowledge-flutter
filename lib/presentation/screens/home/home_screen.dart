@@ -374,11 +374,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ],
                           ),
-                          // Calculate appropriate minimum height to prevent over-scrolling
+                          // Calculate appropriate minimum height to prevent over-scrolling and ensure full coverage on tablet
                           constraints: BoxConstraints(
                             minHeight: MediaQuery.of(context).size.height *
-                                0.6, // 60% of screen height
+                                0.7, // Increased from 0.6 to 0.7
                           ),
+                          // Add minimum width to ensure full coverage
+                          width: double.infinity,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -508,7 +510,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         );
                       },
                       loading: () => Container(
-                        height: 300,
+                        height: MediaQuery.of(context).size.height * 0.7,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.only(
@@ -521,7 +523,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                       error: (error, stack) => Container(
-                        height: 300,
+                        height: MediaQuery.of(context).size.height * 0.7,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.only(

@@ -109,6 +109,7 @@ class AuthRepository {
       // Check if we have a session cookie
       final cookie = await _storage.read(key: 'session_cookie');
       if (cookie == null || cookie.isEmpty) {
+        print('No session cookie found');
         return false;
       }
 

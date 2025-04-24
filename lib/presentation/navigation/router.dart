@@ -25,7 +25,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final onboardingState = ref.watch(onboardingNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/',
     debugLogDiagnostics: true,
     redirect: (context, state) {
       final isAuthenticated = authState.maybeMap(
@@ -38,6 +38,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         authenticated: (auth) => auth.hasCompletedProfile,
         orElse: () => false,
       );
+
+      // For initial route '/', redirect based on auth state
+      if (state.uri.path == '/') {
+        if (isAuthenticated) {
+          if (!hasCompletedProfile) {
+            // Check if onboarding is completed
+            final isOnboardingComplete = onboardingState.isCompleted;
+            if (!isOnboardingComplete) {
+              return '/onboarding';
+            }
+            return '/profile-setup';
+          }
+          return '/home';
+        } else {
+          return '/login';
+        }
+      }
 
       // Don't redirect if accessing detail pages or main navigation routes
       if (state.uri.path.startsWith('/timeline/') ||
@@ -98,6 +115,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // Root route (will be redirected based on auth state)
+      GoRoute(
+        path: '/',
+        builder: (context, state) =>
+            Container(), // Placeholder, will be redirected
+      ),
       // Auth routes without bottom navigation
       GoRoute(
         path: '/login',

@@ -30,7 +30,11 @@ mixin _$Profile {
       throw _privateConstructorUsedError;
   int? get points => throw _privateConstructorUsedError;
   String? get referralCode => throw _privateConstructorUsedError;
-  int? get totalReferrals => throw _privateConstructorUsedError; // Stats fields
+  int? get totalReferrals => throw _privateConstructorUsedError;
+  String? get joinedDate => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get followers => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get following =>
+      throw _privateConstructorUsedError; // Stats fields
   int? get rank => throw _privateConstructorUsedError;
   int? get totalUsers => throw _privateConstructorUsedError;
   int? get percentile => throw _privateConstructorUsedError;
@@ -66,6 +70,9 @@ abstract class $ProfileCopyWith<$Res> {
       int? points,
       String? referralCode,
       int? totalReferrals,
+      String? joinedDate,
+      Map<String, dynamic>? followers,
+      Map<String, dynamic>? following,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -102,6 +109,9 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? points = freezed,
     Object? referralCode = freezed,
     Object? totalReferrals = freezed,
+    Object? joinedDate = freezed,
+    Object? followers = freezed,
+    Object? following = freezed,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -153,6 +163,18 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.totalReferrals
           : totalReferrals // ignore: cast_nullable_to_non_nullable
               as int?,
+      joinedDate: freezed == joinedDate
+          ? _value.joinedDate
+          : joinedDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      followers: freezed == followers
+          ? _value.followers
+          : followers // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      following: freezed == following
+          ? _value.following
+          : following // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -211,6 +233,9 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       int? points,
       String? referralCode,
       int? totalReferrals,
+      String? joinedDate,
+      Map<String, dynamic>? followers,
+      Map<String, dynamic>? following,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -245,6 +270,9 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? points = freezed,
     Object? referralCode = freezed,
     Object? totalReferrals = freezed,
+    Object? joinedDate = freezed,
+    Object? followers = freezed,
+    Object? following = freezed,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -296,6 +324,18 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value.totalReferrals
           : totalReferrals // ignore: cast_nullable_to_non_nullable
               as int?,
+      joinedDate: freezed == joinedDate
+          ? _value.joinedDate
+          : joinedDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      followers: freezed == followers
+          ? _value._followers
+          : followers // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      following: freezed == following
+          ? _value._following
+          : following // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -350,6 +390,9 @@ class _$ProfileImpl implements _Profile {
       this.points,
       this.referralCode,
       this.totalReferrals,
+      this.joinedDate,
+      final Map<String, dynamic>? followers,
+      final Map<String, dynamic>? following,
       this.rank,
       this.totalUsers,
       this.percentile,
@@ -359,7 +402,9 @@ class _$ProfileImpl implements _Profile {
       this.daysToNextMilestone,
       this.nextMilestone,
       this.streakBonus})
-      : _personalizationQuestions = personalizationQuestions;
+      : _personalizationQuestions = personalizationQuestions,
+        _followers = followers,
+        _following = following;
 
   factory _$ProfileImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileImplFromJson(json);
@@ -393,6 +438,28 @@ class _$ProfileImpl implements _Profile {
   final String? referralCode;
   @override
   final int? totalReferrals;
+  @override
+  final String? joinedDate;
+  final Map<String, dynamic>? _followers;
+  @override
+  Map<String, dynamic>? get followers {
+    final value = _followers;
+    if (value == null) return null;
+    if (_followers is EqualUnmodifiableMapView) return _followers;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _following;
+  @override
+  Map<String, dynamic>? get following {
+    final value = _following;
+    if (value == null) return null;
+    if (_following is EqualUnmodifiableMapView) return _following;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
 // Stats fields
   @override
   final int? rank;
@@ -415,7 +482,7 @@ class _$ProfileImpl implements _Profile {
 
   @override
   String toString() {
-    return 'Profile(nickname: $nickname, email: $email, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
+    return 'Profile(nickname: $nickname, email: $email, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
   }
 
   @override
@@ -441,6 +508,12 @@ class _$ProfileImpl implements _Profile {
                 other.referralCode == referralCode) &&
             (identical(other.totalReferrals, totalReferrals) ||
                 other.totalReferrals == totalReferrals) &&
+            (identical(other.joinedDate, joinedDate) ||
+                other.joinedDate == joinedDate) &&
+            const DeepCollectionEquality()
+                .equals(other._followers, _followers) &&
+            const DeepCollectionEquality()
+                .equals(other._following, _following) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.totalUsers, totalUsers) ||
                 other.totalUsers == totalUsers) &&
@@ -474,6 +547,9 @@ class _$ProfileImpl implements _Profile {
         points,
         referralCode,
         totalReferrals,
+        joinedDate,
+        const DeepCollectionEquality().hash(_followers),
+        const DeepCollectionEquality().hash(_following),
         rank,
         totalUsers,
         percentile,
@@ -513,6 +589,9 @@ abstract class _Profile implements Profile {
       final int? points,
       final String? referralCode,
       final int? totalReferrals,
+      final String? joinedDate,
+      final Map<String, dynamic>? followers,
+      final Map<String, dynamic>? following,
       final int? rank,
       final int? totalUsers,
       final int? percentile,
@@ -544,7 +623,13 @@ abstract class _Profile implements Profile {
   @override
   String? get referralCode;
   @override
-  int? get totalReferrals; // Stats fields
+  int? get totalReferrals;
+  @override
+  String? get joinedDate;
+  @override
+  Map<String, dynamic>? get followers;
+  @override
+  Map<String, dynamic>? get following; // Stats fields
   @override
   int? get rank;
   @override

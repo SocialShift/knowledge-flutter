@@ -20,7 +20,8 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   // Restore user session from a valid session token
-  void restoreSession(User user, bool hasCompletedProfile) {
+  Future<void> restoreSession(User user, bool hasCompletedProfile) async {
+    // Set the state immediately to avoid the login screen flash
     state = AuthState.authenticated(
       user: user,
       message: 'Welcome back, ${user.email}!',
