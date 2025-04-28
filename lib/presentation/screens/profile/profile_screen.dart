@@ -144,7 +144,8 @@ class ProfileScreen extends HookConsumerWidget {
               color: AppColors.navyBlue,
             ),
             onPressed: () {
-              // Show settings menu
+              // Navigate to settings screen
+              context.push('/settings');
             },
             tooltip: 'Settings',
           ),
@@ -312,13 +313,13 @@ class ProfileCardWidget extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.limeGreen.withOpacity(0.5),
-          width: 1.5,
+          color: AppColors.limeGreen.withOpacity(0.0),
+          width: 0,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyBlue.withOpacity(0.3),
-            blurRadius: 10,
+            blurRadius: 0,
             spreadRadius: 1,
           ),
         ],
@@ -337,14 +338,14 @@ class ProfileCardWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.limeGreen,
-                          width: 2,
+                          color: AppColors.navyBlue.withOpacity(0.0),
+                          width: 0,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.limeGreen.withOpacity(0.5),
-                            blurRadius: 10,
-                            spreadRadius: 2,
+                            color: AppColors.limeGreen.withOpacity(0.0),
+                            blurRadius: 0,
+                            spreadRadius: 0,
                           ),
                         ],
                       ),
@@ -365,36 +366,36 @@ class ProfileCardWidget extends StatelessWidget {
                       ),
                     ),
                     // Edit icon in top right
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.limeGreen,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 4,
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: AppColors.navyBlue,
-                            size: 20,
-                          ),
-                          onPressed: () => context.push('/profile/edit'),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 0,
+                    //   right: 0,
+                    //   child: Container(
+                    //     decoration: BoxDecoration(
+                    //       shape: BoxShape.circle,
+                    //       color: AppColors.limeGreen,
+                    //       boxShadow: [
+                    //         BoxShadow(
+                    //           color: Colors.black.withOpacity(0.2),
+                    //           blurRadius: 4,
+                    //           spreadRadius: 0,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //     child: IconButton(
+                    //       icon: const Icon(
+                    //         Icons.edit_outlined,
+                    //         color: AppColors.navyBlue,
+                    //         size: 20,
+                    //       ),
+                    //       onPressed: () => context.push('/profile/edit'),
+                    //       padding: EdgeInsets.zero,
+                    //       constraints: const BoxConstraints(
+                    //         minWidth: 36,
+                    //         minHeight: 36,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -594,8 +595,8 @@ class OverviewWidget extends StatelessWidget {
                   icon: Icons.emoji_events,
                   iconColor: Colors.amber,
                   gradientColors: [
-                    Colors.amber.withOpacity(0.2),
-                    Colors.orange.withOpacity(0.1),
+                    Colors.amber.withOpacity(0.0),
+                    Colors.orange.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -608,8 +609,8 @@ class OverviewWidget extends StatelessWidget {
                   icon: Icons.history_edu,
                   iconColor: Colors.blue,
                   gradientColors: [
-                    Colors.blue.withOpacity(0.2),
-                    Colors.lightBlue.withOpacity(0.1),
+                    Colors.blue.withOpacity(0.0),
+                    Colors.lightBlue.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -622,8 +623,8 @@ class OverviewWidget extends StatelessWidget {
                   icon: Icons.stars,
                   iconColor: AppColors.limeGreen,
                   gradientColors: [
-                    AppColors.limeGreen.withOpacity(0.2),
-                    Colors.green.withOpacity(0.1),
+                    AppColors.limeGreen.withOpacity(0.0),
+                    Colors.green.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -652,11 +653,11 @@ class OverviewWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.navyBlue.withOpacity(0.1),
-          width: 1,
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navyBlue.withOpacity(0.1),
+            color: AppColors.navyBlue.withOpacity(0.0),
             blurRadius: 8,
             spreadRadius: 0,
           ),
@@ -719,18 +720,18 @@ class PercentileWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.amber.withOpacity(0.2),
-            Colors.orange.withOpacity(0.1),
+            Colors.amber.withOpacity(0.0),
+            Colors.orange.withOpacity(0.0),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.navyBlue.withOpacity(0.1),
-          width: 1,
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navyBlue.withOpacity(0.1),
+            color: AppColors.navyBlue.withOpacity(0.0),
             blurRadius: 8,
             spreadRadius: 0,
           ),
@@ -741,11 +742,11 @@ class PercentileWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.3),
+              color: Colors.amber.withOpacity(0.0),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.amber.withOpacity(0.3),
+                  color: Colors.amber.withOpacity(0.0),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -797,7 +798,7 @@ class PercentileWidget extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: Colors.amber.withOpacity(0.5),
-                  blurRadius: 8,
+                  blurRadius: 0,
                   spreadRadius: 0,
                 ),
               ],

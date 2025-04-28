@@ -56,26 +56,26 @@ class HistoryCard extends ConsumerWidget {
                     _GradientOverlay(),
 
                     // Year Badge
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.limeGreen,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          item.year.toString(),
-                          style: const TextStyle(
-                            color: AppColors.navyBlue,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 8,
+                    //   left: 8,
+                    //   child: Container(
+                    //     padding: const EdgeInsets.symmetric(
+                    //         horizontal: 8, vertical: 4),
+                    //     decoration: BoxDecoration(
+                    //       color: AppColors.limeGreen,
+                    //       borderRadius: BorderRadius.circular(6),
+                    //     ),
+                    //     child: Text(
+                    //       item.year.toString(),
+                    //       style: const TextStyle(
+                    //         color: AppColors.navyBlue,
+                    //         fontSize: 10,
+                    //         fontWeight: FontWeight.bold,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

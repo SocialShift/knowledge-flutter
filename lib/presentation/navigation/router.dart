@@ -19,6 +19,7 @@ import 'package:knowledge/presentation/screens/leaderboard/leaderboard_screen.da
 import 'package:knowledge/presentation/screens/auth/profile_setup_screen.dart';
 import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 import 'package:knowledge/presentation/screens/subscription/subscription_screen.dart';
+import 'package:knowledge/presentation/screens/games/games_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -60,11 +61,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (state.uri.path.startsWith('/timeline/') ||
           state.uri.path.startsWith('/story/') ||
           state.uri.path.startsWith('/quiz/') ||
+          state.uri.path.startsWith('/games/') ||
           state.uri.path == '/home' ||
           state.uri.path == '/profile' ||
           state.uri.path == '/profile/edit' ||
           state.uri.path == '/leaderboard' ||
-          state.uri.path == '/elearning') {
+          state.uri.path == '/elearning' ||
+          state.uri.path == '/games') {
         return null;
       }
 
@@ -193,6 +196,23 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/elearning',
             builder: (context, state) => const ElearningScreen(),
+          ),
+          // Add games center route
+          GoRoute(
+            path: '/games',
+            builder: (context, state) => const GamesScreen(),
+          ),
+          // Game detail routes
+          GoRoute(
+            path: '/games/:gameId',
+            builder: (context, state) {
+              final gameId = state.pathParameters['gameId'];
+              if (gameId == null) return const SizedBox.shrink();
+              // For now, return a placeholder until game screens are implemented
+              return Center(
+                child: Text('Game: $gameId'),
+              );
+            },
           ),
           GoRoute(
             path: '/settings',

@@ -55,16 +55,23 @@ class AppLayout extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
+                  icon: Icons.games_outlined,
+                  selectedIcon: Icons.games,
+                  isSelected: currentIndex == 2,
+                  onTap: () => context.go('/games'),
+                ),
+                _buildNavItem(
+                  context: context,
                   icon: Icons.leaderboard_outlined,
                   selectedIcon: Icons.leaderboard,
-                  isSelected: currentIndex == 2,
+                  isSelected: currentIndex == 3,
                   onTap: () => context.go('/leaderboard'),
                 ),
                 _buildNavItem(
                   context: context,
                   icon: Icons.person_outline,
                   selectedIcon: Icons.person,
-                  isSelected: currentIndex == 3,
+                  isSelected: currentIndex == 4,
                   onTap: () => context.go('/profile'),
                   showProfileIndicator: true,
                 ),
@@ -126,8 +133,9 @@ class AppLayout extends StatelessWidget {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/home')) return 0;
     if (location.startsWith('/elearning')) return 1;
-    if (location.startsWith('/leaderboard')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith('/games')) return 2;
+    if (location.startsWith('/leaderboard')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0; // Default to home
   }
 }

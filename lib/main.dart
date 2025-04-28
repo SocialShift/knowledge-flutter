@@ -206,7 +206,7 @@ class _KnowledgeState extends ConsumerState<Knowledge> {
         title: 'Know[Ledge]',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
+        themeMode: ref.watch(themeModeNotifierProvider),
         routerConfig: router,
         debugShowCheckedModeBanner: false,
         scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),

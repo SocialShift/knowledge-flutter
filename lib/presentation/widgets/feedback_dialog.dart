@@ -140,7 +140,7 @@ class FeedbackDialog extends HookConsumerWidget {
 
                     // Text field
                     Text(
-                      'Tell us more about your experience',
+                      'Share your experience',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

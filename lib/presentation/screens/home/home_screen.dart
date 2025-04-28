@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -245,25 +245,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
 
                   // Search bar
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                      child: SearchBarWidget(
-                        onSearch: (value) {
-                          // Update the search query in the filter state
-                          ref
-                              .read(filterNotifierProvider.notifier)
-                              .updateSearchQuery(value);
-                        },
-                        onFilterTap: () {
-                          _showFilterBottomSheet(context);
-                        },
-                      ),
-                    )
-                        .animate()
-                        .fadeIn(duration: const Duration(milliseconds: 800)),
-                  ),
+                  // SliverToBoxAdapter(
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.symmetric(
+                  //         horizontal: 16, vertical: 16),
+                  //     child: SearchBarWidget(
+                  //       onSearch: (value) {
+                  //         // Update the search query in the filter state
+                  //         ref
+                  //             .read(filterNotifierProvider.notifier)
+                  //             .updateSearchQuery(value);
+                  //       },
+                  //       onFilterTap: () {
+                  //         _showFilterBottomSheet(context);
+                  //       },
+                  //     ),
+                  //   )
+                  //       .animate()
+                  //       .fadeIn(duration: const Duration(milliseconds: 800)),
+                  // ),
 
                   // Timeline circles
                   SliverToBoxAdapter(
