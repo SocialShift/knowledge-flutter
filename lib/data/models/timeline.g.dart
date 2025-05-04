@@ -37,6 +37,10 @@ _$TimelineImpl _$$TimelineImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Story.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      categories: (json['categories'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
@@ -48,6 +52,7 @@ Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
       'year': instance.year,
       'mainCharacter': instance.mainCharacter,
       'stories': instance.stories,
+      'categories': instance.categories,
     };
 
 _$StoryImpl _$$StoryImplFromJson(Map<String, dynamic> json) => _$StoryImpl(

@@ -91,7 +91,8 @@ class FilterBottomSheet extends HookConsumerWidget {
                         context, filterState, notifier),
                     const Divider(height: 40),
                     _buildInterestsSection(context, filterState, notifier),
-                    const SizedBox(height: 16),
+                    const Divider(height: 40),
+                    _buildCategoriesSection(context, filterState, notifier),
                   ],
                 ),
               ),
@@ -265,6 +266,78 @@ class FilterBottomSheet extends HookConsumerWidget {
                 ),
                 child: Text(
                   interest,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.navyBlue : Colors.black87,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoriesSection(
+      BuildContext context, FilterState state, FilterNotifier notifier) {
+    final categories = [
+      'African/African Diaspora',
+      'Civil Rights and Social Justice Movements',
+      'Lesser-Known Historical Figures',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Categories',
+          style: TextStyle(
+            color: AppColors.navyBlue,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Filter content by category',
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 12,
+          children: categories.map((category) {
+            final isSelected = state.categories.contains(category);
+            return GestureDetector(
+              onTap: () => notifier.toggleCategory(category),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.limeGreen
+                      : AppColors.lightPurple.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.limeGreen.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  category,
                   style: TextStyle(
                     color: isSelected ? AppColors.navyBlue : Colors.black87,
                     fontWeight:

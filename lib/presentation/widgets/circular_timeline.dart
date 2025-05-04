@@ -30,6 +30,10 @@ class CircularTimeline extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               // Add +1 to itemCount to include the "End!" label
               itemCount: periods.length + 1,
+              // Set itemExtent for better iOS performance with fixed-size items
+              itemExtent: 150,
+              // Apply caching for better iOS scrolling performance
+              cacheExtent: 300,
               itemBuilder: (context, index) {
                 // Check if this is the "End!" item
                 final isEndLabel = index == periods.length;
@@ -79,142 +83,160 @@ class CircularTimeline extends StatelessWidget {
                         ? timelineIds![index]
                         : null;
 
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Timeline circle
-                    GestureDetector(
-                      onTap: () => onPeriodSelected(index),
-                      child: Tooltip(
-                        message: timelineId != null
-                            ? 'Long press to view timeline details'
-                            : '',
-                        child: Stack(
-                          children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.limeGreen
-                                      : Colors.transparent,
-                                  width: 3,
+                // Use RepaintBoundary to optimize rendering for each item
+                return RepaintBoundary(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Timeline circle
+                      GestureDetector(
+                        onTap: () => onPeriodSelected(index),
+                        child: Tooltip(
+                          message: timelineId != null
+                              ? 'Long press to view timeline details'
+                              : '',
+                          child: Stack(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                width: 90,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.limeGreen
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.limeGreen
+                                                .withOpacity(0.3),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          ),
+                                        ]
+                                      : [],
                                 ),
-                                boxShadow: [
-                                  if (isSelected)
-                                    BoxShadow(
-                                      color:
-                                          AppColors.limeGreen.withOpacity(0.3),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Hero(
-                                  tag: timelineId != null
-                                      ? 'timeline_$timelineId'
-                                      : 'timeline_${period.year}',
-                                  child: ClipOval(
-                                    child: CachedNetworkImage(
-                                      imageUrl: period.imageUrl,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey[800],
-                                        child: const Center(
-                                          child: CircularProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    AppColors.limeGreen),
-                                            strokeWidth: 2,
+                                child: Center(
+                                  child: Hero(
+                                    tag: timelineId != null
+                                        ? 'timeline_$timelineId'
+                                        : 'timeline_${period.year}',
+                                    child: ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: period.imageUrl,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        // Optimize image cache settings for iOS
+                                        memCacheWidth: 160,
+                                        memCacheHeight: 160,
+                                        maxWidthDiskCache: 240,
+                                        maxHeightDiskCache: 240,
+                                        fadeInDuration:
+                                            const Duration(milliseconds: 100),
+                                        filterQuality: FilterQuality.medium,
+                                        placeholder: (context, url) =>
+                                            Container(
+                                          color: Colors.grey[800],
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                            Color>(
+                                                        AppColors.limeGreen),
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          Container(
-                                        color: Colors.grey[800],
-                                        child: const Icon(Icons.error,
-                                            color: Colors.white54),
+                                        errorWidget: (context, url, error) =>
+                                            Container(
+                                          color: Colors.grey[800],
+                                          child: const Icon(Icons.error,
+                                              color: Colors.white54),
+                                        ),
                                       ),
                                     ),
+                                  ),
+                                ),
+                              ),
+                              // Add a ripple effect for better touch feedback
+                              if (timelineId != null)
+                                Positioned.fill(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      customBorder: const CircleBorder(),
+                                      onTap: () => onPeriodSelected(index),
+                                      onLongPress: () =>
+                                          context.push('/timeline/$timelineId'),
+                                      splashColor:
+                                          AppColors.limeGreen.withOpacity(0.3),
+                                      highlightColor:
+                                          AppColors.limeGreen.withOpacity(0.1),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Line and year label after each circle
+                      Container(
+                        width: 60,
+                        height: 90,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Horizontal line
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 45, // Center of the container
+                              child: Container(
+                                height: 3,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+
+                            // Year label on top of the line
+                            Positioned(
+                              top: 36, // Just above the line
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.navyBlue,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  period.year.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                             ),
-                            // Add a ripple effect for better touch feedback
-                            if (timelineId != null)
-                              Positioned.fill(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    customBorder: const CircleBorder(),
-                                    onTap: () => onPeriodSelected(index),
-                                    onLongPress: () =>
-                                        context.push('/timeline/$timelineId'),
-                                    splashColor:
-                                        AppColors.limeGreen.withOpacity(0.3),
-                                    highlightColor:
-                                        AppColors.limeGreen.withOpacity(0.1),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                       ),
-                    ),
-
-                    // Line and year label after each circle
-                    Container(
-                      width: 60,
-                      height: 90,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Horizontal line
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 45, // Center of the container
-                            child: Container(
-                              height: 3,
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-
-                          // Year label on top of the line
-                          Positioned(
-                            top: 36, // Just above the line
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.navyBlue,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                period.year.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
@@ -230,7 +252,7 @@ class TimelinePeriod {
   final String imageUrl;
   final String? title;
 
-  TimelinePeriod({
+  const TimelinePeriod({
     required this.year,
     required this.imageUrl,
     this.title,

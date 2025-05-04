@@ -185,6 +185,17 @@ class AuthNotifier extends _$AuthNotifier {
     );
   }
 
+  // Check session validity when app is resumed
+  Future<void> checkSessionValidity() async {
+    // Only check if user is already authenticated
+    if (state.maybeMap(
+      authenticated: (_) => true,
+      orElse: () => false,
+    )) {
+      await checkSession();
+    }
+  }
+
   Future<void> deleteAccount(String password,
       {Map<String, dynamic>? feedback}) async {
     if (state.maybeMap(

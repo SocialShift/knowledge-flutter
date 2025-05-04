@@ -7,6 +7,7 @@ class FilterState {
   final String gender;
   final String sexualOrientation;
   final List<String> interests;
+  final List<String> categories;
   final String searchQuery;
 
   const FilterState({
@@ -14,6 +15,7 @@ class FilterState {
     this.gender = '',
     this.sexualOrientation = '',
     this.interests = const [],
+    this.categories = const [],
     this.searchQuery = '',
   });
 
@@ -22,6 +24,7 @@ class FilterState {
     String? gender,
     String? sexualOrientation,
     List<String>? interests,
+    List<String>? categories,
     String? searchQuery,
   }) {
     return FilterState(
@@ -29,6 +32,7 @@ class FilterState {
       gender: gender ?? this.gender,
       sexualOrientation: sexualOrientation ?? this.sexualOrientation,
       interests: interests ?? this.interests,
+      categories: categories ?? this.categories,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
@@ -38,7 +42,8 @@ class FilterState {
     return race.isNotEmpty ||
         gender.isNotEmpty ||
         sexualOrientation.isNotEmpty ||
-        interests.isNotEmpty;
+        interests.isNotEmpty ||
+        categories.isNotEmpty;
   }
 
   // Helper method to count active filters
@@ -48,6 +53,7 @@ class FilterState {
     if (gender.isNotEmpty) count++;
     if (sexualOrientation.isNotEmpty) count++;
     if (interests.isNotEmpty) count++;
+    if (categories.isNotEmpty) count += categories.length;
     return count;
   }
 }
@@ -79,6 +85,16 @@ class FilterNotifier extends _$FilterNotifier {
       currentInterests.add(interest);
     }
     state = state.copyWith(interests: currentInterests);
+  }
+
+  void toggleCategory(String category) {
+    final currentCategories = List<String>.from(state.categories);
+    if (currentCategories.contains(category)) {
+      currentCategories.remove(category);
+    } else {
+      currentCategories.add(category);
+    }
+    state = state.copyWith(categories: currentCategories);
   }
 
   void updateSearchQuery(String query) {

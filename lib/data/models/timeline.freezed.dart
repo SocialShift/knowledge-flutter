@@ -235,6 +235,7 @@ mixin _$Timeline {
   int get year => throw _privateConstructorUsedError;
   MainCharacter? get mainCharacter => throw _privateConstructorUsedError;
   List<Story> get stories => throw _privateConstructorUsedError;
+  List<String> get categories => throw _privateConstructorUsedError;
 
   /// Serializes this Timeline to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -258,7 +259,8 @@ abstract class $TimelineCopyWith<$Res> {
       String imageUrl,
       int year,
       MainCharacter? mainCharacter,
-      List<Story> stories});
+      List<Story> stories,
+      List<String> categories});
 
   $MainCharacterCopyWith<$Res>? get mainCharacter;
 }
@@ -285,6 +287,7 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
     Object? year = null,
     Object? mainCharacter = freezed,
     Object? stories = null,
+    Object? categories = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -315,6 +318,10 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
           ? _value.stories
           : stories // ignore: cast_nullable_to_non_nullable
               as List<Story>,
+      categories: null == categories
+          ? _value.categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 
@@ -348,7 +355,8 @@ abstract class _$$TimelineImplCopyWith<$Res>
       String imageUrl,
       int year,
       MainCharacter? mainCharacter,
-      List<Story> stories});
+      List<Story> stories,
+      List<String> categories});
 
   @override
   $MainCharacterCopyWith<$Res>? get mainCharacter;
@@ -374,6 +382,7 @@ class __$$TimelineImplCopyWithImpl<$Res>
     Object? year = null,
     Object? mainCharacter = freezed,
     Object? stories = null,
+    Object? categories = null,
   }) {
     return _then(_$TimelineImpl(
       id: null == id
@@ -404,6 +413,10 @@ class __$$TimelineImplCopyWithImpl<$Res>
           ? _value._stories
           : stories // ignore: cast_nullable_to_non_nullable
               as List<Story>,
+      categories: null == categories
+          ? _value._categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -418,8 +431,10 @@ class _$TimelineImpl implements _Timeline {
       required this.imageUrl,
       required this.year,
       this.mainCharacter,
-      final List<Story> stories = const []})
-      : _stories = stories;
+      final List<Story> stories = const [],
+      final List<String> categories = const []})
+      : _stories = stories,
+        _categories = categories;
 
   factory _$TimelineImpl.fromJson(Map<String, dynamic> json) =>
       _$$TimelineImplFromJson(json);
@@ -445,9 +460,18 @@ class _$TimelineImpl implements _Timeline {
     return EqualUnmodifiableListView(_stories);
   }
 
+  final List<String> _categories;
+  @override
+  @JsonKey()
+  List<String> get categories {
+    if (_categories is EqualUnmodifiableListView) return _categories;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_categories);
+  }
+
   @override
   String toString() {
-    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, mainCharacter: $mainCharacter, stories: $stories)';
+    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, mainCharacter: $mainCharacter, stories: $stories, categories: $categories)';
   }
 
   @override
@@ -464,13 +488,23 @@ class _$TimelineImpl implements _Timeline {
             (identical(other.year, year) || other.year == year) &&
             (identical(other.mainCharacter, mainCharacter) ||
                 other.mainCharacter == mainCharacter) &&
-            const DeepCollectionEquality().equals(other._stories, _stories));
+            const DeepCollectionEquality().equals(other._stories, _stories) &&
+            const DeepCollectionEquality()
+                .equals(other._categories, _categories));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, description, imageUrl,
-      year, mainCharacter, const DeepCollectionEquality().hash(_stories));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      title,
+      description,
+      imageUrl,
+      year,
+      mainCharacter,
+      const DeepCollectionEquality().hash(_stories),
+      const DeepCollectionEquality().hash(_categories));
 
   /// Create a copy of Timeline
   /// with the given fields replaced by the non-null parameter values.
@@ -496,7 +530,8 @@ abstract class _Timeline implements Timeline {
       required final String imageUrl,
       required final int year,
       final MainCharacter? mainCharacter,
-      final List<Story> stories}) = _$TimelineImpl;
+      final List<Story> stories,
+      final List<String> categories}) = _$TimelineImpl;
 
   factory _Timeline.fromJson(Map<String, dynamic> json) =
       _$TimelineImpl.fromJson;
@@ -515,6 +550,8 @@ abstract class _Timeline implements Timeline {
   MainCharacter? get mainCharacter;
   @override
   List<Story> get stories;
+  @override
+  List<String> get categories;
 
   /// Create a copy of Timeline
   /// with the given fields replaced by the non-null parameter values.

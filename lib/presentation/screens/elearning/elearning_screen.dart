@@ -283,7 +283,8 @@ class _TimelineGridState extends State<_TimelineGrid> {
         bottom: widget
             .bottomPadding, // Add padding at the bottom to account for navigation bar
       ),
-      physics: const BouncingScrollPhysics(),
+      physics:
+          const ClampingScrollPhysics(), // Changed from BouncingScrollPhysics for better performance
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
@@ -309,16 +310,10 @@ class _TimelineGridState extends State<_TimelineGrid> {
           },
         )
             .animate(
-              delay: Duration(milliseconds: index * 100 + 400),
-            )
-            .slideY(
-              begin: 0.2,
-              end: 0,
-              curve: Curves.easeOutCubic,
-              duration: const Duration(milliseconds: 600),
+              delay: Duration(milliseconds: index * 50),
             )
             .fadeIn(
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
             );
       },
@@ -348,10 +343,7 @@ class _HeaderSection extends StatelessWidget {
                     fit: BoxFit.contain,
                   ),
                 ),
-              ).animate().fadeIn().scale(
-                    delay: const Duration(milliseconds: 200),
-                    duration: const Duration(milliseconds: 500),
-                  ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -374,11 +366,7 @@ class _HeaderSection extends StatelessWidget {
                       ),
                     ),
                   ],
-                ).animate().fadeIn().slideX(
-                      begin: -0.2,
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 500),
-                    ),
+                ),
               ),
               // Notification icon
               GestureDetector(
@@ -437,20 +425,13 @@ class _HeaderSection extends StatelessWidget {
                     ),
                   );
                 }),
-              ).animate().fadeIn().scale(
-                    delay: const Duration(milliseconds: 400),
-                    duration: const Duration(milliseconds: 500),
-                  ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: _SearchBar().animate().fadeIn().slideY(
-                  begin: 0.2,
-                  delay: const Duration(milliseconds: 500),
-                  duration: const Duration(milliseconds: 500),
-                ),
+            child: _SearchBar(),
           ),
         ],
       ),

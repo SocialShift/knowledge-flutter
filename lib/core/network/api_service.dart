@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -15,6 +16,11 @@ class ApiService {
     _dio.options.baseUrl = AppConfig.baseUrl;
     _dio.options.validateStatus = (status) => status! < 500;
 
+    // Optimize timeout settings for better iOS performance
+    _dio.options.connectTimeout = const Duration(seconds: 15);
+    _dio.options.receiveTimeout = const Duration(seconds: 15);
+    _dio.options.sendTimeout = const Duration(seconds: 15);
+
     // Add default headers
     _dio.options.headers = {
       'Content-Type': 'application/json',
@@ -30,7 +36,10 @@ class ApiService {
               response.headers['Set-Cookie'] ?? response.headers['set-cookie'];
 
           if (cookies != null && cookies.isNotEmpty) {
-            print('Storing cookie: ${cookies.first}'); // Debug log
+            // Only log in debug mode
+            if (kDebugMode) {
+              print('Storing cookie: ${cookies.first}');
+            }
             await _storage.write(key: 'session_cookie', value: cookies.first);
           }
           return handler.next(response);
@@ -39,15 +48,19 @@ class ApiService {
           // Attach session cookie to requests
           final cookie = await _storage.read(key: 'session_cookie');
           if (cookie != null) {
-            print('Attaching cookie to request: $cookie'); // Debug log
+            // Only log in debug mode
+            if (kDebugMode) {
+              print('Attaching cookie to request: $cookie');
+            }
             options.headers['Cookie'] = cookie;
           }
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          print('Request error: ${e.message}');
-          print('Request path: ${e.requestOptions.path}');
-          print('Request headers: ${e.requestOptions.headers}');
+          if (kDebugMode) {
+            print('Request error: ${e.message}');
+            print('Request path: ${e.requestOptions.path}');
+          }
           return handler.next(e);
         },
       ),
@@ -60,7 +73,9 @@ class ApiService {
               e.type == DioExceptionType.sendTimeout ||
               e.type == DioExceptionType.receiveTimeout) {
             try {
-              print('Retrying request due to timeout...');
+              if (kDebugMode) {
+                print('Retrying request due to timeout...');
+              }
               final response = await _dio.fetch(e.requestOptions);
               return handler.resolve(response);
             } catch (e) {
@@ -72,7 +87,8 @@ class ApiService {
       ),
     );
 
-    if (dotenv.env['ENVIRONMENT'] == 'development') {
+    // Only add logger in development environment
+    if (dotenv.env['ENVIRONMENT'] == 'development' && kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,
@@ -81,6 +97,7 @@ class ApiService {
           responseHeader: false,
           error: true,
           compact: true,
+          maxWidth: 90,
         ),
       );
     }
@@ -101,8 +118,9 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      print('Making POST request to: ${_dio.options.baseUrl}$path');
-      print('Request data: $data');
+      if (kDebugMode) {
+        print('Making POST request to: ${_dio.options.baseUrl}$path');
+      }
 
       final response = await _dio.post(
         path,
@@ -115,8 +133,9 @@ class ApiService {
         ),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      if (kDebugMode) {
+        print('Response status: ${response.statusCode}');
+      }
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -134,9 +153,10 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      print('DioException occurred: ${e.message}');
-      print('DioException type: ${e.type}');
-      print('DioException response: ${e.response?.data}');
+      if (kDebugMode) {
+        print('DioException occurred: ${e.message}');
+        print('DioException type: ${e.type}');
+      }
       throw _handleDioError(e);
     }
   }
@@ -326,24 +346,45 @@ class ApiService {
   }
 
   String _handleDioError(DioException e) {
-    if (e.response?.data != null && e.response?.data is Map) {
-      final message = e.response?.data['detail'] ??
-          e.response?.data['message'] ??
-          e.response?.data['error'];
-      if (message != null) return message.toString();
-    }
+    String errorMessage = 'An error occurred';
 
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'Connection timeout. Please check your internet connection and try again.';
+        errorMessage =
+            'Connection timeout. Please check your internet connection.';
+        break;
       case DioExceptionType.badResponse:
-        return 'Server error (${e.response?.statusCode}). Please try again later.';
-      case DioExceptionType.connectionError:
-        return 'No internet connection. Please check your network.';
+        if (e.response != null) {
+          final statusCode = e.response!.statusCode;
+          final data = e.response!.data;
+
+          if (data is Map && data.containsKey('message')) {
+            errorMessage = data['message'];
+          } else if (statusCode == 401) {
+            errorMessage = 'Unauthorized access. Please log in again.';
+          } else if (statusCode == 403) {
+            errorMessage = 'Access forbidden. You don\'t have permission.';
+          } else if (statusCode == 404) {
+            errorMessage = 'Resource not found.';
+          } else if (statusCode! >= 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+        }
+        break;
+      case DioExceptionType.cancel:
+        errorMessage = 'Request cancelled';
+        break;
+      case DioExceptionType.unknown:
+        if (e.message?.contains('SocketException') ?? false) {
+          errorMessage = 'No internet connection. Please check your network.';
+        }
+        break;
       default:
-        return 'Something went wrong. Please try again.';
+        errorMessage = 'Network error occurred. Please try again.';
     }
+
+    return errorMessage;
   }
 }

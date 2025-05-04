@@ -55,8 +55,8 @@ class AppLayout extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.games_outlined,
-                  selectedIcon: Icons.games,
+                  icon: Icons.psychology_outlined,
+                  selectedIcon: Icons.psychology,
                   isSelected: currentIndex == 2,
                   onTap: () => context.go('/games'),
                 ),

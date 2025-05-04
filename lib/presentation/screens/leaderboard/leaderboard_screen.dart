@@ -195,13 +195,13 @@ class LeaderboardScreen extends HookConsumerWidget {
                                   _StatCard(
                                     icon: Icons.psychology,
                                     value: '85%',
-                                    label: 'Quiz Score',
+                                    label: 'Quiz',
                                     color: AppColors.navyBlue,
                                   ),
                                   _StatCard(
                                     icon: Icons.local_fire_department,
                                     value: currentStreak,
-                                    label: 'Day Streak',
+                                    label: 'Streak',
                                     color: AppColors.lightPurple,
                                   ),
                                 ],

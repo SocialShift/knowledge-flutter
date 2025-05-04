@@ -4,6 +4,45 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:go_router/go_router.dart';
+import 'package:knowledge/data/models/game_question.dart';
+import 'package:knowledge/data/repositories/profile_repository.dart';
+import 'package:knowledge/presentation/screens/games/guess_year_game_screen.dart';
+import 'package:knowledge/presentation/screens/games/image_guess_game_screen.dart';
+import 'package:knowledge/presentation/screens/games/fill_blanks_game_screen.dart';
+
+// Create a provider to notify when to refresh the games screen
+final gamesRefreshProvider = StateProvider<int>((ref) => 0);
+
+// Class to store milestone information
+class MilestoneInfo {
+  final String title;
+  final String gameId;
+  final String description;
+  final bool isCompleted;
+  final double progress;
+
+  MilestoneInfo({
+    required this.title,
+    required this.gameId,
+    required this.description,
+    required this.isCompleted,
+    required this.progress,
+  });
+
+  // Get the appropriate icon based on the game ID
+  IconData get icon {
+    switch (gameId) {
+      case 'guess_year':
+        return Icons.hourglass_bottom;
+      case 'image_guess':
+        return Icons.account_balance;
+      case 'fill_blanks':
+        return Icons.notes_sharp;
+      default:
+        return Icons.extension;
+    }
+  }
+}
 
 class GamesScreen extends ConsumerStatefulWidget {
   const GamesScreen({super.key});
@@ -17,28 +56,56 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
   late TabController _tabController;
   final List<GameInfo> _games = [
     GameInfo(
-      id: 'historical_figure',
-      title: 'Historical Fig.',
-      description: 'Guess famous historical figures from clues',
-      icon: Icons.people_alt_outlined,
-      color: Colors.purple,
+      id: 'guess_year',
+      title: 'When',
+      description: 'Test your knowledge of historical dates',
+      icon: Icons.hourglass_bottom,
+      color: Colors.indigo,
+      gameType: 1,
       comingSoon: false,
     ),
     GameInfo(
-      id: 'guess_year',
-      title: 'Guess the Year',
-      description: 'Test your knowledge of historical dates',
-      icon: Icons.calendar_today,
-      color: Colors.indigo,
+      id: 'image_guess',
+      title: 'Legacy',
+      description: 'Guess historical figures from images',
+      icon: Icons.account_balance,
+      color: Colors.purple,
+      gameType: 2,
       comingSoon: false,
     ),
     GameInfo(
       id: 'fill_blanks',
-      title: 'Fill in the Blanks',
+      title: 'Fragments',
       description: 'Complete famous historical quotes',
-      icon: Icons.text_fields,
+      icon: Icons.notes_sharp,
       color: Colors.teal,
+      gameType: 3,
       comingSoon: false,
+    ),
+  ];
+
+  // List of milestone items to make it dynamic
+  final List<MilestoneInfo> _milestones = [
+    MilestoneInfo(
+      title: "Legacy",
+      gameId: "image_guess",
+      description: "Complete 5 rounds of Historical Figure game",
+      isCompleted: true,
+      progress: 1.0,
+    ),
+    MilestoneInfo(
+      title: "When",
+      gameId: "guess_year",
+      description: "Win 3 consecutive rounds",
+      isCompleted: false,
+      progress: 0.6,
+    ),
+    MilestoneInfo(
+      title: "Fragments",
+      gameId: "fill_blanks",
+      description: "Score 500 points in a single round",
+      isCompleted: false,
+      progress: 0.3,
     ),
   ];
 
@@ -52,6 +119,17 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
         setState(() {});
       }
     });
+
+    // Initial refresh when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+
+  // Method to refresh user profile data
+  Future<void> _refreshData() async {
+    // Invalidate the user profile provider to fetch fresh data
+    ref.invalidate(userProfileProvider);
   }
 
   @override
@@ -60,8 +138,71 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
     super.dispose();
   }
 
+  void _navigateToGame(BuildContext context, GameInfo game) {
+    if (game.comingSoon) return;
+
+    // Provide tactile feedback
+    HapticFeedback.lightImpact();
+
+    // Navigate to the specific game based on ID
+    switch (game.id) {
+      case 'guess_year':
+        Navigator.of(context)
+            .push(
+          MaterialPageRoute(
+            builder: (context) => const GuessYearGameScreen(),
+            settings: const RouteSettings(name: 'guess_year_game'),
+          ),
+        )
+            .then((_) {
+          // Refresh data when returning from the game
+          _refreshData();
+        });
+        break;
+      case 'image_guess':
+        Navigator.of(context)
+            .push(
+          MaterialPageRoute(
+            builder: (context) => const ImageGuessGameScreen(),
+            settings: const RouteSettings(name: 'image_guess_game'),
+          ),
+        )
+            .then((_) {
+          // Refresh data when returning from the game
+          _refreshData();
+        });
+        break;
+      case 'fill_blanks':
+        Navigator.of(context)
+            .push(
+          MaterialPageRoute(
+            builder: (context) => const FillBlanksGameScreen(),
+            settings: const RouteSettings(name: 'fill_blanks_game'),
+          ),
+        )
+            .then((_) {
+          // Refresh data when returning from the game
+          _refreshData();
+        });
+        break;
+      default:
+        // If no match, do nothing
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Watch the user profile to get points
+    final userProfileAsync = ref.watch(userProfileProvider);
+
+    // Listen to the refresh provider to trigger refreshes
+    ref.listen(gamesRefreshProvider, (previous, current) {
+      if (previous != current) {
+        _refreshData();
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -79,7 +220,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(userProfileAsync),
               const SizedBox(height: 20),
               _buildTabBar(),
               Expanded(
@@ -87,10 +228,15 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                   controller: _tabController,
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    // Games Tab
-                    _buildGamesTab(),
+                    // Games Tab with pull-to-refresh
+                    RefreshIndicator(
+                      onRefresh: _refreshData,
+                      color: AppColors.limeGreen,
+                      backgroundColor: Colors.white,
+                      child: _buildGamesTab(),
+                    ),
 
-                    // Navigation Tab
+                    // Navigation Tab (with dynamic milestones)
                     _buildNavigationTab(),
                   ],
                 ),
@@ -102,7 +248,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AsyncValue userProfileAsync) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
@@ -111,13 +257,13 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
           Row(
             children: [
               const Icon(
-                Icons.games,
+                Icons.psychology,
                 color: Colors.white,
                 size: 32,
               ),
               const SizedBox(width: 12),
               Text(
-                "Games Center",
+                "Reveal",
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.95),
                   fontSize: 28,
@@ -125,6 +271,25 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                 ),
               ),
               const Spacer(),
+              // Refresh button
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.refresh,
+                    color: Colors.white,
+                  ),
+                  tooltip: 'Refresh',
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _refreshData();
+                  },
+                ),
+              ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
@@ -162,26 +327,69 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Game Points: 750",
+                userProfileAsync.when(
+                  data: (profile) {
+                    final points = profile.points ?? 0;
+                    String level = 'Beginner';
+
+                    // Determine level based on points
+                    if (points >= 1000) {
+                      level = 'History Master';
+                    } else if (points >= 500) {
+                      level = 'History Expert';
+                    } else if (points >= 200) {
+                      level = 'History Enthusiast';
+                    } else if (points >= 50) {
+                      level = 'History Student';
+                    }
+
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Game Points: $points",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.95),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            level,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const Expanded(
+                    child: Center(
+                      child: SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  error: (error, stack) => Expanded(
+                    child: Text(
+                      "Game Points: 0",
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.95),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Level 3: History Enthusiast",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -221,7 +429,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
             boxShadow: [
               BoxShadow(
                 color: AppColors.limeGreen.withOpacity(0.3),
-                blurRadius: 4,
+                blurRadius: 0,
                 spreadRadius: 0,
                 offset: const Offset(0, 1),
               ),
@@ -251,13 +459,13 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.sports_esports,
-                    size: 18,
-                    color: _tabController.index == 0
-                        ? AppColors.navyBlue
-                        : Colors.white,
-                  ),
+                  // Icon(
+                  //   Icons.psychology,
+                  //   size: 18,
+                  //   color: _tabController.index == 0
+                  //       ? AppColors.navyBlue
+                  //       : Colors.white,
+                  // ),
                   const SizedBox(width: 8),
                   Text(
                     'Games',
@@ -274,13 +482,13 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.emoji_events_outlined,
-                    size: 18,
-                    color: _tabController.index == 1
-                        ? AppColors.navyBlue
-                        : Colors.white,
-                  ),
+                  // Icon(
+                  //   Icons.psychology,
+                  //   size: 18,
+                  //   color: _tabController.index == 1
+                  //       ? AppColors.navyBlue
+                  //       : Colors.white,
+                  // ),
                   const SizedBox(width: 8),
                   Text(
                     'Milestones',
@@ -300,121 +508,148 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
   }
 
   Widget _buildGamesTab() {
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 0,
-              offset: const Offset(0, 4),
+      physics:
+          const AlwaysScrollableScrollPhysics(), // Important for pull-to-refresh
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 8, bottom: 16),
+                  child: Text(
+                    "Educational Games",
+                    style: TextStyle(
+                      color: AppColors.navyBlue,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ..._games
+                    .map((game) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildGameCard(game)
+                              .animate(
+                                  delay: Duration(
+                                      milliseconds: 100 * _games.indexOf(game)))
+                              .fadeIn(
+                                  duration: const Duration(milliseconds: 400))
+                              .slideX(
+                                  begin: 0.1,
+                                  end: 0,
+                                  duration: const Duration(milliseconds: 500)),
+                        ))
+                    .toList(),
+              ],
             ),
-          ],
+          ),
         ),
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: _games.length + 1, // +1 for the "Coming Soon" card
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            if (index < _games.length) {
-              final game = _games[index];
-              return _buildGameCard(game)
-                  .animate(delay: Duration(milliseconds: 100 * index))
-                  .fadeIn()
-                  .slideX(begin: 0.1, end: 0);
-            } else {
-              // Coming Soon card
-              return _buildComingSoonCard()
-                  .animate(delay: Duration(milliseconds: 100 * index))
-                  .fadeIn()
-                  .slideX(begin: 0.1, end: 0);
-            }
-          },
-        ),
-      ),
+      ],
     );
   }
 
   Widget _buildNavigationTab() {
-    // Milestones tab content
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
+    // Milestone completion metrics
+    final totalMilestones = _milestones.length;
+    final completedMilestones = _milestones.where((m) => m.isCompleted).length;
+    final completionPercentage = (completedMilestones / totalMilestones);
+
+    // Milestones tab content with scrolling to avoid overflow
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Milestones",
-              style: TextStyle(
-                color: AppColors.navyBlue,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Milestones",
+                  style: TextStyle(
+                    color: AppColors.navyBlue,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Dynamic milestone items
+                ..._milestones.map((milestone) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _buildMilestoneItem(
+                      title: milestone.title,
+                      icon: milestone.icon,
+                      isCompleted: milestone.isCompleted,
+                      progress: milestone.progress,
+                      description: milestone.description,
+                    ),
+                  );
+                }).toList(),
+
+                const SizedBox(height: 8),
+                Text(
+                  "Milestones Completed: $completedMilestones/$totalMilestones",
+                  style: const TextStyle(
+                    color: AppColors.navyBlue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(
+                  value: completionPercentage,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
+                  borderRadius: BorderRadius.circular(10),
+                  minHeight: 8,
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            _buildMilestoneItem(
-                title: "Historical Fig.",
-                isCompleted: true,
-                progress: 1.0,
-                description: "Complete 5 rounds of Historical Figure game"),
-            const SizedBox(height: 16),
-            _buildMilestoneItem(
-                title: "Guess the Year",
-                isCompleted: false,
-                progress: 0.6,
-                description: "Win 3 consecutive rounds"),
-            const SizedBox(height: 16),
-            _buildMilestoneItem(
-                title: "Fill in the Blanks",
-                isCompleted: false,
-                progress: 0.3,
-                description: "Score 500 points in a single round"),
-            const SizedBox(height: 20),
-            const Text(
-              "Achievements Unlocked: 4/12",
-              style: TextStyle(
-                color: AppColors.navyBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: 4 / 12,
-              backgroundColor: Colors.grey.shade200,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-              borderRadius: BorderRadius.circular(10),
-              minHeight: 8,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     ).animate().fadeIn(delay: const Duration(milliseconds: 300));
   }
 
-  Widget _buildMilestoneItem(
-      {required String title,
-      required bool isCompleted,
-      required double progress,
-      required String description}) {
+  Widget _buildMilestoneItem({
+    required String title,
+    required bool isCompleted,
+    required double progress,
+    required String description,
+    required IconData icon,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -446,11 +681,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                   children: [
                     // Icon based on game type
                     Icon(
-                      title.contains("Historical Fig")
-                          ? Icons.people_alt_outlined
-                          : title.contains("Year")
-                              ? Icons.calendar_today
-                              : Icons.text_fields,
+                      icon,
                       size: 16,
                       color: isCompleted ? AppColors.limeGreen : Colors.grey,
                     ),
@@ -508,7 +739,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                       duration: const Duration(milliseconds: 800),
                       curve: Curves.easeInOut,
                       height: 6,
-                      width: MediaQuery.of(context).size.width * 0.6 * progress,
+                      width: MediaQuery.of(context).size.width * 0.5 * progress,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.centerLeft,
@@ -524,7 +755,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                         boxShadow: [
                           BoxShadow(
                             color: isCompleted
-                                ? AppColors.limeGreen.withOpacity(0.3)
+                                ? AppColors.limeGreen.withOpacity(0.0)
                                 : Colors.amber.withOpacity(0.3),
                             blurRadius: 4,
                             spreadRadius: 0,
@@ -588,39 +819,17 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
 
   Widget _buildGameCard(GameInfo game) {
     return GestureDetector(
-      onTap: () {
-        if (!game.comingSoon) {
-          // Provide tactile feedback
-          HapticFeedback.lightImpact();
-          // Navigate to the specific game
-          context.push('/games/${game.id}');
-        }
-      },
+      onTap: () => _navigateToGame(context, game),
       child: Container(
         height: 100,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              game.color.withOpacity(0.1),
-              game.color.withOpacity(0.05),
-            ],
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: game.color.withOpacity(0.3),
             width: 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: game.color.withOpacity(0.1),
-              blurRadius: 4,
-              spreadRadius: 0,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Row(
           children: [
@@ -630,14 +839,6 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
               decoration: BoxDecoration(
                 color: game.color.withOpacity(0.2),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: game.color.withOpacity(0.15),
-                    blurRadius: 8,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: Icon(
                 game.icon,
@@ -672,139 +873,12 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                 ],
               ),
             ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 36,
-              width: 36,
-              decoration: BoxDecoration(
-                color: game.comingSoon
-                    ? Colors.grey.shade300
-                    : AppColors.limeGreen,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: (game.comingSoon ? Colors.grey : AppColors.limeGreen)
-                        .withOpacity(0.3),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                game.comingSoon ? Icons.lock : Icons.play_arrow,
-                color: game.comingSoon ? Colors.grey.shade600 : Colors.white,
-                size: 18,
-              ),
-            ),
           ],
         ),
       ),
-    )
-        .animate(onPlay: (controller) => controller.repeat(reverse: true))
-        .shimmer(
-            delay: Duration(seconds: game.comingSoon ? 0 : 3),
-            duration: const Duration(milliseconds: 1800))
-        .scaleXY(
-            begin: 1.0,
-            end: 1.02,
-            curve: Curves.easeInOut,
-            duration: const Duration(milliseconds: 200),
-            alignment: Alignment.center,
-            delay: const Duration(seconds: 1));
-  }
-
-  Widget _buildComingSoonCard() {
-    return Container(
-      height: 100,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.shade300,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.videogame_asset_outlined,
-              color: Colors.grey.shade400,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      "Coming Soon",
-                      style: TextStyle(
-                        color: AppColors.navyBlue.withOpacity(0.7),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.limeGreen.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        "New",
-                        style: TextStyle(
-                          color: AppColors.limeGreen,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "More exciting games are being developed!",
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 32,
-            width: 32,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.lock,
-              color: Colors.grey.shade600,
-              size: 18,
-            ),
-          ),
-        ],
-      ),
-    );
+    ).animate(onPlay: (controller) => controller.repeat(reverse: true)).shimmer(
+        delay: Duration(seconds: game.comingSoon ? 0 : 3),
+        duration: const Duration(milliseconds: 1800));
   }
 
   void _showAchievementsDialog() {
@@ -1085,6 +1159,7 @@ class GameInfo {
   final String description;
   final IconData icon;
   final Color color;
+  final int gameType;
   final bool comingSoon;
 
   GameInfo({
@@ -1093,6 +1168,7 @@ class GameInfo {
     required this.description,
     required this.icon,
     required this.color,
+    required this.gameType,
     this.comingSoon = false,
   });
 }

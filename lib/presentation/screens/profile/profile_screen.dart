@@ -459,92 +459,147 @@ class SocialCountsWidget extends StatelessWidget {
     final followerCount = profile.followers?['count'] ?? 0;
     final followingCount = profile.following?['count'] ?? 0;
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.blue.withOpacity(0.2),
-            Colors.purple.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.navyBlue.withOpacity(0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyBlue.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 0,
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.withOpacity(0.2),
+                Colors.purple.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.navyBlue.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navyBlue.withOpacity(0.1),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                children: [
-                  Text(
-                    followerCount.toString(),
-                    style: const TextStyle(
-                      color: AppColors.navyBlue,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        followerCount.toString(),
+                        style: const TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        "Followers",
+                        style: TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Followers",
-                    style: TextStyle(
-                      color: AppColors.navyBlue,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.navyBlue.withOpacity(0.1),
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        followingCount.toString(),
+                        style: const TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        "Following",
+                        style: TextStyle(
+                          color: AppColors.navyBlue,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Add Friend Button
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              // Show a modest success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Coming soon!'),
+                  backgroundColor: AppColors.limeGreen,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  margin: const EdgeInsets.all(12),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.person_add_alt),
+            label: const Text(
+              'Add Friend',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          Container(
-            width: 1,
-            height: 40,
-            color: AppColors.navyBlue.withOpacity(0.1),
-          ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                children: [
-                  Text(
-                    followingCount.toString(),
-                    style: const TextStyle(
-                      color: AppColors.navyBlue,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Following",
-                    style: TextStyle(
-                      color: AppColors.navyBlue,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+            style: ElevatedButton.styleFrom(
+              foregroundColor: AppColors.navyBlue,
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              elevation: 1,
+              shadowColor: Colors.black.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: AppColors.navyBlue.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          )
+              .animate()
+              .fadeIn(
+                duration: const Duration(milliseconds: 400),
+                delay: const Duration(milliseconds: 300),
+              )
+              .slideY(begin: 0.2, end: 0),
+        ),
+      ],
     );
   }
 }

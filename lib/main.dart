@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/presentation/navigation/router.dart';
@@ -9,10 +9,15 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
-import 'package:knowledge/data/models/auth_state.dart';
+import 'dart:io' show Platform;
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:knowledge/core/utils/platform_optimizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Apply platform-specific optimizations (iOS focus)
+  PlatformOptimizations.applyIOSOptimizations();
 
   // Load .env file
   await dotenv.load(fileName: ".env");
@@ -32,13 +37,17 @@ class Knowledge extends ConsumerStatefulWidget {
   ConsumerState<Knowledge> createState() => _KnowledgeState();
 }
 
-class _KnowledgeState extends ConsumerState<Knowledge> {
+class _KnowledgeState extends ConsumerState<Knowledge>
+    with WidgetsBindingObserver {
   DateTime? _lastBackPressTime;
   bool _initialSessionCheckComplete = false;
 
   @override
   void initState() {
     super.initState();
+
+    // Add observer for app lifecycle events
+    WidgetsBinding.instance.addObserver(this);
 
     // Initialize session management
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -51,6 +60,28 @@ class _KnowledgeState extends ConsumerState<Knowledge> {
       // Preload OTD notifications when the app starts
       ref.read(onThisDayNotificationsProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    // Remove observer when widget is disposed
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Handle app lifecycle changes - important for iOS memory management
+    if (state == AppLifecycleState.paused) {
+      // App is in background - release resources if needed
+      // This is particularly important for iOS
+      PlatformOptimizations.clearImageCache();
+    } else if (state == AppLifecycleState.resumed) {
+      // App is in foreground again
+      // Check session validity when app is resumed
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      authNotifier.checkSessionValidity();
+    }
   }
 
   // Check for valid session and restore authentication state if exists
@@ -210,6 +241,16 @@ class _KnowledgeState extends ConsumerState<Knowledge> {
         routerConfig: router,
         debugShowCheckedModeBanner: false,
         scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
+        // iOS performance optimizations
+        builder: (context, child) {
+          // Apply text scaling factor limits for consistent UI
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaleFactor: 1.0,
+            ),
+            child: child!,
+          );
+        },
       ),
     );
   }

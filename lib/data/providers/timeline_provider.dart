@@ -40,38 +40,46 @@ final filteredPaginatedTimelinesProvider =
   final allTimelines = ref.watch(paginatedTimelinesProvider);
   final filterState = ref.watch(filterNotifierProvider);
 
-  // If there's no search query, return all timelines
-  if (filterState.searchQuery.isEmpty) {
-    return allTimelines;
+  // Start with all timelines
+  List<Timeline> filteredItems = allTimelines.items;
+
+  // Apply all demographic and category filters
+  if (filterState.hasActiveFilters) {
+    filteredItems = filteredItems
+        .where((timeline) => timeline.matchesAllFilters(filterState))
+        .toList();
   }
 
-  final searchQuery = filterState.searchQuery.toLowerCase();
-  final filteredItems = allTimelines.items.where((timeline) {
-    // Check if the title contains the search query
-    final matchesTitle = timeline.title.toLowerCase().contains(searchQuery);
+  // Filter by search query if not empty
+  if (filterState.searchQuery.isNotEmpty) {
+    final searchQuery = filterState.searchQuery.toLowerCase();
+    filteredItems = filteredItems.where((timeline) {
+      // Check if the title contains the search query
+      final matchesTitle = timeline.title.toLowerCase().contains(searchQuery);
 
-    // Check if the year matches the search query
-    // First, try to parse the search query as a year
-    bool matchesYear = false;
-    try {
-      // Try to parse search as a year
-      if (searchQuery.length == 4) {
-        final searchYear = int.tryParse(searchQuery);
-        if (searchYear != null) {
-          // Check if the timeline year is close to the search year (within a 10-year range)
-          matchesYear = (timeline.year - searchYear).abs() <= 10;
+      // Check if the year matches the search query
+      // First, try to parse the search query as a year
+      bool matchesYear = false;
+      try {
+        // Try to parse search as a year
+        if (searchQuery.length == 4) {
+          final searchYear = int.tryParse(searchQuery);
+          if (searchYear != null) {
+            // Check if the timeline year is close to the search year (within a 10-year range)
+            matchesYear = (timeline.year - searchYear).abs() <= 10;
+          }
         }
+      } catch (_) {
+        // If parsing fails, just continue with matchesYear as false
       }
-    } catch (_) {
-      // If parsing fails, just continue with matchesYear as false
-    }
 
-    // Match also the timeline description
-    final matchesDescription =
-        timeline.description.toLowerCase().contains(searchQuery);
+      // Match also the timeline description
+      final matchesDescription =
+          timeline.description.toLowerCase().contains(searchQuery);
 
-    return matchesTitle || matchesYear || matchesDescription;
-  }).toList();
+      return matchesTitle || matchesYear || matchesDescription;
+    }).toList();
+  }
 
   // Keep items sorted by year in descending order (newest first)
   filteredItems.sort((a, b) => b.year.compareTo(a.year));

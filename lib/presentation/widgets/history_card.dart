@@ -20,10 +20,18 @@ class HistoryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timelineDetailAsync = ref.watch(timelineDetailProvider(item.id));
 
+    // Get screen width to calculate responsive sizes
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 190,
+        // Use aspect ratio constraint rather than fixed height
+        constraints: BoxConstraints(
+          minHeight: isSmallScreen ? 160 : 180,
+          maxHeight: 220,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -40,9 +48,9 @@ class HistoryCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image Section - slightly reduced flex ratio
+              // Image Section with proper flex ratio based on screen size
               Expanded(
-                flex: 9,
+                flex: isSmallScreen ? 7 : 8,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -54,70 +62,50 @@ class HistoryCard extends ConsumerWidget {
 
                     // Dark Gradient Overlay
                     _GradientOverlay(),
-
-                    // Year Badge
-                    // Positioned(
-                    //   top: 8,
-                    //   left: 8,
-                    //   child: Container(
-                    //     padding: const EdgeInsets.symmetric(
-                    //         horizontal: 8, vertical: 4),
-                    //     decoration: BoxDecoration(
-                    //       color: AppColors.limeGreen,
-                    //       borderRadius: BorderRadius.circular(6),
-                    //     ),
-                    //     child: Text(
-                    //       item.year.toString(),
-                    //       style: const TextStyle(
-                    //         color: AppColors.navyBlue,
-                    //         fontSize: 10,
-                    //         fontWeight: FontWeight.bold,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
 
-              // Bottom section - optimized layout
+              // Bottom section - optimized with responsive sizing
               Expanded(
-                flex: 7,
+                flex: isSmallScreen ? 9 : 8,
                 child: Container(
                   color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 8 : 10,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
+                      // Title with responsive font size
                       Text(
                         item.title,
-                        style: const TextStyle(
-                          color: Color(0xFF36459C),
-                          fontSize: 14,
+                        style: TextStyle(
+                          color: const Color(0xFF36459C),
+                          fontSize: isSmallScreen ? 12 : 14,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                      const SizedBox(height: 6),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
 
                       // Character avatar and name
                       Row(
                         children: [
                           // Character Avatar (if available)
                           timelineDetailAsync.when(
-                            loading: () => const SizedBox(
-                              width: 24,
-                              height: 24,
+                            loading: () => SizedBox(
+                              width: isSmallScreen ? 20 : 24,
+                              height: isSmallScreen ? 20 : 24,
                               child: CircleAvatar(
-                                backgroundColor: Color(0xFFE0E0E0),
+                                backgroundColor: const Color(0xFFE0E0E0),
                                 child: SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
+                                  width: isSmallScreen ? 10 : 12,
+                                  height: isSmallScreen ? 10 : 12,
+                                  child: const CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
                                         AppColors.limeGreen),
@@ -125,26 +113,28 @@ class HistoryCard extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            error: (_, __) => const SizedBox(
-                              width: 24,
-                              height: 24,
+                            error: (_, __) => SizedBox(
+                              width: isSmallScreen ? 20 : 24,
+                              height: isSmallScreen ? 20 : 24,
                             ),
                             data: (timeline) {
                               if (timeline.mainCharacter != null) {
                                 return ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                      isSmallScreen ? 10 : 12),
                                   child: CachedNetworkImage(
                                     imageUrl: timeline.mainCharacter!.avatarUrl,
-                                    width: 24,
-                                    height: 24,
+                                    width: isSmallScreen ? 20 : 24,
+                                    height: isSmallScreen ? 20 : 24,
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => Container(
                                       color: Colors.grey[200],
-                                      child: const Center(
+                                      child: Center(
                                         child: SizedBox(
-                                          width: 12,
-                                          height: 12,
-                                          child: CircularProgressIndicator(
+                                          width: isSmallScreen ? 10 : 12,
+                                          height: isSmallScreen ? 10 : 12,
+                                          child:
+                                              const CircularProgressIndicator(
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
@@ -155,24 +145,24 @@ class HistoryCard extends ConsumerWidget {
                                     ),
                                     errorWidget: (context, url, error) =>
                                         CircleAvatar(
-                                      radius: 12,
+                                      radius: isSmallScreen ? 10 : 12,
                                       backgroundColor:
                                           AppColors.navyBlue.withOpacity(0.1),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.person,
-                                        size: 14,
+                                        size: isSmallScreen ? 12 : 14,
                                         color: AppColors.navyBlue,
                                       ),
                                     ),
                                   ),
                                 );
                               } else {
-                                return const SizedBox(width: 24);
+                                return SizedBox(width: isSmallScreen ? 20 : 24);
                               }
                             },
                           ),
 
-                          const SizedBox(width: 6),
+                          SizedBox(width: isSmallScreen ? 4 : 6),
 
                           // Character name (if available)
                           timelineDetailAsync.maybeWhen(
@@ -181,9 +171,9 @@ class HistoryCard extends ConsumerWidget {
                                 return Expanded(
                                   child: Text(
                                     timeline.mainCharacter!.persona,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.navyBlue,
-                                      fontSize: 11,
+                                      fontSize: isSmallScreen ? 10 : 11,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     maxLines: 1,
@@ -202,10 +192,10 @@ class HistoryCard extends ConsumerWidget {
                       // Use Expanded instead of SizedBox to push button to bottom
                       const Expanded(child: SizedBox()),
 
-                      // Learn more button (full width, rectangular with rounded corners)
+                      // Learn more button with responsive sizing
                       Container(
                         width: double.infinity,
-                        height: 32,
+                        height: isSmallScreen ? 28 : 32,
                         decoration: BoxDecoration(
                           color: const Color(0xFFE3E635),
                           borderRadius: BorderRadius.circular(6),
@@ -220,20 +210,20 @@ class HistoryCard extends ConsumerWidget {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
                                 'Learn more',
                                 style: TextStyle(
                                   color: AppColors.navyBlue,
-                                  fontSize: 12,
+                                  fontSize: isSmallScreen ? 11 : 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(width: 4),
+                              SizedBox(width: isSmallScreen ? 2 : 4),
                               Icon(
                                 Icons.arrow_forward,
                                 color: AppColors.navyBlue,
-                                size: 12,
+                                size: isSmallScreen ? 10 : 12,
                               ),
                             ],
                           ),

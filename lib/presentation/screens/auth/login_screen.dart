@@ -74,41 +74,41 @@ class LoginScreen extends HookConsumerWidget {
                       children: [
                         const SizedBox(height: 40),
                         Image.asset(
-                          'assets/images/logo/logo.png',
-                          width: 100,
-                          height: 100,
+                          'assets/images/logo/logoa.png',
+                          width: 250,
+                          height: 200,
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(height: 28),
-                        Text(
-                          'Know [ Ledge ]',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 32,
-                              ),
-                          textAlign: TextAlign.center,
-                        ).animate().fadeIn().slideY(
-                              begin: 0.3,
-                              duration: const Duration(milliseconds: 500),
-                            ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Your journey through History begins here',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                          textAlign: TextAlign.center,
-                        ).animate().fadeIn().slideY(
-                              begin: 0.3,
-                              delay: const Duration(milliseconds: 200),
-                              duration: const Duration(milliseconds: 500),
-                            ),
+                        // Text(
+                        //   'Know[Ledge]',
+                        //   style: Theme.of(context)
+                        //       .textTheme
+                        //       .headlineMedium
+                        //       ?.copyWith(
+                        //         color: Colors.white,
+                        //         fontWeight: FontWeight.bold,
+                        //         fontSize: 32,
+                        //       ),
+                        //   textAlign: TextAlign.center,
+                        // ).animate().fadeIn().slideY(
+                        //       begin: 0.3,
+                        //       duration: const Duration(milliseconds: 500),
+                        //     ),
+                        // const SizedBox(height: 16),
+                        // Text(
+                        //   'Your journey through History begins here',
+                        //   style:
+                        //       Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        //             color: Colors.white70,
+                        //             fontSize: 16,
+                        //           ),
+                        //   textAlign: TextAlign.center,
+                        // ).animate().fadeIn().slideY(
+                        //       begin: 0.3,
+                        //       delay: const Duration(milliseconds: 200),
+                        //       duration: const Duration(milliseconds: 500),
+                        //     ),
                       ],
                     ),
                   ),

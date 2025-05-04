@@ -65,6 +65,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   permission_handler: ^11.4.0
   intl: ^0.20.2
+  chewie: ^1.11.3
 
 dev_dependencies:
   flutter_test:
@@ -98,7 +99,7 @@ flutter:
   assets:
     - .env
     - assets/images/logo/
-
+    - assets/images/logo/logoa.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

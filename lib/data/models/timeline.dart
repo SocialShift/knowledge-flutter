@@ -1,5 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:knowledge/data/providers/filter_provider.dart';
 
 part 'timeline.freezed.dart';
 part 'timeline.g.dart';
@@ -45,6 +46,7 @@ class Timeline with _$Timeline {
     required int year,
     MainCharacter? mainCharacter,
     @Default([]) List<Story> stories,
+    @Default([]) List<String> categories,
   }) = _Timeline;
 
   factory Timeline.fromJson(Map<String, dynamic> json) =>
@@ -66,6 +68,13 @@ class Timeline with _$Timeline {
       mainCharacter = MainCharacter.fromApiResponse(json['main_character']);
     }
 
+    // Parse categories if available
+    List<String> categories = [];
+    if (json['categories'] != null && json['categories'] is List) {
+      categories =
+          List<String>.from(json['categories'].map((c) => c.toString()));
+    }
+
     return Timeline(
       id: json['id'].toString(),
       title: json['title'] ?? '',
@@ -73,6 +82,7 @@ class Timeline with _$Timeline {
       imageUrl: thumbnailUrl,
       year: _parseYearRange(json['year_range'] ?? ''),
       mainCharacter: mainCharacter,
+      categories: categories,
     );
   }
 
@@ -110,6 +120,55 @@ class Timeline with _$Timeline {
       print('Error parsing year range: $e');
       return 2000; // Default year if parsing fails
     }
+  }
+}
+
+// Extension methods for Timeline filtering
+extension TimelineFilters on Timeline {
+  // Helper method to check if the timeline matches demographic filters
+  bool matchesDemographicFilter(String filter) {
+    // Check if the filter is in the categories
+    return categories.contains(filter);
+  }
+
+  // Helper method to check if the timeline matches any of the selected interests
+  bool matchesInterests(List<String> selectedInterests) {
+    if (selectedInterests.isEmpty) return true;
+    // Check if any selected interest is in the categories
+    return selectedInterests.any((interest) => categories.contains(interest));
+  }
+
+  // Helper method to check if the timeline matches all filters
+  bool matchesAllFilters(FilterState filters) {
+    // Check if the timeline matches the race filter
+    if (filters.race.isNotEmpty && !matchesDemographicFilter(filters.race)) {
+      return false;
+    }
+
+    // Check if the timeline matches the gender filter
+    if (filters.gender.isNotEmpty &&
+        !matchesDemographicFilter(filters.gender)) {
+      return false;
+    }
+
+    // Check if the timeline matches the sexual orientation filter
+    if (filters.sexualOrientation.isNotEmpty &&
+        !matchesDemographicFilter(filters.sexualOrientation)) {
+      return false;
+    }
+
+    // Check if the timeline matches the interests filter
+    if (filters.interests.isNotEmpty && !matchesInterests(filters.interests)) {
+      return false;
+    }
+
+    // Check if the timeline matches the categories filter
+    if (filters.categories.isNotEmpty &&
+        !categories.any((category) => filters.categories.contains(category))) {
+      return false;
+    }
+
+    return true;
   }
 }
 
