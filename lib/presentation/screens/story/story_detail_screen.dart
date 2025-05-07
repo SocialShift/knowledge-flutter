@@ -1084,7 +1084,7 @@ class _CompleteStoryPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${story.year ?? "Historical"} Period',
+                    '${story.year ?? "Historical"}',
                     style: const TextStyle(
                       color: AppColors.limeGreen,
                       fontSize: 13,

@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
-import 'package:go_router/go_router.dart';
-import 'package:knowledge/data/models/game_question.dart';
+// import 'package:go_router/go_router.dart';
+// import 'package:knowledge/data/models/game_question.dart';
 import 'package:knowledge/data/repositories/profile_repository.dart';
 import 'package:knowledge/presentation/screens/games/guess_year_game_screen.dart';
 import 'package:knowledge/presentation/screens/games/image_guess_game_screen.dart';
@@ -272,24 +272,24 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
               ),
               const Spacer(),
               // Refresh button
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.refresh,
-                    color: Colors.white,
-                  ),
-                  tooltip: 'Refresh',
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    _refreshData();
-                  },
-                ),
-              ),
+              // Container(
+              //   margin: const EdgeInsets.only(right: 12),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.2),
+              //     shape: BoxShape.circle,
+              //   ),
+              //   child: IconButton(
+              //     icon: const Icon(
+              //       Icons.refresh,
+              //       color: Colors.white,
+              //     ),
+              //     tooltip: 'Refresh',
+              //     onPressed: () {
+              //       HapticFeedback.lightImpact();
+              //       _refreshData();
+              //     },
+              //   ),
+              // ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
@@ -545,16 +545,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                 ..._games
                     .map((game) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildGameCard(game)
-                              .animate(
-                                  delay: Duration(
-                                      milliseconds: 100 * _games.indexOf(game)))
-                              .fadeIn(
-                                  duration: const Duration(milliseconds: 400))
-                              .slideX(
-                                  begin: 0.1,
-                                  end: 0,
-                                  duration: const Duration(milliseconds: 500)),
+                          child: _buildGameCard(game),
                         ))
                     .toList(),
               ],
@@ -876,9 +867,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
           ],
         ),
       ),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true)).shimmer(
-        delay: Duration(seconds: game.comingSoon ? 0 : 3),
-        duration: const Duration(milliseconds: 1800));
+    );
   }
 
   void _showAchievementsDialog() {

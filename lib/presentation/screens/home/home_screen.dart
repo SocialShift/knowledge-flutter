@@ -154,19 +154,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Welcome👋',
+                                  'The History Erased',
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.9),
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 1),
                                 Text(
-                                  'The History Erased Now in Your Hands',
+                                  'Now in Your Hands',
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.7),
-                                    fontSize: 14,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ],
