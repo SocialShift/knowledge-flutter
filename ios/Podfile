@@ -37,7 +37,32 @@ target 'Runner' do
   # Set compile flags for better performance
   post_install do |installer|
     installer.pods_project.targets.each do |target|
+      flutter_additional_ios_build_settings(target)
+      
       target.build_configurations.each do |config|
+        # Fix for Flutter framework path issues
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= []
+        
+        # Add standard Flutter framework paths
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] << "#{Pod::Config.instance.installation_root}/Pods/Flutter/engine"
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] << "${PODS_CONFIGURATION_BUILD_DIR}/Flutter"
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] << "${PODS_ROOT}/../Flutter"
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] << "${PODS_XCFRAMEWORKS_BUILD_DIR}/Flutter"
+        
+        # Fix for wakelock_plus plugin
+        if target.name.start_with?('wakelock_plus')
+          config.build_settings['HEADER_SEARCH_PATHS'] ||= []
+          config.build_settings['HEADER_SEARCH_PATHS'] << "#{Pod::Config.instance.installation_root}/Pods/Flutter/engine"
+          config.build_settings['HEADER_SEARCH_PATHS'] << "${PODS_ROOT}/../Flutter"
+        end
+        
+        # Fix for video_player_avfoundation plugin
+        if target.name.start_with?('video_player_avfoundation')
+          config.build_settings['HEADER_SEARCH_PATHS'] ||= []
+          config.build_settings['HEADER_SEARCH_PATHS'] << "#{Pod::Config.instance.installation_root}/Pods/Flutter/engine"
+          config.build_settings['HEADER_SEARCH_PATHS'] << "${PODS_ROOT}/../Flutter"
+        end
+        
         # Enable bitcode for better performance
         config.build_settings['ENABLE_BITCODE'] = 'YES'
         
