@@ -910,7 +910,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
 
               // Title
               const Text(
-                "Monetization Coming Soon!",
+                "Pro Coming Soon!",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,

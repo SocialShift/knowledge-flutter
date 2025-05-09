@@ -856,7 +856,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
               // Title
               const Text(
-                "Monetization Coming Soon!",
+                "Pro Coming Soon!",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
