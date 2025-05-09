@@ -224,11 +224,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     child: Stack(
                                       alignment: Alignment.center,
                                       children: [
+                                        // Circular background
+                                        Container(
+                                          height: 40,
+                                          width: 40,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color:
+                                                Colors.white.withOpacity(0.2),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.1),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                         // Scroll image
                                         SvgPicture.asset(
                                           'assets/icons/scroll.svg',
-                                          height: 30,
-                                          width: 30,
+                                          height: 24,
+                                          width: 24,
                                           fit: BoxFit.contain,
                                           colorFilter: const ColorFilter.mode(
                                             Colors.white,
@@ -237,16 +255,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         ),
                                         // Streak text
                                         Positioned(
-                                          top: 12,
-                                          child: Text(
-                                            '$currentStreak',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
+                                          top: 13,
+                                          child: Center(
+                                            child: Text(
+                                              '$currentStreak',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        )
                                       ],
                                     ),
                                   ).animate().fadeIn(
@@ -269,11 +289,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
+                                      // Circular background
+                                      Container(
+                                        height: 40,
+                                        width: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white.withOpacity(0.2),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       // Scroll image
                                       SvgPicture.asset(
                                         'assets/icons/scroll.svg',
-                                        height: 40,
-                                        width: 60,
+                                        height: 24,
+                                        width: 24,
                                         fit: BoxFit.contain,
                                         colorFilter: const ColorFilter.mode(
                                           Colors.white,
@@ -281,10 +318,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         ),
                                       ),
                                       // Streak text
-                                      const Positioned(
+                                      Center(
                                         child: Text(
                                           '0',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
