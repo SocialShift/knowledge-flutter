@@ -11,6 +11,7 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -210,20 +211,27 @@ class StoryDetailScreen extends HookConsumerWidget {
             // Add platform-specific options for better compatibility
             Map<String, String> headers = {
               'User-Agent': Platform.isIOS
-                  ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+                  ? 'AppleCoreMedia/1.0.0.17D47 (iPhone; U; CPU OS 13_0 like Mac OS X; en_us)'
                   : 'Mozilla/5.0 (Linux; Android 10; SM-G975F)',
             };
 
+            // Create controller with platform-specific settings
             final controller = VideoPlayerController.networkUrl(
               Uri.parse(videoUrl),
               httpHeaders: headers,
               videoPlayerOptions: VideoPlayerOptions(
-                mixWithOthers: false,
+                mixWithOthers:
+                    Platform.isIOS ? true : false, // Enable audio mixing on iOS
                 allowBackgroundPlayback: false,
               ),
             );
 
             videoControllerRef.value = controller;
+
+            // Special iOS volume handling for audio
+            if (Platform.isIOS) {
+              controller.setVolume(1.0);
+            }
 
             controller.initialize().then((_) {
               if (controller.value.hasError) {
@@ -544,6 +552,12 @@ class _VideoPlayerPage extends HookConsumerWidget {
     // Available playback speeds
     final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
+    // Configure iOS audio session for video playback
+    useEffect(() {
+      // No external audio session needed - handled directly on the player
+      return null;
+    }, const []);
+
     // Retry video initialization
     void _retryInitialization() {
       errorMessage.value = null;
@@ -646,20 +660,27 @@ class _VideoPlayerPage extends HookConsumerWidget {
       // Add platform-specific options for better compatibility
       Map<String, String> headers = {
         'User-Agent': Platform.isIOS
-            ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+            ? 'AppleCoreMedia/1.0.0.17D47 (iPhone; U; CPU OS 13_0 like Mac OS X; en_us)'
             : 'Mozilla/5.0 (Linux; Android 10; SM-G975F)',
       };
 
+      // Create controller with platform-specific settings
       final controller = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
         httpHeaders: headers,
         videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers: false,
+          mixWithOthers:
+              Platform.isIOS ? true : false, // Enable audio mixing on iOS
           allowBackgroundPlayback: false,
         ),
       );
 
       videoControllerRef.value = controller;
+
+      // Special iOS volume handling for audio
+      if (Platform.isIOS) {
+        controller.setVolume(1.0);
+      }
 
       controller.initialize().then((_) {
         if (controller.value.hasError) {

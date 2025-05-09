@@ -12,18 +12,30 @@ import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 import 'dart:io' show Platform;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/utils/platform_optimizations.dart';
+import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Apply platform-specific optimizations (iOS focus)
+  // Apply platform-specific optimizations
   PlatformOptimizations.applyIOSOptimizations();
+
+  // Set app-wide image caching parameters for better performance
+  PaintingBinding.instance.imageCache.maximumSize = 1000;
+
+  // Optimize system overlays based on platform
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+    overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+  );
 
   // Load .env file
   await dotenv.load(fileName: ".env");
 
-  // Initialize services
-  // Preload notifications and other required app data
+  // Disable print statements in release mode for performance
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
 
   runApp(
     ProviderScope(
@@ -104,7 +116,7 @@ class _KnowledgeState extends ConsumerState<Knowledge>
       }
     } catch (e) {
       // Session invalid or error occurred - remain in unauthenticated state
-      print('Session restore error: $e');
+      debugPrint('Session restore error: $e');
     } finally {
       setState(() {
         _initialSessionCheckComplete = true;
@@ -228,30 +240,44 @@ class _KnowledgeState extends ConsumerState<Knowledge>
             ),
           ),
         ),
+        theme: _configureOptimizedTheme(AppTheme.lightTheme),
+        darkTheme: _configureOptimizedTheme(AppTheme.darkTheme),
       );
     }
 
-    return WillPopScope(
-      onWillPop: _handleAppExit,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldPop = await _handleAppExit();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
       child: MaterialApp.router(
         title: 'Know[Ledge]',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+        theme: _configureOptimizedTheme(AppTheme.lightTheme),
+        darkTheme: _configureOptimizedTheme(AppTheme.darkTheme),
         themeMode: ref.watch(themeModeNotifierProvider),
         routerConfig: router,
         debugShowCheckedModeBanner: false,
         scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
-        // iOS performance optimizations
+        // Apply platform-specific optimizations
         builder: (context, child) {
-          // Apply text scaling factor limits for consistent UI
+          // Apply fixed text scaling for consistent UI
           return MediaQuery(
             data: MediaQuery.of(context).copyWith(
-              textScaleFactor: 1.0,
+              textScaler: const TextScaler.linear(1.0),
             ),
             child: child!,
           );
         },
       ),
     );
+  }
+
+  // Configure theme data with platform-optimized transitions
+  ThemeData _configureOptimizedTheme(ThemeData theme) {
+    return PlatformOptimizations.configureOptimizedTransitions(theme);
   }
 }

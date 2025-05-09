@@ -11,8 +11,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
-import 'package:knowledge/data/repositories/notification_repository.dart';
-import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
+
+// Create a cached version of filtered paginated timelines provider
+// This provider will keep its state even when we navigate away from the screen
+final cachedFilteredTimelinesProvider =
+    Provider<PaginatedData<Timeline>>((ref) {
+  // Watch the filtered provider but keep its state in our cached provider
+  return ref.watch(filteredPaginatedTimelinesProvider);
+}, name: 'cachedFilteredTimelinesProvider');
 
 class ElearningScreen extends HookConsumerWidget {
   const ElearningScreen({super.key});
@@ -22,8 +28,8 @@ class ElearningScreen extends HookConsumerWidget {
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
 
-    // Watch the filtered paginated timelines provider
-    final paginatedTimelines = ref.watch(filteredPaginatedTimelinesProvider);
+    // Watch the cached filtered paginated timelines provider
+    final paginatedTimelines = ref.watch(cachedFilteredTimelinesProvider);
     final paginatedTimelinesNotifier =
         ref.watch(paginatedTimelinesProvider.notifier);
 
@@ -54,7 +60,7 @@ class ElearningScreen extends HookConsumerWidget {
 
                 const SizedBox(height: 8),
 
-                // Section Title with Refresh Button
+                // Section Title
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                   child: Row(
@@ -71,30 +77,6 @@ class ElearningScreen extends HookConsumerWidget {
                             duration: const Duration(milliseconds: 500),
                           ),
                       const Spacer(),
-                      TextButton.icon(
-                        onPressed: () {
-                          // Refresh the timelines
-                          paginatedTimelinesNotifier.refresh();
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.limeGreen,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        icon: const Icon(Icons.refresh, size: 16),
-                        label: const Text(
-                          'Refresh',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ).animate().fadeIn().slideX(
-                            begin: 0.1,
-                            duration: const Duration(milliseconds: 500),
-                          ),
                     ],
                   ),
                 ),
@@ -123,10 +105,11 @@ class ElearningScreen extends HookConsumerWidget {
                       ),
                       child: paginatedTimelines.items.isEmpty &&
                               paginatedTimelines.isLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.limeGreen),
+                          ? Center(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 40),
+                                child: _buildLoadingGrid(),
                               ),
                             )
                           : paginatedTimelines.items.isEmpty &&
@@ -215,6 +198,11 @@ class ElearningScreen extends HookConsumerWidget {
                                           ? () => paginatedTimelinesNotifier
                                               .loadNextPage()
                                           : null,
+                                      onRefresh: () async {
+                                        await Future.delayed(Duration.zero);
+                                        paginatedTimelinesNotifier.refresh();
+                                        return;
+                                      },
                                       isLoading: paginatedTimelines.isLoading,
                                       bottomPadding: bottomPadding,
                                     ),
@@ -228,17 +216,142 @@ class ElearningScreen extends HookConsumerWidget {
       ),
     );
   }
+
+  // Build a grid of skeleton loading items
+  Widget _buildLoadingGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: 6, // Show 6 skeleton items
+      itemBuilder: (context, index) {
+        return _buildSkeletonCard(index);
+      },
+    );
+  }
+
+  // Build a skeleton card with shimmer effect
+  Widget _buildSkeletonCard(int index) {
+    // Add staggered animation based on index
+    final delay = Duration(milliseconds: 50 * index);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image placeholder
+          Container(
+            height: 140,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+          ),
+
+          // Content placeholders
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Year pill
+                Container(
+                  height: 20,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Title
+                Container(
+                  height: 16,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Subtitle
+                Container(
+                  height: 14,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Description lines
+                Container(
+                  height: 12,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  height: 12,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate(delay: delay)
+        .fadeIn(duration: const Duration(milliseconds: 500))
+        .shimmer(
+          duration: const Duration(milliseconds: 1200),
+          delay: delay + const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+  }
 }
 
 class _TimelineGrid extends StatefulWidget {
   final List<Timeline> timelines;
   final VoidCallback? onLoadMore;
+  final Future<void> Function() onRefresh;
   final bool isLoading;
   final double bottomPadding;
 
   const _TimelineGrid({
     required this.timelines,
     this.onLoadMore,
+    required this.onRefresh,
     this.isLoading = false,
     required this.bottomPadding,
   });
@@ -247,8 +360,13 @@ class _TimelineGrid extends StatefulWidget {
   State<_TimelineGrid> createState() => _TimelineGridState();
 }
 
-class _TimelineGridState extends State<_TimelineGrid> {
+class _TimelineGridState extends State<_TimelineGrid>
+    with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
+
+  // Keep the widget alive when navigating away
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -274,49 +392,57 @@ class _TimelineGridState extends State<_TimelineGrid> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      controller: _scrollController,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 20,
-        bottom: widget
-            .bottomPadding, // Add padding at the bottom to account for navigation bar
-      ),
-      physics:
-          const ClampingScrollPhysics(), // Changed from BouncingScrollPhysics for better performance
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.65, // Changed from 0.7 to 0.65 to fix overflow
-      ),
-      itemCount: widget.timelines.length,
-      itemBuilder: (context, index) {
-        final timeline = widget.timelines[index];
-        // Convert Timeline to HistoryItem for use with HistoryCard
-        final historyItem = HistoryItem(
-          id: timeline.id,
-          title: timeline.title,
-          subtitle: timeline.description,
-          imageUrl: timeline.imageUrl,
-          year: timeline.year,
-        );
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
 
-        return HistoryCard(
-          item: historyItem,
-          onTap: () {
-            context.push('/timeline/${timeline.id}');
-          },
-        )
-            .animate(
-              delay: Duration(milliseconds: index * 50),
-            )
-            .fadeIn(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-            );
-      },
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      color: AppColors.limeGreen,
+      backgroundColor: Colors.white,
+      strokeWidth: 2.5,
+      displacement: 40,
+      child: GridView.builder(
+        controller: _scrollController,
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 20,
+          bottom: widget
+              .bottomPadding, // Add padding at the bottom to account for navigation bar
+        ),
+        physics: const AlwaysScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.65, // Changed from 0.7 to 0.65 to fix overflow
+        ),
+        itemCount: widget.timelines.length,
+        itemBuilder: (context, index) {
+          final timeline = widget.timelines[index];
+          // Convert Timeline to HistoryItem for use with HistoryCard
+          final historyItem = HistoryItem(
+            id: timeline.id,
+            title: timeline.title,
+            subtitle: timeline.description,
+            imageUrl: timeline.imageUrl,
+            year: timeline.year,
+          );
+
+          return HistoryCard(
+            item: historyItem,
+            onTap: () {
+              context.push('/timeline/${timeline.id}');
+            },
+          )
+              .animate(
+                delay: Duration(milliseconds: index * 50),
+              )
+              .fadeIn(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+              );
+        },
+      ),
     );
   }
 }
@@ -350,81 +476,42 @@ class _HeaderSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'The History Erased',
+                      'Discover History',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'Now in Your Hands',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 14,
-                      ),
-                    ),
                   ],
                 ),
               ),
-              // Notification icon
+              // Lightbulb icon
               GestureDetector(
                 onTap: () {
-                  // Show notifications screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
+                  // Show monetization coming soon dialog
+                  _showMonetizationDialog(context);
                 },
-                child: Consumer(builder: (context, ref, child) {
-                  // Watch for notifications to display badge
-                  final notificationsAsync =
-                      ref.watch(onThisDayNotificationsProvider);
-                  final hasNotifications =
-                      notificationsAsync.valueOrNull?.isNotEmpty ?? false;
-
-                  return Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        if (hasNotifications)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              height: 8,
-                              width: 8,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.limeGreen,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.lightbulb_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
               ),
             ],
           ),
@@ -435,6 +522,158 @@ class _HeaderSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showMonetizationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 8,
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with lightbulb icon
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: AppColors.limeGreen.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lightbulb,
+                  color: AppColors.limeGreen,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              const Text(
+                "Monetization Coming Soon!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              Text(
+                "Earn rewards, unlock premium content, and support our app with our upcoming monetization features.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Features list
+              _buildFeatureItem(
+                icon: Icons.star_border,
+                title: "Premium Content",
+                subtitle: "Unlock exclusive stories and timelines",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.notifications_none,
+                title: "Notification Control",
+                subtitle: "Get notified about new content",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.workspace_premium,
+                title: "Ad-Free Experience",
+                subtitle: "Enjoy uninterrupted learning",
+              ),
+              const SizedBox(height: 32),
+
+              // Got it button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.limeGreen,
+                    foregroundColor: AppColors.navyBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Got it!",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.limeGreen,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

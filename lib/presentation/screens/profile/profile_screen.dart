@@ -14,6 +14,12 @@ import 'package:knowledge/presentation/screens/profile/delete_account_screen.dar
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 import 'package:intl/intl.dart';
 
+// Create a cached profile provider to prevent unnecessary reloading
+final cachedProfileProvider = Provider<AsyncValue<Profile>>((ref) {
+  // Watch the user profile provider but keep its state in our cached provider
+  return ref.watch(userProfileProvider);
+}, name: 'cachedProfileProvider');
+
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -104,7 +110,8 @@ class ProfileScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(userProfileProvider);
+    // Use the cached profile provider instead of the original
+    final profileAsync = ref.watch(cachedProfileProvider);
     final authNotifier = ref.watch(authNotifierProvider.notifier);
 
     // Hook to check if we need to show feedback dialog on first visit
@@ -152,11 +159,7 @@ class ProfileScreen extends HookConsumerWidget {
         ],
       ),
       body: profileAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-          ),
-        ),
+        loading: () => _buildProfileSkeleton(ref),
         error: (error, stack) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -203,9 +206,266 @@ class ProfileScreen extends HookConsumerWidget {
       ),
     );
   }
+
+  // Build a skeleton loading UI for the profile screen
+  Widget _buildProfileSkeleton(WidgetRef ref) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Refresh the profile data
+        await Future.delayed(Duration.zero);
+        ref.refresh(userProfileProvider);
+        return;
+      },
+      color: AppColors.limeGreen,
+      backgroundColor: Colors.white,
+      strokeWidth: 2.5,
+      displacement: 40,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            // Profile card skeleton
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.navyBlue.withOpacity(0.7),
+                    AppColors.navyBlue.withOpacity(0.5),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  // Avatar skeleton
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Name skeleton
+                  Container(
+                    width: 150,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Join date skeleton
+                  Container(
+                    width: 120,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Social counts skeleton
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue.withOpacity(0.1),
+                    Colors.purple.withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.navyBlue.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Followers skeleton
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 70,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: AppColors.navyBlue.withOpacity(0.1),
+                  ),
+                  // Following skeleton
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 70,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Add Friend button skeleton
+            Container(
+              width: double.infinity,
+              height: 48,
+              margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Overview section skeleton
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 16, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Stat cards skeleton
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: List.generate(
+                  3,
+                  (index) => Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: 40,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 60,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Add more skeleton items for additional sections as needed
+
+            // A placeholder for the logout button
+            Container(
+              width: double.infinity,
+              height: 50,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().shimmer(
+          duration: const Duration(milliseconds: 1500),
+          curve: Curves.easeInOut,
+        );
+  }
 }
 
-class ProfileBody extends StatelessWidget {
+class ProfileBody extends ConsumerStatefulWidget {
   final Profile profile;
   final dynamic authNotifier;
 
@@ -216,68 +476,94 @@ class ProfileBody extends StatelessWidget {
   });
 
   @override
+  ConsumerState<ProfileBody> createState() => _ProfileBodyState();
+}
+
+class _ProfileBodyState extends ConsumerState<ProfileBody>
+    with AutomaticKeepAliveClientMixin {
+  // Keep the widget alive when navigating away
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
     return SafeArea(
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // Profile card at the top
-            ProfileCardWidget(profile: profile)
-                .animate()
-                .fadeIn(duration: const Duration(milliseconds: 500)),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh the profile data
+          await Future.delayed(Duration.zero);
+          ref.refresh(userProfileProvider);
+          return;
+        },
+        color: AppColors.limeGreen,
+        backgroundColor: Colors.white,
+        strokeWidth: 2.5,
+        displacement: 40,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Profile card at the top
+              ProfileCardWidget(profile: widget.profile)
+                  .animate()
+                  .fadeIn(duration: const Duration(milliseconds: 500)),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Followers and Following section
-            SocialCountsWidget(profile: profile)
-                .animate()
-                .fadeIn(duration: const Duration(milliseconds: 500))
-                .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+              // Followers and Following section
+              SocialCountsWidget(profile: widget.profile)
+                  .animate()
+                  .fadeIn(duration: const Duration(milliseconds: 500))
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Overview section with rank, journey and points
-            OverviewWidget(profile: profile)
-                .animate()
-                .fadeIn(
-                  duration: const Duration(milliseconds: 500),
-                  delay: const Duration(milliseconds: 100),
-                )
-                .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
-
-            const SizedBox(height: 12),
-
-            // Percentile rank
-            if (profile.percentile != null)
-              PercentileWidget(profile: profile)
+              // Overview section with rank, journey and points
+              OverviewWidget(profile: widget.profile)
                   .animate()
                   .fadeIn(
                     duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 150),
+                    delay: const Duration(milliseconds: 100),
                   )
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Streak information
-            if (profile.currentLoginStreak != null)
-              StreakInfoWidget(profile: profile)
+              // Percentile rank
+              if (widget.profile.percentile != null)
+                PercentileWidget(profile: widget.profile)
+                    .animate()
+                    .fadeIn(
+                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 150),
+                    )
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 12),
+
+              // Streak information
+              if (widget.profile.currentLoginStreak != null)
+                StreakInfoWidget(profile: widget.profile)
+                    .animate()
+                    .fadeIn(
+                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 200),
+                    )
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              // Logout button
+              const SizedBox(height: 32),
+              LogoutButtonWidget(authNotifier: widget.authNotifier)
                   .animate()
                   .fadeIn(
                     duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 200),
-                  )
-                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
-
-            // Logout button
-            const SizedBox(height: 32),
-            LogoutButtonWidget(authNotifier: authNotifier).animate().fadeIn(
-                  duration: const Duration(milliseconds: 500),
-                  delay: const Duration(milliseconds: 250),
-                ),
-            const SizedBox(height: 16),
-          ],
+                    delay: const Duration(milliseconds: 250),
+                  ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

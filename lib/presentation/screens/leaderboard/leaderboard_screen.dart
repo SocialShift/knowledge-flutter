@@ -58,13 +58,13 @@ class LeaderboardScreen extends HookConsumerWidget {
                   backgroundColor: Colors.transparent,
                   actions: [
                     // Refresh button
-                    IconButton(
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: Colors.white,
-                      ),
-                      onPressed: refreshLeaderboard,
-                    ),
+                    // IconButton(
+                    //   icon: const Icon(
+                    //     Icons.refresh,
+                    //     color: Colors.white,
+                    //   ),
+                    //   onPressed: refreshLeaderboard,
+                    // ),
                   ],
                   flexibleSpace: FlexibleSpaceBar(
                     background: Stack(
@@ -135,12 +135,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               ),
                             ],
                           ).animate().fadeIn(),
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.limeGreen),
-                            ),
-                          ),
+                          loading: () => _buildHeaderSkeleton(),
                           error: (error, _) => Center(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -208,15 +203,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               ),
                             ).animate().fadeIn().slideY(begin: 0.2);
                           },
-                          loading: () => const Padding(
-                            padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.limeGreen),
-                              ),
-                            ),
-                          ),
+                          loading: () => _buildStatsSkeleton(),
                           error: (error, _) => Padding(
                             padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
                             child: Row(
@@ -263,7 +250,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                                   // Navigate to all achievements
                                 },
                                 child: Text(
-                                  'See All',
+                                  '',
                                   style: TextStyle(
                                     color: AppColors.limeGreen,
                                     fontWeight: FontWeight.w600,
@@ -317,7 +304,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                                   // Navigate to full leaderboard
                                 },
                                 child: Text(
-                                  'View All',
+                                  '',
                                   style: TextStyle(
                                     color: AppColors.limeGreen,
                                     fontWeight: FontWeight.w600,
@@ -336,7 +323,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               padding: const EdgeInsets.all(16),
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              itemCount: users.length > 5 ? 5 : users.length,
+                              itemCount: users.length, // Display all users
                               itemBuilder: (context, index) {
                                 final user = users[index];
                                 return _LeaderboardItem(
@@ -349,15 +336,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               },
                             );
                           },
-                          loading: () => const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.limeGreen),
-                              ),
-                            ),
-                          ),
+                          loading: () => _buildLeaderboardSkeleton(),
                           error: (error, _) => Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Center(
@@ -383,6 +362,194 @@ class LeaderboardScreen extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildHeaderSkeleton() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Logo skeleton
+        Container(
+          height: 50,
+          width: 50,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Title skeleton
+        Container(
+          height: 28,
+          width: 200,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Rank badge skeleton
+        Container(
+          height: 36,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ],
+    ).animate().shimmer(
+          delay: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+        );
+  }
+
+  Widget _buildStatsSkeleton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      child: Row(
+        children: List.generate(
+          3,
+          (index) => Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              height: 106,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.grey.shade200,
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 24,
+                    width: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    height: 12,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).animate().shimmer(
+          delay: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+        );
+  }
+
+  Widget _buildLeaderboardSkeleton() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: List.generate(
+          5,
+          (index) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.grey.shade200,
+                width: 2,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Rank circle
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Avatar
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Name and badge
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 16,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        height: 12,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Points
+                Container(
+                  height: 28,
+                  width: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().shimmer(
+          delay: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+        );
   }
 }
 

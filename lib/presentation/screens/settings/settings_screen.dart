@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -49,6 +50,26 @@ class SettingsScreen extends ConsumerWidget {
                       color: Colors.grey,
                     ),
                     onTap: () => context.push('/profile/edit'),
+                  ),
+                  _SettingsTile(
+                    title: 'Delete Account',
+                    leading: const Icon(
+                      Icons.delete_forever_outlined,
+                      color: Colors.red,
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                    onTap: () {
+                      // Navigate to delete account screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const DeleteAccountScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fadeIn(delay: const Duration(milliseconds: 100)),

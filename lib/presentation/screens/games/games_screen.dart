@@ -297,12 +297,12 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                 ),
                 child: IconButton(
                   icon: const Icon(
-                    Icons.emoji_events_outlined,
+                    Icons.lightbulb_outline,
                     color: AppColors.limeGreen,
                   ),
                   onPressed: () {
-                    // Show achievements
-                    _showAchievementsDialog();
+                    // Show monetization coming soon message
+                    _showMonetizationDialog();
                   },
                 ),
               ),
@@ -563,74 +563,82 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
     final completionPercentage = (completedMilestones / totalMilestones);
 
     // Milestones tab content with scrolling to avoid overflow
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 0,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Milestones",
-                  style: TextStyle(
-                    color: AppColors.navyBlue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Dynamic milestone items
-                ..._milestones.map((milestone) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildMilestoneItem(
-                      title: milestone.title,
-                      icon: milestone.icon,
-                      isCompleted: milestone.isCompleted,
-                      progress: milestone.progress,
-                      description: milestone.description,
-                    ),
-                  );
-                }).toList(),
-
-                const SizedBox(height: 8),
-                Text(
-                  "Milestones Completed: $completedMilestones/$totalMilestones",
-                  style: const TextStyle(
-                    color: AppColors.navyBlue,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: completionPercentage,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-                  borderRadius: BorderRadius.circular(10),
-                  minHeight: 8,
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      color: AppColors.limeGreen,
+      backgroundColor: Colors.white,
+      strokeWidth: 2.5,
+      displacement: 40,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Milestones",
+                    style: TextStyle(
+                      color: AppColors.navyBlue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Dynamic milestone items
+                  ..._milestones.map((milestone) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildMilestoneItem(
+                        title: milestone.title,
+                        icon: milestone.icon,
+                        isCompleted: milestone.isCompleted,
+                        progress: milestone.progress,
+                        description: milestone.description,
+                      ),
+                    );
+                  }).toList(),
+
+                  const SizedBox(height: 8),
+                  Text(
+                    "Milestones Completed: $completedMilestones/$totalMilestones",
+                    style: const TextStyle(
+                      color: AppColors.navyBlue,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(
+                    value: completionPercentage,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.limeGreen),
+                    borderRadius: BorderRadius.circular(10),
+                    minHeight: 8,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ).animate().fadeIn(delay: const Duration(milliseconds: 300));
   }
 
@@ -870,7 +878,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
     );
   }
 
-  void _showAchievementsDialog() {
+  void _showMonetizationDialog() {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -879,265 +887,146 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
         ),
         elevation: 8,
         backgroundColor: Colors.white,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.limeGreen.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events,
-                        color: AppColors.limeGreen,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Achievements",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.navyBlue,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Unlock rewards by playing games",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with lightbulb icon
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: AppColors.limeGreen.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
+                child: const Icon(
+                  Icons.lightbulb,
+                  color: AppColors.limeGreen,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 24),
 
-                // Progress bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "2/12 Achievements Unlocked",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyBlue,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            "16%",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.limeGreen,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: 2 / 12,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppColors.limeGreen),
-                          minHeight: 8,
-                        ),
-                      ),
-                    ],
+              // Title
+              const Text(
+                "Monetization Coming Soon!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              Text(
+                "Earn rewards, unlock premium content, and support our app with our upcoming monetization features.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Features list
+              _buildFeatureItem(
+                icon: Icons.star_border,
+                title: "Premium Content",
+                subtitle: "Unlock exclusive stories and timelines",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.notifications_none,
+                title: "Notification Control",
+                subtitle: "Get notified about new content",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.workspace_premium,
+                title: "Ad-Free Experience",
+                subtitle: "Enjoy uninterrupted learning",
+              ),
+              const SizedBox(height: 32),
+
+              // Got it button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.limeGreen,
+                    foregroundColor: AppColors.navyBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Got it!",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-
-                const Divider(),
-                const SizedBox(height: 8),
-
-                // Achievement items
-                _buildAchievementItem(
-                  title: "History Novice",
-                  description: "Complete your first game",
-                  isUnlocked: true,
-                  xp: 100,
-                ),
-                const SizedBox(height: 12),
-                _buildAchievementItem(
-                  title: "Perfect Score",
-                  description: "Get 100% correct answers in any game",
-                  isUnlocked: true,
-                  xp: 250,
-                ),
-                const SizedBox(height: 12),
-                _buildAchievementItem(
-                  title: "Streak Master",
-                  description: "Win 5 games in a row",
-                  isUnlocked: false,
-                  xp: 500,
-                ),
-                const SizedBox(height: 12),
-                _buildAchievementItem(
-                  title: "History Expert",
-                  description: "Complete all Historical Figure games",
-                  isUnlocked: false,
-                  xp: 750,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Bottom buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(
-                              color: AppColors.navyBlue.withOpacity(0.3)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          "Close",
-                          style: TextStyle(
-                            color: AppColors.navyBlue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.limeGreen,
-                          foregroundColor: AppColors.navyBlue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          "View All",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAchievementItem({
+  Widget _buildFeatureItem({
+    required IconData icon,
     required String title,
-    required String description,
-    required bool isUnlocked,
-    required int xp,
+    required String subtitle,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isUnlocked
-            ? AppColors.limeGreen.withOpacity(0.1)
-            : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isUnlocked
-              ? AppColors.limeGreen.withOpacity(0.3)
-              : Colors.grey.shade300,
-          width: 1,
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.limeGreen,
+            size: 20,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isUnlocked
-                  ? AppColors.limeGreen.withOpacity(0.2)
-                  : Colors.grey.shade200,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isUnlocked ? Icons.emoji_events : Icons.lock_outline,
-              color: isUnlocked ? AppColors.limeGreen : Colors.grey.shade500,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color:
-                        isUnlocked ? AppColors.navyBlue : Colors.grey.shade700,
-                    fontWeight: FontWeight.bold,
-                  ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                  fontSize: 16,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isUnlocked ? AppColors.limeGreen : Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              "+$xp XP",
-              style: TextStyle(
-                color: isUnlocked ? Colors.white : Colors.grey.shade700,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
               ),
-            ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

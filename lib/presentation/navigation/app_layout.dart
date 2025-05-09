@@ -62,8 +62,8 @@ class AppLayout extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.leaderboard_outlined,
-                  selectedIcon: Icons.leaderboard,
+                  icon: Icons.emoji_events_outlined,
+                  selectedIcon: Icons.emoji_events,
                   isSelected: currentIndex == 3,
                   onTap: () => context.go('/leaderboard'),
                 ),

@@ -66,6 +66,7 @@ dependencies:
   permission_handler: ^11.4.0
   intl: ^0.20.2
   chewie: ^1.11.3
+  audio_session: ^0.2.1
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +101,7 @@ flutter:
     - .env
     - assets/images/logo/
     - assets/images/logo/logoa.png
+    - assets/icons/scroll.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -20,6 +20,7 @@ import 'package:knowledge/presentation/screens/auth/profile_setup_screen.dart';
 import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 import 'package:knowledge/presentation/screens/subscription/subscription_screen.dart';
 import 'package:knowledge/presentation/screens/games/games_screen.dart';
+import 'package:knowledge/presentation/navigation/page_transitions.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -121,118 +122,216 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Root route (will be redirected based on auth state)
       GoRoute(
         path: '/',
-        builder: (context, state) =>
-            Container(), // Placeholder, will be redirected
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: Container(), // Placeholder, will be redirected
+        ),
       ),
       // Auth routes without bottom navigation
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: '/signup',
-        builder: (context, state) => const SignupScreen(),
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const SignupScreen(),
+        ),
       ),
       GoRoute(
         path: '/forgot-password',
-        builder: (context, state) => const ForgotPasswordScreen(),
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const ForgotPasswordScreen(),
+        ),
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) => buildFadeThroughTransition(
+          context: context,
+          state: state,
+          child: const OnboardingScreen(),
+        ),
       ),
 
-      // Move detail routes outside of ShellRoute
+      // Detail routes with slide-up transition for modal-style pages
       GoRoute(
         path: '/timeline/:id',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final timelineId = state.pathParameters['id'];
-          if (timelineId == null) return const SizedBox.shrink();
-          return TimelineDetailScreen(timelineId: timelineId);
+          if (timelineId == null)
+            return buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const SizedBox.shrink(),
+            );
+          return buildSlideUpTransition(
+            context: context,
+            state: state,
+            child: TimelineDetailScreen(timelineId: timelineId),
+          );
         },
       ),
       GoRoute(
         path: '/story/:id',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final storyId = state.pathParameters['id'];
-          if (storyId == null) return const SizedBox.shrink();
-          return StoryDetailScreen(storyId: storyId);
+          if (storyId == null)
+            return buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const SizedBox.shrink(),
+            );
+          return buildSlideUpTransition(
+            context: context,
+            state: state,
+            child: StoryDetailScreen(storyId: storyId),
+          );
         },
       ),
 
-      // Add this route outside the ShellRoute
+      // Quiz route with shared axis transition for visual continuity
       GoRoute(
         path: '/quiz/:storyId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final storyId = state.pathParameters['storyId'];
-          if (storyId == null) return const SizedBox.shrink();
-          return QuizScreen(storyId: storyId);
+          if (storyId == null)
+            return buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const SizedBox.shrink(),
+            );
+          return buildSharedAxisHorizontalTransition(
+            context: context,
+            state: state,
+            child: QuizScreen(storyId: storyId),
+          );
         },
       ),
 
-      // Add subscription screen route
+      // Subscription screen with slide-up transition
       GoRoute(
         path: '/subscription',
-        builder: (context, state) => const SubscriptionScreen(),
+        pageBuilder: (context, state) => buildSlideUpTransition(
+          context: context,
+          state: state,
+          child: const SubscriptionScreen(),
+        ),
       ),
 
       // Shell route for bottom navigation
       ShellRoute(
-        builder: (context, state, child) => AppLayout(child: child),
+        pageBuilder: (context, state, child) => buildFadeThroughTransition(
+          context: context,
+          state: state,
+          child: AppLayout(child: child),
+        ),
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => const HomeScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const HomeScreen(),
+            ),
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const ProfileScreen(),
+            ),
           ),
           GoRoute(
             path: '/profile/edit',
-            builder: (context, state) => const EditProfileScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const EditProfileScreen(),
+            ),
           ),
           // Enable e-learning route
           GoRoute(
             path: '/elearning',
-            builder: (context, state) => const ElearningScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const ElearningScreen(),
+            ),
           ),
           // Add games center route
           GoRoute(
             path: '/games',
-            builder: (context, state) => const GamesScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const GamesScreen(),
+            ),
           ),
           // Game detail routes
           GoRoute(
             path: '/games/:gameId',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final gameId = state.pathParameters['gameId'];
-              if (gameId == null) return const SizedBox.shrink();
-              // For now, return a placeholder until game screens are implemented
-              return Center(
-                child: Text('Game: $gameId'),
+              if (gameId == null)
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              return buildSharedAxisHorizontalTransition(
+                context: context,
+                state: state,
+                child: Center(
+                  child: Text('Game: $gameId'),
+                ),
               );
             },
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const SettingsScreen(),
+            ),
           ),
           GoRoute(
             path: '/bookmarks',
-            builder: (context, state) => const Center(
-              child: Text('Bookmarks Screen'),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const Center(
+                child: Text('Bookmarks Screen'),
+              ),
             ),
           ),
           GoRoute(
             path: '/leaderboard',
-            builder: (context, state) => const LeaderboardScreen(),
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const LeaderboardScreen(),
+            ),
           ),
         ],
       ),
       GoRoute(
         path: '/profile-setup',
-        builder: (context, state) => const ProfileSetupScreen(),
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const ProfileSetupScreen(),
+        ),
       ),
     ],
   );

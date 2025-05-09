@@ -12,8 +12,29 @@ import 'package:knowledge/presentation/widgets/circular_timeline.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:knowledge/data/providers/filter_provider.dart';
-import 'package:knowledge/data/repositories/notification_repository.dart';
-import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
+import 'package:knowledge/data/providers/profile_provider.dart';
+
+// Create cached versions of providers with keepAlive set to true
+final cachedTimelinesSortedProvider =
+    Provider<AsyncValue<List<Timeline>>>((ref) {
+  // Keep the data alive even when no longer listening
+  final timelinesAsync = ref.watch(timelinesSortedByYearProvider);
+  return timelinesAsync;
+}, name: 'cachedTimelinesSortedProvider');
+
+// Create a family provider for cached stories that will be kept alive
+final cachedTimelineStoriesProvider =
+    Provider.family<AsyncValue<List<dynamic>>, String>((ref, timelineId) {
+  // Keep the data alive even when no longer listening
+  final storiesAsync = ref.watch(filteredTimelineStoriesProvider(timelineId));
+  return storiesAsync;
+}, name: 'cachedTimelineStoriesProvider');
+
+// Create a cached profile provider to prevent unnecessary reloading of profile data
+final cachedProfileProvider = Provider<AsyncValue<dynamic>>((ref) {
+  // Watch the user profile provider but keep its state in our cached provider
+  return ref.watch(userProfileProvider);
+}, name: 'cachedProfileProvider');
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,9 +43,14 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
   int _selectedTimelineIndex = 0; // Default to first timeline
+
+  // Override to keep the state alive when navigating away
+  @override
+  bool get wantKeepAlive => true;
 
   // Timeline info text based on selected timeline
   String _getTimelineInfo(List<Timeline> timelines, int index) {
@@ -57,12 +83,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
     final topPadding = MediaQuery.of(context).padding.top;
 
-    // Watch the timelines provider - use the sorted version
-    final timelinesAsync = ref.watch(timelinesSortedByYearProvider);
+    // Watch cached timelines provider instead of directly watching the original provider
+    final timelinesAsync = ref.watch(cachedTimelinesSortedProvider);
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,
@@ -98,13 +126,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final timelinePeriods = _convertToTimelinePeriods(timelines);
             final selectedTimeline = timelines[_selectedTimelineIndex];
 
-            // Watch the filtered stories provider for the selected timeline
+            // Watch the cached stories provider for the selected timeline
             final storiesAsync =
-                ref.watch(filteredTimelineStoriesProvider(selectedTimeline.id));
+                ref.watch(cachedTimelineStoriesProvider(selectedTimeline.id));
 
             return RefreshIndicator(
               onRefresh: () async {
-                // Refresh all the data
+                // Refresh all the data - invalidate the original providers, not the cached ones
                 ref.invalidate(timelinesProvider);
                 ref.invalidate(timelineStoriesProvider(selectedTimeline.id));
                 // Add a small delay for better UX
@@ -176,65 +204,116 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   duration: const Duration(milliseconds: 500),
                                 ),
                           ),
-                          // Notification icon
-                          GestureDetector(
-                            onTap: () {
-                              // Show notifications screen
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const NotificationsScreen(),
-                                ),
-                              );
-                            },
-                            child: Consumer(builder: (context, ref, child) {
-                              // Watch for notifications to display badge
-                              final notificationsAsync =
-                                  ref.watch(onThisDayNotificationsProvider);
-                              final hasNotifications =
-                                  notificationsAsync.valueOrNull?.isNotEmpty ??
-                                      false;
 
-                              return Container(
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white.withOpacity(0.2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                          // Streak display (non-clickable)
+                          Consumer(
+                            builder: (context, ref, child) {
+                              // Watch the user profile to get streak data
+                              final profileAsync =
+                                  ref.watch(cachedProfileProvider);
+
+                              return profileAsync.when(
+                                data: (profile) {
+                                  final currentStreak =
+                                      profile.currentLoginStreak ?? 0;
+
+                                  return Container(
+                                    height: 40,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // Scroll image
+                                        Image.asset(
+                                          'assets/icons/scroll.png',
+                                          height: 40,
+                                          width: 60,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        // Streak text
+                                        Positioned(
+                                          child: Text(
+                                            '$currentStreak',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ).animate().fadeIn(
+                                        delay:
+                                            const Duration(milliseconds: 300),
+                                      );
+                                },
+                                loading: () => Container(
+                                  height: 40,
+                                  width: 60,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
                                 ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.notifications_outlined,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                    if (hasNotifications)
-                                      Positioned(
-                                        top: 8,
-                                        right: 8,
-                                        child: Container(
-                                          height: 8,
-                                          width: 8,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColors.limeGreen,
+                                error: (_, __) => Container(
+                                  height: 40,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Scroll image
+                                      Image.asset(
+                                        'assets/icons/scroll.png',
+                                        height: 40,
+                                        width: 60,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      // Streak text
+                                      const Positioned(
+                                        child: Text(
+                                          '0',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
                                           ),
                                         ),
                                       ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
-                            }),
+                            },
+                          ),
+
+                          // Lightbulb icon
+                          GestureDetector(
+                            onTap: () {
+                              // Show monetization coming soon dialog
+                              _showMonetizationDialog(context);
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.lightbulb_outline,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
                           ).animate().fadeIn().scale(
                                 delay: const Duration(milliseconds: 400),
                                 duration: const Duration(milliseconds: 500),
@@ -243,27 +322,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                   ),
-
-                  // Search bar
-                  // SliverToBoxAdapter(
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.symmetric(
-                  //         horizontal: 16, vertical: 16),
-                  //     child: SearchBarWidget(
-                  //       onSearch: (value) {
-                  //         // Update the search query in the filter state
-                  //         ref
-                  //             .read(filterNotifierProvider.notifier)
-                  //             .updateSearchQuery(value);
-                  //       },
-                  //       onFilterTap: () {
-                  //         _showFilterBottomSheet(context);
-                  //       },
-                  //     ),
-                  //   )
-                  //       .animate()
-                  //       .fadeIn(duration: const Duration(milliseconds: 800)),
-                  // ),
 
                   // Timeline circles
                   SliverToBoxAdapter(
@@ -283,59 +341,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           .fadeIn(duration: const Duration(milliseconds: 900)),
                     ),
                   ),
-
-                  // Stories title section
-                  // SliverToBoxAdapter(
-                  //   child: Container(
-                  //     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  //     child: Row(
-                  //       children: [
-                  //         Expanded(
-                  //           child: Text(
-                  //             'Stories from ${timelines[_selectedTimelineIndex].title}',
-                  //             style: TextStyle(
-                  //               color: Colors.white.withOpacity(0.9),
-                  //               fontSize: 20,
-                  //               fontWeight: FontWeight.bold,
-                  //             ),
-                  //             overflow: TextOverflow.ellipsis,
-                  //           ).animate().fadeIn().slideX(
-                  //                 begin: -0.1,
-                  //                 duration: const Duration(milliseconds: 500),
-                  //               ),
-                  //         ),
-                  //         const SizedBox(width: 8),
-                  //         Tooltip(
-                  //           message:
-                  //               'View all timelines in the ELearning screen',
-                  //           child: TextButton.icon(
-                  //             onPressed: () {
-                  //               context.go('/elearning');
-                  //             },
-                  //             style: TextButton.styleFrom(
-                  //               foregroundColor: AppColors.limeGreen,
-                  //               padding: const EdgeInsets.symmetric(
-                  //                   horizontal: 12, vertical: 8),
-                  //               shape: RoundedRectangleBorder(
-                  //                 borderRadius: BorderRadius.circular(20),
-                  //               ),
-                  //             ),
-                  //             icon: const Icon(Icons.arrow_forward, size: 16),
-                  //             label: const Text(
-                  //               'See All Timelines',
-                  //               style: TextStyle(
-                  //                 fontWeight: FontWeight.bold,
-                  //               ),
-                  //             ),
-                  //           ),
-                  //         ).animate().fadeIn().slideX(
-                  //               begin: 0.1,
-                  //               duration: const Duration(milliseconds: 500),
-                  //             ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
 
                   // White background container with stories
                   SliverToBoxAdapter(
@@ -384,75 +389,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Timeline info text with enhanced styling
-                              // Container(
-                              //   padding:
-                              //       const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                              //   child: Column(
-                              //     crossAxisAlignment: CrossAxisAlignment.start,
-                              //     children: [
-                              //       // Section title
-                              //       Row(
-                              //         children: [
-                              //           Container(
-                              //             height: 24,
-                              //             width: 4,
-                              //             decoration: BoxDecoration(
-                              //               color: AppColors.limeGreen,
-                              //               borderRadius:
-                              //                   BorderRadius.circular(2),
-                              //             ),
-                              //           ),
-                              //           const SizedBox(width: 8),
-                              //           Text(
-                              //             'Timeline Overview',
-                              //             style: TextStyle(
-                              //               color: AppColors.navyBlue,
-                              //               fontSize: 18,
-                              //               fontWeight: FontWeight.bold,
-                              //               letterSpacing: 0.5,
-                              //             ),
-                              //           ),
-                              //         ],
-                              //       ),
-                              //       const SizedBox(height: 12),
-
-                              //       // Description text with styled container
-                              //       Container(
-                              //         padding: const EdgeInsets.all(16),
-                              //         decoration: BoxDecoration(
-                              //           color: Colors.grey.shade50,
-                              //           borderRadius: BorderRadius.circular(12),
-                              //           border: Border.all(
-                              //             color: Colors.grey.shade200,
-                              //             width: 1,
-                              //           ),
-                              //           boxShadow: [
-                              //             BoxShadow(
-                              //               color:
-                              //                   Colors.black.withOpacity(0.03),
-                              //               blurRadius: 8,
-                              //               spreadRadius: 0,
-                              //               offset: const Offset(0, 2),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //         child: Text(
-                              //           _getTimelineInfo(
-                              //               timelines, _selectedTimelineIndex),
-                              //           style: TextStyle(
-                              //             color: Colors.black87,
-                              //             fontSize: 15,
-                              //             height: 1.5,
-                              //             fontWeight: FontWeight.w500,
-                              //             letterSpacing: 0.2,
-                              //           ),
-                              //         ),
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
-
                               // Stories header
                               Padding(
                                 padding:
@@ -518,9 +454,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             topRight: Radius.circular(30),
                           ),
                         ),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Skeleton header
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    height: 24,
+                                    width: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade300,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    height: 22,
+                                    width: 80,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade300,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Skeleton list items
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Column(
+                                children: List.generate(
+                                  5,
+                                  (index) => _buildStorySkeleton(index),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ).animate().shimmer(
+                              delay: const Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 1000),
+                              curve: Curves.easeInOut,
+                            ),
                       ),
                       error: (error, stack) => Container(
                         height: MediaQuery.of(context).size.height * 0.7,
@@ -546,9 +525,143 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          loading: () => Column(
+            children: [
+              // Skeleton header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    // Logo skeleton
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Text skeleton
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 16,
+                            width: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            height: 14,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Icon skeleton
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Timeline circles skeleton
+              SizedBox(
+                height: 150,
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      5,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Stories container skeleton
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 16),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Skeleton header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 24,
+                              width: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              height: 22,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Skeleton list items
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: List.generate(
+                            5,
+                            (index) => _buildStorySkeleton(index),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ).animate().shimmer(
+                delay: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeInOut,
+              ),
           error: (error, stack) => Center(
             child: Text(
               'Error loading timelines: $error',
@@ -560,12 +673,259 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Helper method to build a story skeleton loading item
+  Widget _buildStorySkeleton(int index) {
+    // Add staggered delay based on index
+    final shimmerDelay = Duration(milliseconds: 100 * index);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      height: 100,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            spreadRadius: 1,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Image placeholder
+          Container(
+            width: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Text placeholders
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 14,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        height: 12,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 24,
+                        width: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+    ).animate(delay: shimmerDelay).fadeIn(
+          duration: const Duration(milliseconds: 500),
+        );
+  }
+
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => const FilterBottomSheet(),
+    );
+  }
+
+  void _showMonetizationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 8,
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with lightbulb icon
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: AppColors.limeGreen.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lightbulb,
+                  color: AppColors.limeGreen,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              const Text(
+                "Monetization Coming Soon!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              Text(
+                "Earn rewards, unlock premium content, and support our app with our upcoming monetization features.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Features list
+              _buildFeatureItem(
+                icon: Icons.star_border,
+                title: "Premium Content",
+                subtitle: "Unlock exclusive stories and timelines",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.notifications_none,
+                title: "Notification Control",
+                subtitle: "Get notified about new content",
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                icon: Icons.workspace_premium,
+                title: "Ad-Free Experience",
+                subtitle: "Enjoy uninterrupted learning",
+              ),
+              const SizedBox(height: 32),
+
+              // Got it button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.limeGreen,
+                    foregroundColor: AppColors.navyBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Got it!",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.limeGreen,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
