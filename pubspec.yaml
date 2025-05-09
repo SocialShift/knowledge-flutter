@@ -67,6 +67,7 @@ dependencies:
   intl: ^0.20.2
   chewie: ^1.11.3
   audio_session: ^0.2.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +103,7 @@ flutter:
     - assets/images/logo/
     - assets/images/logo/logoa.png
     - assets/icons/scroll.png
+    - assets/icons/scroll.svg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

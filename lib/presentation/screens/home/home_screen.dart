@@ -9,10 +9,11 @@ import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/data/providers/timeline_provider.dart';
 import 'package:knowledge/presentation/widgets/story_list_item.dart';
 import 'package:knowledge/presentation/widgets/circular_timeline.dart';
-import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
+// import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
-import 'package:knowledge/data/providers/filter_provider.dart';
+// import 'package:knowledge/data/providers/filter_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 // Create cached versions of providers with keepAlive set to true
 final cachedTimelinesSortedProvider =
@@ -224,14 +225,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       alignment: Alignment.center,
                                       children: [
                                         // Scroll image
-                                        Image.asset(
-                                          'assets/icons/scroll.png',
-                                          height: 40,
-                                          width: 60,
+                                        SvgPicture.asset(
+                                          'assets/icons/scroll.svg',
+                                          height: 30,
+                                          width: 30,
                                           fit: BoxFit.contain,
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
+                                          ),
                                         ),
                                         // Streak text
                                         Positioned(
+                                          top: 12,
                                           child: Text(
                                             '$currentStreak',
                                             style: const TextStyle(
@@ -264,11 +270,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     alignment: Alignment.center,
                                     children: [
                                       // Scroll image
-                                      Image.asset(
-                                        'assets/icons/scroll.png',
+                                      SvgPicture.asset(
+                                        'assets/icons/scroll.svg',
                                         height: 40,
                                         width: 60,
                                         fit: BoxFit.contain,
+                                        colorFilter: const ColorFilter.mode(
+                                          Colors.white,
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                       // Streak text
                                       const Positioned(

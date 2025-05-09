@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/data/repositories/notification_repository.dart';
 
 // Create a cached version of filtered paginated timelines provider
 // This provider will keep its state even when we navigate away from the screen
@@ -486,32 +487,66 @@ class _HeaderSection extends StatelessWidget {
                   ],
                 ),
               ),
-              // Lightbulb icon
-              GestureDetector(
-                onTap: () {
-                  // Show monetization coming soon dialog
-                  _showMonetizationDialog(context);
-                },
-                child: Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+              // Notification icon with badge
+              Consumer(
+                builder: (context, ref, child) {
+                  final notificationsAsync =
+                      ref.watch(onThisDayNotificationsProvider);
+
+                  // Check if there are notifications
+                  final hasNotifications = notificationsAsync.hasValue &&
+                      notificationsAsync.value!.isNotEmpty;
+
+                  return Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to notifications screen
+                          context.push('/notifications');
+                        },
+                        child: Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
                       ),
+
+                      // Notification badge
+                      if (hasNotifications)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
-                  ),
-                  child: const Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -522,158 +557,6 @@ class _HeaderSection extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showMonetizationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        elevation: 8,
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with lightbulb icon
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: AppColors.limeGreen.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.lightbulb,
-                  color: AppColors.limeGreen,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Title
-              const Text(
-                "Monetization Coming Soon!",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navyBlue,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              Text(
-                "Earn rewards, unlock premium content, and support our app with our upcoming monetization features.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Features list
-              _buildFeatureItem(
-                icon: Icons.star_border,
-                title: "Premium Content",
-                subtitle: "Unlock exclusive stories and timelines",
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                icon: Icons.notifications_none,
-                title: "Notification Control",
-                subtitle: "Get notified about new content",
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                icon: Icons.workspace_premium,
-                title: "Ad-Free Experience",
-                subtitle: "Enjoy uninterrupted learning",
-              ),
-              const SizedBox(height: 32),
-
-              // Got it button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.limeGreen,
-                    foregroundColor: AppColors.navyBlue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Got it!",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.limeGreen.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.limeGreen,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navyBlue,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:knowledge/data/models/history_item.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:knowledge/data/models/timeline.dart';
+// import 'package:knowledge/data/models/timeline.dart';
 
 class HistoryCard extends ConsumerWidget {
   final HistoryItem item;

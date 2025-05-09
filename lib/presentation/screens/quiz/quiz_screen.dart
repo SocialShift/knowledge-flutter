@@ -60,17 +60,10 @@ class QuizScreen extends HookConsumerWidget {
               answersList,
             );
 
-        // Show success message
+        // Navigate to the quiz submit screen
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Milestones submitted successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate back
-          context.pop();
+          // Navigate to the quiz submit screen
+          context.push('/quiz-submit/$storyId/$quizId');
         }
       } catch (error) {
         quizSubmissionError.value = error.toString();

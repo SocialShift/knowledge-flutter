@@ -21,6 +21,8 @@ import 'package:knowledge/presentation/screens/elearning/elearning_screen.dart';
 import 'package:knowledge/presentation/screens/subscription/subscription_screen.dart';
 import 'package:knowledge/presentation/screens/games/games_screen.dart';
 import 'package:knowledge/presentation/navigation/page_transitions.dart';
+import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
+import 'package:knowledge/presentation/screens/quiz/quiz_submit_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -217,6 +219,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Quiz Submit Screen
+      GoRoute(
+        path: '/quiz-submit/:storyId/:quizId',
+        pageBuilder: (context, state) {
+          final storyId = state.pathParameters['storyId'];
+          final quizId = state.pathParameters['quizId'];
+          if (storyId == null || quizId == null)
+            return buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const SizedBox.shrink(),
+            );
+          return buildSlideUpTransition(
+            context: context,
+            state: state,
+            child: QuizSubmitScreen(storyId: storyId, quizId: quizId),
+          );
+        },
+      ),
+
       // Subscription screen with slide-up transition
       GoRoute(
         path: '/subscription',
@@ -224,6 +246,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           context: context,
           state: state,
           child: const SubscriptionScreen(),
+        ),
+      ),
+
+      // Notifications screen with slide-up transition
+      GoRoute(
+        path: '/notifications',
+        pageBuilder: (context, state) => buildSlideUpTransition(
+          context: context,
+          state: state,
+          child: const NotificationsScreen(),
         ),
       ),
 

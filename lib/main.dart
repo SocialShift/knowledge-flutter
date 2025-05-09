@@ -9,8 +9,8 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
-import 'dart:io' show Platform;
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'dart:io' show Platform;
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/utils/platform_optimizations.dart';
 import 'package:flutter/foundation.dart';
 
