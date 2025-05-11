@@ -23,6 +23,10 @@ import 'package:knowledge/presentation/screens/games/games_screen.dart';
 import 'package:knowledge/presentation/navigation/page_transitions.dart';
 import 'package:knowledge/presentation/screens/notifications/notifications_screen.dart';
 import 'package:knowledge/presentation/screens/quiz/quiz_submit_screen.dart';
+import 'package:knowledge/presentation/screens/socials/add_friends.dart';
+import 'package:knowledge/presentation/screens/socials/user_profile_screen.dart';
+import 'package:knowledge/presentation/screens/socials/followers_screen.dart';
+import 'package:knowledge/presentation/screens/socials/following_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -354,6 +358,99 @@ final routerProvider = Provider<GoRouter>((ref) {
               state: state,
               child: const LeaderboardScreen(),
             ),
+          ),
+          // Social routes
+          GoRoute(
+            path: '/add-friends',
+            pageBuilder: (context, state) => buildSlideUpTransition(
+              context: context,
+              state: state,
+              child: const AddFriendsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/profile/:userId',
+            pageBuilder: (context, state) {
+              final userIdStr = state.pathParameters['userId'];
+              if (userIdStr == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final userId = int.tryParse(userIdStr);
+              if (userId == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              return buildCupertinoPageTransition(
+                context: context,
+                state: state,
+                child: UserProfileScreen(userId: userId),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/profile/:userId/followers',
+            pageBuilder: (context, state) {
+              final userIdStr = state.pathParameters['userId'];
+              if (userIdStr == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final userId = int.tryParse(userIdStr);
+              if (userId == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              return buildCupertinoPageTransition(
+                context: context,
+                state: state,
+                child: FollowersScreen(profileId: userId),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/profile/:userId/following',
+            pageBuilder: (context, state) {
+              final userIdStr = state.pathParameters['userId'];
+              if (userIdStr == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final userId = int.tryParse(userIdStr);
+              if (userId == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              return buildCupertinoPageTransition(
+                context: context,
+                state: state,
+                child: FollowingScreen(profileId: userId),
+              );
+            },
           ),
         ],
       ),

@@ -40,6 +40,22 @@ class Profile with _$Profile {
     final profile = json['profile'] ?? {};
     final stats = json['stats'] ?? {};
 
+    // Create a followers map that includes both count and is_following status
+    final Map<String, dynamic> followersMap = {
+      ...(profile['followers'] as Map<String, dynamic>? ?? {})
+    };
+
+    // Add profile_id to the followers map for simpler access later
+    if (!followersMap.containsKey('profile_id')) {
+      followersMap['profile_id'] = profile['id'];
+    }
+
+    // Make sure is_following is included in the followers map
+    if (!followersMap.containsKey('is_following') &&
+        profile.containsKey('is_following')) {
+      followersMap['is_following'] = profile['is_following'];
+    }
+
     return Profile(
       email: user['email'] ?? '',
       joinedDate: user['joined_at'],
@@ -52,7 +68,7 @@ class Profile with _$Profile {
       points: profile['points'],
       referralCode: profile['referral_code'],
       totalReferrals: profile['total_referrals'],
-      followers: profile['followers'],
+      followers: followersMap,
       following: profile['following'],
       // Stats
       rank: stats['rank'],

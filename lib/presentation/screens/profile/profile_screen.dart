@@ -745,6 +745,9 @@ class SocialCountsWidget extends StatelessWidget {
     final followerCount = profile.followers?['count'] ?? 0;
     final followingCount = profile.following?['count'] ?? 0;
 
+    // Get profile ID for navigation
+    final profileId = profile.followers?['profile_id'] as int? ?? 0;
+
     return Column(
       children: [
         Container(
@@ -775,28 +778,35 @@ class SocialCountsWidget extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Column(
-                    children: [
-                      Text(
-                        followerCount.toString(),
-                        style: const TextStyle(
-                          color: AppColors.navyBlue,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                child: InkWell(
+                  onTap: () {
+                    if (profileId > 0) {
+                      context.push('/profile/$profileId/followers');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        Text(
+                          followerCount.toString(),
+                          style: const TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        "Followers",
-                        style: TextStyle(
-                          color: AppColors.navyBlue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Followers",
+                          style: TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -806,28 +816,35 @@ class SocialCountsWidget extends StatelessWidget {
                 color: AppColors.navyBlue.withOpacity(0.1),
               ),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Column(
-                    children: [
-                      Text(
-                        followingCount.toString(),
-                        style: const TextStyle(
-                          color: AppColors.navyBlue,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                child: InkWell(
+                  onTap: () {
+                    if (profileId > 0) {
+                      context.push('/profile/$profileId/following');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        Text(
+                          followingCount.toString(),
+                          style: const TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        "Following",
-                        style: TextStyle(
-                          color: AppColors.navyBlue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Following",
+                          style: TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -841,19 +858,8 @@ class SocialCountsWidget extends StatelessWidget {
           margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
           child: ElevatedButton.icon(
             onPressed: () {
-              // Show a modest success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Coming soon!'),
-                  backgroundColor: AppColors.limeGreen,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: const EdgeInsets.all(12),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              // Navigate to add friends screen
+              context.push('/add-friends');
             },
             icon: const Icon(Icons.person_add_alt),
             label: const Text(
@@ -1515,6 +1521,120 @@ class LogoutButtonWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class StatsCard extends StatelessWidget {
+  final int? followers;
+  final int? following;
+  final int? completedQuizzes;
+  final Profile profile;
+
+  const StatsCard({
+    super.key,
+    this.followers,
+    this.following,
+    this.completedQuizzes,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Get the Profile ID from the profile object
+    final profileId = profile.followers != null
+        ? profile.followers!['profile_id'] as int? ?? 0
+        : 0;
+
+    return Container(
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Followers
+              InkWell(
+                onTap: () {
+                  if (profileId > 0) {
+                    context.push('/profile/$profileId/followers');
+                  }
+                },
+                child: _buildStatItem(
+                  context,
+                  followers?.toString() ?? '0',
+                  'Followers',
+                  Icons.people,
+                ),
+              ),
+              // Following
+              InkWell(
+                onTap: () {
+                  if (profileId > 0) {
+                    context.push('/profile/$profileId/following');
+                  }
+                },
+                child: _buildStatItem(
+                  context,
+                  following?.toString() ?? '0',
+                  'Following',
+                  Icons.people_outline,
+                ),
+              ),
+              // Quizzes
+              _buildStatItem(
+                context,
+                completedQuizzes?.toString() ?? '0',
+                'Quizzes',
+                Icons.quiz,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(
+    BuildContext context,
+    String value,
+    String label,
+    IconData icon,
+  ) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: AppColors.navyBlue,
+          size: 24,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.navyBlue,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
     );
   }
 }

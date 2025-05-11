@@ -6,7 +6,7 @@ part of 'game_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$gameQuestionsHash() => r'c247f4aabee67af38363daf0f23b3a5004f17268';
+String _$gameQuestionsHash() => r'3ea19a1a07201ab8df0e4a5cd7615e49b569ef5d';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -159,7 +159,7 @@ class _GameQuestionsProviderElement
   int get gameType => (origin as GameQuestionsProvider).gameType;
 }
 
-String _$gameStateNotifierHash() => r'd47b29d01e66b33305afd3b072c82a7af43cdd17';
+String _$gameStateNotifierHash() => r'5939173b54d83774372356e03ecea92bbecfb5bb';
 
 /// See also [GameStateNotifier].
 @ProviderFor(GameStateNotifier)
