@@ -5,9 +5,11 @@ import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/models/profile.dart';
 import 'package:knowledge/data/providers/social_provider.dart';
 import 'package:knowledge/data/repositories/social_repository.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/core/utils/debouncer.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
+import 'package:knowledge/presentation/widgets/user_avatar.dart';
 
 class UserProfileScreen extends HookConsumerWidget {
   final int userId;
@@ -33,45 +35,329 @@ class UserProfileScreen extends HookConsumerWidget {
     }, []);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.navyBlue,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.navyBlue,
+          ),
           onPressed: () => context.pop(),
         ),
       ),
       body: userProfileAsync.when(
-        data: (profile) => _buildProfileContent(context, ref, profile),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: SelectableText.rich(
-            TextSpan(
-              text: 'Error: ',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
+        loading: () => _buildProfileSkeleton(ref),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
                 color: Colors.red,
+                size: 48,
               ),
-              children: [
+              const SizedBox(height: 16),
+              SelectableText.rich(
                 TextSpan(
-                  text: error.toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.normal,
-                    color: Colors.red,
-                  ),
+                  children: [
+                    const TextSpan(
+                      text: 'Error loading profile: ',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: error.toString(),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.limeGreen,
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: () => ref.refresh(userProfileByIdProvider(userId)),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
           ),
         ),
+        data: (profile) => UserProfileBody(profile: profile, userId: userId),
       ),
     );
   }
 
-  Widget _buildProfileContent(
-    BuildContext context,
-    WidgetRef ref,
-    Profile profile,
-  ) {
+  // Build a skeleton loading UI for the profile screen
+  Widget _buildProfileSkeleton(WidgetRef ref) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Refresh the profile data
+        await Future.delayed(Duration.zero);
+        ref.refresh(userProfileByIdProvider(userId));
+        return;
+      },
+      color: AppColors.limeGreen,
+      backgroundColor: Colors.white,
+      strokeWidth: 2.5,
+      displacement: 40,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            // Profile card skeleton
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.navyBlue.withOpacity(0.7),
+                    AppColors.navyBlue.withOpacity(0.5),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  // Avatar skeleton
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Name skeleton
+                  Container(
+                    width: 150,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Join date skeleton
+                  Container(
+                    width: 120,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Social counts skeleton
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue.withOpacity(0.1),
+                    Colors.purple.withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.navyBlue.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Followers skeleton
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 70,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: AppColors.navyBlue.withOpacity(0.1),
+                  ),
+                  // Following skeleton
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 70,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Follow button skeleton
+            Container(
+              width: double.infinity,
+              height: 48,
+              margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Overview section skeleton
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 16, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Stat cards skeleton
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: List.generate(
+                  3,
+                  (index) => Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: 40,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 60,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().shimmer(
+          duration: const Duration(milliseconds: 1500),
+          curve: Curves.easeInOut,
+        );
+  }
+}
+
+class UserProfileBody extends HookConsumerWidget {
+  final Profile profile;
+  final int userId;
+
+  const UserProfileBody({
+    super.key,
+    required this.profile,
+    required this.userId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     // Check the JSON directly for the profile_id and is_following fields
     final profileData = profile.followers ?? {};
 
@@ -88,8 +374,6 @@ class UserProfileScreen extends HookConsumerWidget {
     final isFollowing = profileData.containsKey('is_following')
         ? profileData['is_following'] as bool? ?? false
         : false;
-
-    print('ProfileID: $profileId, IsFollowing: $isFollowing'); // Debug log
 
     // Create a state notifier to track follow status
     final isFollowingState = useState(isFollowing);
@@ -147,271 +431,925 @@ class UserProfileScreen extends HookConsumerWidget {
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Profile header with avatar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
-            color: AppColors.navyBlue.withOpacity(0.05),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  child: profile.avatarUrl != null &&
-                          profile.avatarUrl!.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: CachedNetworkImage(
-                            imageUrl: profile.avatarUrl!,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                const CircularProgressIndicator(),
-                            errorWidget: (context, url, error) => const Icon(
-                              Icons.person,
-                              size: 60,
-                              color: AppColors.navyBlue,
-                            ),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: AppColors.navyBlue,
-                        ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  profile.nickname ?? 'User',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  profile.email,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                if (profile.pronouns != null &&
-                    profile.pronouns!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    profile.pronouns!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade600,
-                        ),
-                  ),
-                ],
-                const SizedBox(height: 16),
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh the profile data
+          await Future.delayed(Duration.zero);
+          ref.refresh(userProfileByIdProvider(userId));
+          return;
+        },
+        color: AppColors.limeGreen,
+        backgroundColor: Colors.white,
+        strokeWidth: 2.5,
+        displacement: 40,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Profile card at the top
+              ProfileCardWidget(
+                profile: profile,
+                isFollowing: isFollowingState.value,
+                onToggleFollowStatus: toggleFollowStatus,
+              ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
 
-                // Follow button
-                ElevatedButton(
-                  onPressed: toggleFollowStatus,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isFollowingState.value
-                        ? Colors.grey.shade200
-                        : AppColors.navyBlue,
-                    foregroundColor:
-                        isFollowingState.value ? Colors.black87 : Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    isFollowingState.value ? 'Unfollow' : 'Follow',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
+              const SizedBox(height: 12),
+
+              // Followers and Following section with Follow/Unfollow button below
+              SocialCountsWidget(
+                profile: profile,
+                userId: userId,
+                isFollowing: isFollowingState.value,
+                onToggleFollowStatus: toggleFollowStatus,
+              )
+                  .animate()
+                  .fadeIn(duration: const Duration(milliseconds: 500))
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 12),
+
+              // Overview section with rank, journey and points
+              OverviewWidget(profile: profile)
+                  .animate()
+                  .fadeIn(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 100),
+                  )
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 12),
+
+              // Percentile rank
+              if (profile.percentile != null)
+                PercentileWidget(profile: profile)
+                    .animate()
+                    .fadeIn(
+                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 150),
+                    )
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 12),
+
+              // Streak information
+              if (profile.currentLoginStreak != null)
+                StreakInfoWidget(profile: profile)
+                    .animate()
+                    .fadeIn(
+                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 200),
+                    )
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 32),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
 
-          // Social stats
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  context,
-                  profile.followers != null
-                      ? (profile.followers!['count'] ?? 0).toString()
-                      : '0',
-                  'Followers',
-                  () => context.push(
-                    '/profile/$userId/followers',
-                  ),
-                ),
-                _buildStatItem(
-                  context,
-                  profile.following != null
-                      ? (profile.following!['count'] ?? 0).toString()
-                      : '0',
-                  'Following',
-                  () => context.push(
-                    '/profile/$userId/following',
-                  ),
-                ),
-                _buildStatItem(
-                  context,
-                  profile.completedQuizzes?.toString() ?? '0',
-                  'Quizzes',
-                  () {},
-                ),
-              ],
-            ),
+class ProfileCardWidget extends StatelessWidget {
+  final Profile profile;
+  final bool isFollowing;
+  final VoidCallback onToggleFollowStatus;
+
+  const ProfileCardWidget({
+    super.key,
+    required this.profile,
+    required this.isFollowing,
+    required this.onToggleFollowStatus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final formattedDate = profile.joinedDate != null
+        ? DateFormat("MMM d, yyyy").format(DateTime.parse(profile.joinedDate!))
+        : "Unknown join date";
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.navyBlue.withOpacity(0.9),
+            AppColors.navyBlue.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.limeGreen.withOpacity(0.0),
+          width: 0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navyBlue.withOpacity(0.3),
+            blurRadius: 0,
+            spreadRadius: 1,
           ),
-
-          const Divider(),
-
-          // User info sections
-          if (profile.location != null && profile.location!.isNotEmpty)
-            _buildInfoSection(
-              context,
-              'Location',
-              profile.location!,
-              Icons.location_on_outlined,
-            ),
-
-          if (profile.languagePreference != null &&
-              profile.languagePreference!.isNotEmpty)
-            _buildInfoSection(
-              context,
-              'Language',
-              profile.languagePreference!,
-              Icons.language,
-            ),
-
-          if (profile.joinedDate != null && profile.joinedDate!.isNotEmpty)
-            _buildInfoSection(
-              context,
-              'Joined',
-              _formatDate(profile.joinedDate!),
-              Icons.calendar_today_outlined,
-            ),
-
-          // Points and streak info
-          if (profile.points != null)
-            _buildInfoSection(
-              context,
-              'Points',
-              '${profile.points}',
-              Icons.star_outline,
-            ),
-
-          if (profile.currentLoginStreak != null)
-            _buildInfoSection(
-              context,
-              'Current Streak',
-              '${profile.currentLoginStreak} days',
-              Icons.local_fire_department_outlined,
-            ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatItem(
-    BuildContext context,
-    String count,
-    String label,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16.0,
-          vertical: 8.0,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.navyBlue,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 8.0,
-      ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: AppColors.navyBlue,
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
+              // Avatar
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.navyBlue.withOpacity(0.0),
+                          width: 0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.limeGreen.withOpacity(0.0),
+                            blurRadius: 0,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: profile.avatarUrl != null &&
+                                  profile.avatarUrl!.isNotEmpty
+                              ? Image.network(
+                                  profile.avatarUrl!,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.person,
+                                    size: 80,
+                                    color: Colors.white70,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  size: 80,
+                                  color: Colors.white70,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          // Nickname with pronouns
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: profile.nickname ?? 'User',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (profile.pronouns != null) ...[
+                  const TextSpan(text: ' '),
+                  TextSpan(
+                    text: '(${profile.pronouns})',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // Join date only (no email)
+          Text(
+            "Joined $formattedDate",
+            style: TextStyle(
+              color: AppColors.limeGreen.withOpacity(0.9),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SocialCountsWidget extends StatelessWidget {
+  final Profile profile;
+  final int userId;
+  final bool isFollowing;
+  final VoidCallback onToggleFollowStatus;
+
+  const SocialCountsWidget({
+    super.key,
+    required this.profile,
+    required this.userId,
+    required this.isFollowing,
+    required this.onToggleFollowStatus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Get follower and following counts from profile
+    final followerCount = profile.followers?['count'] ?? 0;
+    final followingCount = profile.following?['count'] ?? 0;
+
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.withOpacity(0.2),
+                Colors.purple.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.navyBlue.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navyBlue.withOpacity(0.1),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    if (userId > 0) {
+                      context.push('/profile/$userId/followers');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        Text(
+                          followerCount.toString(),
+                          style: const TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Followers",
+                          style: TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.navyBlue.withOpacity(0.1),
+              ),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    if (userId > 0) {
+                      context.push('/profile/$userId/following');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        Text(
+                          followingCount.toString(),
+                          style: const TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Following",
+                          style: TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Follow/Unfollow button with updated UI
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(
+            top: 12,
+            left: 16,
+            right: 16,
+            bottom: 8,
+          ),
+          child: ElevatedButton.icon(
+            onPressed: onToggleFollowStatus,
+            icon: Icon(
+              isFollowing ? Icons.person_remove : Icons.person_add_alt,
+              color: isFollowing ? AppColors.navyBlue : Colors.black,
+            ),
+            label: Text(
+              isFollowing ? 'Unfollow' : 'Follow',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isFollowing ? AppColors.navyBlue : Colors.black,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  isFollowing ? Colors.grey.shade200 : AppColors.limeGreen,
+              foregroundColor: isFollowing ? AppColors.navyBlue : Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              elevation: 2,
+              shadowColor: Colors.black26,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isFollowing
+                      ? Colors.grey.shade400
+                      : AppColors.limeGreen.withOpacity(0.7),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class OverviewWidget extends StatelessWidget {
+  final Profile profile;
+
+  const OverviewWidget({
+    super.key,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 28, 16, 12),
+          child: Row(
+            children: [
+              Icon(
+                Icons.insights,
+                color: AppColors.navyBlue,
+                size: 20,
+              ),
+              SizedBox(width: 6),
+              Text(
+                "Overview",
+                style: TextStyle(
+                  color: AppColors.navyBlue,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              // Rank
+              Expanded(
+                child: _buildStatCard(
+                  label: "Rank",
+                  value: profile.rank?.toString() ?? "N/A",
+                  icon: Icons.emoji_events,
+                  iconColor: Colors.amber,
+                  gradientColors: [
+                    Colors.amber.withOpacity(0.0),
+                    Colors.orange.withOpacity(0.0),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Journey
+              Expanded(
+                child: _buildStatCard(
+                  label: "Journey",
+                  value: profile.completedQuizzes?.toString() ?? "N/A",
+                  icon: Icons.history_edu,
+                  iconColor: Colors.blue,
+                  gradientColors: [
+                    Colors.blue.withOpacity(0.0),
+                    Colors.lightBlue.withOpacity(0.0),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Points
+              Expanded(
+                child: _buildStatCard(
+                  label: "Points",
+                  value: profile.points?.toString() ?? "0",
+                  icon: Icons.stars,
+                  iconColor: AppColors.limeGreen,
+                  gradientColors: [
+                    AppColors.limeGreen.withOpacity(0.0),
+                    Colors.green.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+    required List<Color> gradientColors,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.navyBlue.withOpacity(0.1),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navyBlue.withOpacity(0.0),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.navyBlue,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.navyBlue.withOpacity(0.7),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PercentileWidget extends StatelessWidget {
+  final Profile profile;
+
+  const PercentileWidget({
+    super.key,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.amber.withOpacity(0.0),
+            Colors.orange.withOpacity(0.0),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.navyBlue.withOpacity(0.1),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navyBlue.withOpacity(0.0),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.0),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.amber.withOpacity(0.0),
+                  blurRadius: 8,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.emoji_events_outlined,
+              color: Colors.amber[800],
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Top ${profile.percentile}%",
+                  style: const TextStyle(
+                    color: AppColors.navyBlue,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Rank ${profile.rank} out of ${profile.totalUsers} users",
+                  style: TextStyle(
+                    color: AppColors.navyBlue.withOpacity(0.7),
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Add a small trophy badge
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.amber,
+                  Colors.amber[700]!,
+                ],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.amber.withOpacity(0.5),
+                  blurRadius: 0,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Text(
+              "#${profile.rank}",
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class StreakInfoWidget extends StatelessWidget {
+  final Profile profile;
+
+  const StreakInfoWidget({
+    super.key,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final streakPercent =
+        profile.currentLoginStreak != null && profile.nextMilestone != null
+            ? (profile.currentLoginStreak! / profile.nextMilestone!)
+            : 0.0;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.deepOrange.withOpacity(0.9),
+            Colors.orange.withOpacity(0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.local_fire_department,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Login Streak",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              // Display the streak as a badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "${profile.currentLoginStreak}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.whatshot,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStreakStat(
+                label: "Current",
+                value: "${profile.currentLoginStreak ?? 0} days",
+                icon: Icons.today,
+              ),
+              _buildStreakStat(
+                label: "Maximum",
+                value: "${profile.maxLoginStreak ?? 0} days",
+                icon: Icons.star,
+              ),
+              _buildStreakStat(
+                label: "Next Goal",
+                value: "${profile.nextMilestone ?? 0} days",
+                icon: Icons.flag,
+              ),
+            ],
+          ),
+          if (profile.daysToNextMilestone != null) ...[
+            const SizedBox(height: 20),
+            // Progress bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${profile.daysToNextMilestone} days to reach next milestone",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      "${(streakPercent * 100).toInt()}%",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Stack(
+                  children: [
+                    // Background
+                    Container(
+                      height: 12,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    // Progress
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      height: 12,
+                      width: MediaQuery.of(context).size.width *
+                          streakPercent *
+                          0.7, // Adjust for margins
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.white,
+                            AppColors.limeGreen,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.limeGreen.withOpacity(0.5),
+                            blurRadius: 4,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return dateStr;
-    }
+  Widget _buildStreakStat({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.white.withOpacity(0.8),
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
   }
 }

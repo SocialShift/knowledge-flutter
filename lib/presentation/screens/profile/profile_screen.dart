@@ -8,9 +8,9 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/data/models/profile.dart';
-import 'package:knowledge/data/providers/subscription_provider.dart';
+// import 'package:knowledge/data/providers/subscription_provider.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
-import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
+// import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 import 'package:intl/intl.dart';
 
