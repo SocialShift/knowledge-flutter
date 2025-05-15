@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
-// import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 // import 'package:knowledge/data/models/game_question.dart';
 import 'package:knowledge/data/repositories/profile_repository.dart';
 import 'package:knowledge/presentation/screens/games/guess_year_game_screen.dart';
@@ -879,155 +879,8 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
   }
 
   void _showMonetizationDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        elevation: 8,
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with lightbulb icon
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: AppColors.limeGreen.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.lightbulb,
-                  color: AppColors.limeGreen,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Title
-              const Text(
-                "Pro Coming Soon!",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navyBlue,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              Text(
-                "Earn rewards, unlock premium content, and support our app with our upcoming monetization features.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Features list
-              _buildFeatureItem(
-                icon: Icons.star_border,
-                title: "Premium Content",
-                subtitle: "Unlock exclusive stories and timelines",
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                icon: Icons.notifications_none,
-                title: "Notification Control",
-                subtitle: "Get notified about new content",
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                icon: Icons.workspace_premium,
-                title: "Ad-Free Experience",
-                subtitle: "Enjoy uninterrupted learning",
-              ),
-              const SizedBox(height: 32),
-
-              // Got it button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.limeGreen,
-                    foregroundColor: AppColors.navyBlue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Got it!",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.limeGreen.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.limeGreen,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navyBlue,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    // Navigate to the subscription screen instead of showing dialog
+    context.push('/subscription');
   }
 }
 

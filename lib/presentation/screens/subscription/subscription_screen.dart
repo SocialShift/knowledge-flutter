@@ -27,37 +27,37 @@ class SubscriptionScreen extends HookConsumerWidget {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header with gift box icon
-            Expanded(
-              flex: 3,
-              child: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header with owl mascot
+              Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.navyBlue.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.limeGreen.withOpacity(0.2),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.card_giftcard,
-                        color: AppColors.limeGreen,
-                        size: 40,
+                      child: Image.asset(
+                        'assets/images/logo/logo.png',
+                        width: 60,
+                        height: 60,
                       ),
                     ).animate().fadeIn().scale(
                           delay: const Duration(milliseconds: 100),
                           duration: const Duration(milliseconds: 300),
                         ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Choose your plan',
+                    const SizedBox(height: 20),
+                    Text(
+                      'Super learners are 4.2x more\nlikely to finish the Relevent Stories!',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ).animate().fadeIn().slideY(
@@ -65,276 +65,301 @@ class SubscriptionScreen extends HookConsumerWidget {
                           delay: const Duration(milliseconds: 200),
                           duration: const Duration(milliseconds: 300),
                         ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      '7 DAY FREE TRIAL',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ).animate().fadeIn().slideY(
-                          begin: 0.2,
-                          delay: const Duration(milliseconds: 300),
-                          duration: const Duration(milliseconds: 300),
-                        ),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
-            ),
 
-            // Subscription options
-            Expanded(
-              flex: 7,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-                child: ValueListenableBuilder<SubscriptionPlan>(
-                  valueListenable: selectedPlan,
-                  builder: (context, plan, _) {
-                    return Column(
-                      children: [
-                        // Weekly plan
-                        _buildSubscriptionOption(
-                          title: 'Weekly',
-                          subtitle: 'Billed monthly no trial',
-                          price: '\$FREE',
-                          period: '/ Trial',
-                          isSelected: plan == SubscriptionPlan.weekly,
-                          isRecommended: false,
-                          onTap: () =>
-                              selectedPlan.value = SubscriptionPlan.weekly,
-                        ).animate().fadeIn().slideY(
-                              begin: 0.1,
-                              delay: const Duration(milliseconds: 400),
-                              duration: const Duration(milliseconds: 300),
-                            ),
-
-                        const SizedBox(height: 16),
-
-                        // Monthly plan (recommended)
-                        _buildSubscriptionOption(
-                          title: 'Monthly',
-                          subtitle: 'Billed monthly no trial',
-                          price: '\$20',
-                          period: '/ month',
-                          isSelected: plan == SubscriptionPlan.monthly,
-                          isRecommended: false,
-                          onTap: () =>
-                              selectedPlan.value = SubscriptionPlan.monthly,
-                        ).animate().fadeIn().slideY(
-                              begin: 0.1,
-                              delay: const Duration(milliseconds: 500),
-                              duration: const Duration(milliseconds: 300),
-                            ),
-
-                        const SizedBox(height: 16),
-
-                        // Yearly plan
-                        _buildSubscriptionOption(
-                          title: 'Yearly',
-                          subtitle: 'Billed yearly no trial',
-                          price: '\$100',
-                          period: '/ year',
-                          isSelected: plan == SubscriptionPlan.yearly,
-                          isRecommended: false,
-                          onTap: () =>
-                              selectedPlan.value = SubscriptionPlan.yearly,
-                        ).animate().fadeIn().slideY(
-                              begin: 0.1,
-                              delay: const Duration(milliseconds: 600),
-                              duration: const Duration(milliseconds: 300),
-                            ),
-
-                        const Spacer(),
-
-                        // Info text
-                        const Text(
-                          'Cancel anytime in the App store',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Continue button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.limeGreen,
-                              foregroundColor: AppColors.navyBlue,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            onPressed: () async {
-                              await subscriptionNotifier.subscribe(plan);
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Successfully subscribed to ${plan.name} plan!',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    backgroundColor: AppColors.navyBlue,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    margin: const EdgeInsets.all(12),
-                                  ),
-                                );
-                                context.pop();
-                              }
-                            },
+              // Features Comparison Table
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    // Table Header
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            flex: 5,
                             child: Text(
-                              _getButtonText(plan),
-                              style: const TextStyle(
+                              'Feature',
+                              style: TextStyle(
+                                color: AppColors.navyBlue,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ).animate().fadeIn().slideY(
-                              begin: 0.2,
-                              delay: const Duration(milliseconds: 700),
-                              duration: const Duration(milliseconds: 300),
-                            ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getButtonText(SubscriptionPlan plan) {
-    switch (plan) {
-      case SubscriptionPlan.weekly:
-        return 'Continue with FREE Trial';
-      case SubscriptionPlan.monthly:
-        return 'Continue with \$20/month';
-      case SubscriptionPlan.yearly:
-        return 'Continue with \$100/year';
-      default:
-        return 'Continue';
-    }
-  }
-
-  Widget _buildSubscriptionOption({
-    required String title,
-    required String subtitle,
-    required String price,
-    required String period,
-    required bool isSelected,
-    required bool isRecommended,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? AppColors.limeGreen : Colors.white24,
-          width: isSelected ? 2 : 1,
-        ),
-        color: isSelected
-            ? AppColors.navyBlue.withOpacity(0.5)
-            : AppColors.navyBlue.withOpacity(0.2),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Stack(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            flex: 3,
+                            child: Container(
+                              height: 28,
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'FREE',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
+                          Expanded(
+                            flex: 3,
+                            child: Container(
+                              height: 28,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.limeGreen,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'PRO',
+                                style: TextStyle(
+                                  color: AppColors.navyBlue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          price,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          period,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+
+                    // Features List
+                    _buildFeatureRow(
+                      title: 'Learning content',
+                      freeValue: true,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'Unlimited Hearts',
+                      freeValue: false,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'No ads',
+                      freeValue: false,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'Skills practice',
+                      freeValue: true,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'Mistakes review',
+                      freeValue: true,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'Free challenge entry',
+                      freeValue: false,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: 'Core Stories',
+                      subtitle: 'Access to historical archives',
+                      freeValue: '1-2 new entries/day',
+                      proValue: 'Unlimited, full archive',
+                    ),
+                    _buildFeatureRow(
+                      title: 'Interactive Timeline',
+                      freeValue: 'Partial access',
+                      proValue: 'Full access with filters',
+                    ),
+                    _buildFeatureRow(
+                      title: 'Game Center Access',
+                      freeValue: '1 game/day',
+                      proValue: 'Unlimited play',
+                    ),
+                    _buildFeatureRow(
+                      title: 'Audio & Video Stories',
+                      freeValue: false,
+                      proValue: true,
+                    ),
+                    _buildFeatureRow(
+                      title: '"On This Day" Alerts',
+                      freeValue: 'Weekly',
+                      proValue: 'Daily & personalized',
+                    ),
+                    _buildFeatureRow(
+                      title: 'Badges & Streaks',
+                      freeValue: 'Starter set only',
+                      proValue: 'Unlock all rewards',
                     ),
                   ],
                 ),
-                if (isRecommended)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Subscribe Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.limeGreen,
+                      foregroundColor: AppColors.navyBlue,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      decoration: BoxDecoration(
-                        color: AppColors.limeGreen,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'RECOMMENDED',
-                        style: TextStyle(
-                          color: AppColors.navyBlue,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    onPressed: () async {
+                      await subscriptionNotifier
+                          .subscribe(SubscriptionPlan.monthly);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Starting your free trial!',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: AppColors.navyBlue,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            margin: const EdgeInsets.all(12),
+                          ),
+                        );
+                        context.pop();
+                      }
+                    },
+                    child: const Text(
+                      'START MY FREE WEEK',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // No Thanks Button
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text(
+                  'NO THANKS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildFeatureRow({
+    required String title,
+    String? subtitle,
+    dynamic freeValue,
+    dynamic proValue,
+  }) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.navyBlue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: _buildValueWidget(freeValue),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: _buildValueWidget(proValue, isPro: true),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+      ],
+    );
+  }
+
+  Widget _buildValueWidget(dynamic value, {bool isPro = false}) {
+    if (value is bool) {
+      return value
+          ? Icon(
+              Icons.check,
+              color: isPro ? AppColors.limeGreen : Colors.grey.shade600,
+              size: 20,
+            )
+          : const Icon(
+              Icons.close,
+              color: Colors.grey,
+              size: 20,
+            );
+    } else if (value is String) {
+      return Text(
+        value,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: isPro ? AppColors.limeGreen : Colors.grey.shade600,
+          fontSize: 12,
+          fontWeight: isPro ? FontWeight.bold : FontWeight.normal,
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 }

@@ -445,14 +445,12 @@ class GameStateNotifier extends _$GameStateNotifier {
       // Update the game state
       final isCorrect = selectedOption.isCorrect;
       final newScore = state.score + (isCorrect ? 10 : 0);
-      final newIndex = state.currentQuestionIndex + 1;
-      // Check if this will be the last question
-      final isGameOver = newIndex >= state.questions.length;
+      // Don't increment the currentQuestionIndex here - wait for nextQuestion() call
+      final isGameOver =
+          state.currentQuestionIndex + 1 >= state.questions.length;
 
       state = state.copyWith(
         score: newScore,
-        currentQuestionIndex:
-            isGameOver ? state.currentQuestionIndex : newIndex,
         isGameOver: isGameOver,
         lastAnswerCorrect: isCorrect,
         lastSelectedOptionId: optionId,
@@ -465,14 +463,12 @@ class GameStateNotifier extends _$GameStateNotifier {
       // Still update local state for testing purposes
       final isCorrect = selectedOption.isCorrect;
       final newScore = state.score + (isCorrect ? 10 : 0);
-      final newIndex = state.currentQuestionIndex + 1;
-      // Check if this will be the last question
-      final isGameOver = newIndex >= state.questions.length;
+      // Don't increment the currentQuestionIndex here - wait for nextQuestion() call
+      final isGameOver =
+          state.currentQuestionIndex + 1 >= state.questions.length;
 
       state = state.copyWith(
         score: newScore,
-        currentQuestionIndex:
-            isGameOver ? state.currentQuestionIndex : newIndex,
         isGameOver: isGameOver,
         lastAnswerCorrect: isCorrect,
         lastSelectedOptionId: optionId,

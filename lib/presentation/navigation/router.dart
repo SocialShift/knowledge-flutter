@@ -246,11 +246,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Subscription screen with slide-up transition
       GoRoute(
         path: '/subscription',
-        pageBuilder: (context, state) => buildSlideUpTransition(
-          context: context,
-          state: state,
-          child: const SubscriptionScreen(),
-        ),
+        name: 'subscription',
+        builder: (context, state) => const SubscriptionScreen(),
       ),
 
       // Notifications screen with slide-up transition
