@@ -9,13 +9,25 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
-// import 'dart:io' show Platform;
-// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/utils/platform_optimizations.dart';
+import 'dart:io' show Platform;
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure iOS audio session
+  if (Platform.isIOS) {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playback,
+      avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.duckOthers,
+      avAudioSessionMode: AVAudioSessionMode.defaultMode,
+      avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+    ));
+  }
 
   // Apply platform-specific optimizations
   PlatformOptimizations.applyIOSOptimizations();

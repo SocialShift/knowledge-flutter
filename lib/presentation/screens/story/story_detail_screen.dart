@@ -10,8 +10,9 @@ import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
+import 'package:audio_session/audio_session.dart';
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -554,7 +555,17 @@ class _VideoPlayerPage extends HookConsumerWidget {
 
     // Configure iOS audio session for video playback
     useEffect(() {
-      // No external audio session needed - handled directly on the player
+      if (Platform.isIOS) {
+        AudioSession.instance.then((session) {
+          session.configure(const AudioSessionConfiguration(
+            avAudioSessionCategory: AVAudioSessionCategory.playback,
+            avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+            avAudioSessionMode: AVAudioSessionMode.moviePlayback,
+            avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+            avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
+          ));
+        });
+      }
       return null;
     }, const []);
 
@@ -596,11 +607,21 @@ class _VideoPlayerPage extends HookConsumerWidget {
         final retryController = VideoPlayerController.networkUrl(
           Uri.parse(videoUrl),
           formatHint: VideoFormat.other,
+          httpHeaders: {
+            'User-Agent': Platform.isIOS
+                ? 'AppleCoreMedia/1.0.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+                : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
+          },
         );
 
         videoControllerRef.value = retryController;
 
         retryController.initialize().then((_) {
+          // For iOS, ensure volume is set to maximum
+          if (Platform.isIOS) {
+            retryController.setVolume(1.0);
+          }
+          
           chewieControllerRef.value = ChewieController(
             videoPlayerController: retryController,
             aspectRatio: retryController.value.aspectRatio,
@@ -633,6 +654,13 @@ class _VideoPlayerPage extends HookConsumerWidget {
       return () {
         chewieControllerRef.value?.dispose();
         videoControllerRef.value?.dispose();
+        
+        // Reset audio session when widget is disposed
+        if (Platform.isIOS) {
+          AudioSession.instance.then((session) {
+            session.setActive(false);
+          });
+        }
       };
     }, []);
 
@@ -660,8 +688,8 @@ class _VideoPlayerPage extends HookConsumerWidget {
       // Add platform-specific options for better compatibility
       Map<String, String> headers = {
         'User-Agent': Platform.isIOS
-            ? 'AppleCoreMedia/1.0.0.17D47 (iPhone; U; CPU OS 13_0 like Mac OS X; en_us)'
-            : 'Mozilla/5.0 (Linux; Android 10; SM-G975F)',
+            ? 'AppleCoreMedia/1.0.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+            : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
       };
 
       // Create controller with platform-specific settings
@@ -669,23 +697,23 @@ class _VideoPlayerPage extends HookConsumerWidget {
         Uri.parse(videoUrl),
         httpHeaders: headers,
         videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers:
-              Platform.isIOS ? true : false, // Enable audio mixing on iOS
+          mixWithOthers: false, // Disable mixing on all platforms for consistent behavior
           allowBackgroundPlayback: false,
         ),
       );
 
       videoControllerRef.value = controller;
 
-      // Special iOS volume handling for audio
-      if (Platform.isIOS) {
-        controller.setVolume(1.0);
-      }
-
+      // For iOS, ensure volume is set to maximum
       controller.initialize().then((_) {
         if (controller.value.hasError) {
           throw Exception(
               "Video initialization failed: ${controller.value.errorDescription}");
+        }
+
+        // For iOS, set volume to maximum after initialization
+        if (Platform.isIOS) {
+          controller.setVolume(1.0);
         }
 
         // Create Chewie controller for improved UI
