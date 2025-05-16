@@ -13,6 +13,7 @@ import 'package:chewie/chewie.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
 import 'package:audio_session/audio_session.dart';
+import 'dart:developer' as developer;
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -105,9 +106,46 @@ class StoryDetailScreen extends HookConsumerWidget {
           final hasRetried = useState(false);
           final selectedPlaybackSpeed = useState(1.0);
           final isFullscreen = useState(false);
+          final audioSessionConfigured = useState(false);
 
           // Available playback speeds
           final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+
+          // Configure iOS audio session for video playback
+          useEffect(() {
+            if (Platform.isIOS && !audioSessionConfigured.value) {
+              audioSessionConfigured.value = true;
+              developer.log('Configuring iOS audio session');
+
+              // Ensure audio session is configured properly
+              AudioSession.instance.then((session) async {
+                try {
+                  // First set active to false to reset any existing sessions
+                  await session.setActive(false);
+
+                  // Configure with proper settings for video playback
+                  await session.configure(const AudioSessionConfiguration(
+                    avAudioSessionCategory: AVAudioSessionCategory.playback,
+                    avAudioSessionCategoryOptions:
+                        AVAudioSessionCategoryOptions.defaultToSpeaker,
+                    avAudioSessionMode: AVAudioSessionMode.moviePlayback,
+                    avAudioSessionRouteSharingPolicy:
+                        AVAudioSessionRouteSharingPolicy.defaultPolicy,
+                    avAudioSessionSetActiveOptions:
+                        AVAudioSessionSetActiveOptions
+                            .notifyOthersOnDeactivation,
+                  ));
+
+                  // Then set active
+                  await session.setActive(true);
+                  developer.log('iOS audio session configured successfully');
+                } catch (e) {
+                  developer.log('Error configuring iOS audio session: $e');
+                }
+              });
+            }
+            return null;
+          }, const []);
 
           // Retry video initialization
           void _retryInitialization() {
@@ -145,18 +183,32 @@ class StoryDetailScreen extends HookConsumerWidget {
                 }
               }
 
+              developer.log('Retrying with format hint: $videoUrl');
+
               final retryController = VideoPlayerController.networkUrl(
                 Uri.parse(videoUrl),
                 formatHint: VideoFormat.other,
+                httpHeaders: {
+                  'User-Agent': Platform.isIOS
+                      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+                      : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
+                },
               );
 
               videoControllerRef.value = retryController;
 
               retryController.initialize().then((_) {
+                // For iOS, ensure volume is set to maximum
+                if (Platform.isIOS) {
+                  retryController.setVolume(1.0);
+                  developer.log(
+                      'iOS: Set volume to maximum after retry initialization');
+                }
+
                 chewieControllerRef.value = ChewieController(
                   videoPlayerController: retryController,
                   aspectRatio: retryController.value.aspectRatio,
-                  autoPlay: false,
+                  autoPlay: true,
                   looping: false,
                   materialProgressColors: ChewieProgressColors(
                     playedColor: AppColors.limeGreen,
@@ -165,15 +217,19 @@ class StoryDetailScreen extends HookConsumerWidget {
                     bufferedColor: Colors.white38,
                   ),
                   allowFullScreen: true,
+                  showControls: true,
+                  allowPlaybackSpeedChanging: true,
                   customControls: const MaterialControls(),
                 );
                 isBuffering.value = false;
               }).catchError((retryError) {
+                developer.log('Video retry error: $retryError');
                 errorMessage.value =
                     "Unable to load video: Video format may not be supported on this device";
                 isBuffering.value = false;
               });
             } else {
+              developer.log('Video error after retry: $error');
               errorMessage.value =
                   "Failed to load video: Please check your internet connection or try again later";
               isBuffering.value = false;
@@ -183,8 +239,21 @@ class StoryDetailScreen extends HookConsumerWidget {
           // Ensure proper disposal of controllers
           useEffect(() {
             return () {
+              developer.log('Disposing video controllers');
               chewieControllerRef.value?.dispose();
               videoControllerRef.value?.dispose();
+
+              // Reset audio session when widget is disposed
+              if (Platform.isIOS) {
+                AudioSession.instance.then((session) {
+                  try {
+                    session.setActive(false);
+                    developer.log('iOS audio session deactivated');
+                  } catch (e) {
+                    developer.log('Error deactivating iOS audio session: $e');
+                  }
+                });
+              }
             };
           }, []);
 
@@ -208,12 +277,13 @@ class StoryDetailScreen extends HookConsumerWidget {
             }
 
             isBuffering.value = true;
+            developer.log('Initializing video: $videoUrl');
 
             // Add platform-specific options for better compatibility
             Map<String, String> headers = {
               'User-Agent': Platform.isIOS
-                  ? 'AppleCoreMedia/1.0.0.17D47 (iPhone; U; CPU OS 13_0 like Mac OS X; en_us)'
-                  : 'Mozilla/5.0 (Linux; Android 10; SM-G975F)',
+                  ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+                  : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
             };
 
             // Create controller with platform-specific settings
@@ -222,17 +292,12 @@ class StoryDetailScreen extends HookConsumerWidget {
               httpHeaders: headers,
               videoPlayerOptions: VideoPlayerOptions(
                 mixWithOthers:
-                    Platform.isIOS ? true : false, // Enable audio mixing on iOS
+                    false, // Disable mixing for better iOS compatibility
                 allowBackgroundPlayback: false,
               ),
             );
 
             videoControllerRef.value = controller;
-
-            // Special iOS volume handling for audio
-            if (Platform.isIOS) {
-              controller.setVolume(1.0);
-            }
 
             controller.initialize().then((_) {
               if (controller.value.hasError) {
@@ -240,11 +305,18 @@ class StoryDetailScreen extends HookConsumerWidget {
                     "Video initialization failed: ${controller.value.errorDescription}");
               }
 
+              // For iOS, ensure volume is set to maximum after initialization
+              if (Platform.isIOS) {
+                controller.setVolume(1.0);
+                developer
+                    .log('iOS: Set volume to maximum after initialization');
+              }
+
               // Create Chewie controller for improved UI
               chewieControllerRef.value = ChewieController(
                 videoPlayerController: controller,
                 aspectRatio: controller.value.aspectRatio,
-                autoPlay: false,
+                autoPlay: true, // Auto-play on iOS to trigger audio
                 looping: false,
                 materialProgressColors: ChewieProgressColors(
                   playedColor: AppColors.limeGreen,
@@ -294,11 +366,27 @@ class StoryDetailScreen extends HookConsumerWidget {
                 },
                 allowFullScreen: true,
                 fullScreenByDefault: false,
+                showControls: true,
+                allowPlaybackSpeedChanging: true,
                 customControls: const MaterialControls(),
               );
 
               isBuffering.value = false;
+
+              // For iOS, ensure audio works by playing and then pausing if autoplay is false
+              if (Platform.isIOS) {
+                // This ensures the audio track is properly initialized
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  controller.play().then((_) {
+                    developer
+                        .log('iOS: Video playback started to initialize audio');
+                    // If you don't want autoplay, you can pause it after a short delay
+                    // Future.delayed(const Duration(milliseconds: 300), controller.pause);
+                  });
+                });
+              }
             }).catchError((error) {
+              developer.log('Video initialization error: $error');
               _handleVideoError(error);
             });
 
@@ -549,21 +637,41 @@ class _VideoPlayerPage extends HookConsumerWidget {
     final hasRetried = useState(false);
     final selectedPlaybackSpeed = useState(1.0);
     final isFullscreen = useState(false);
+    final audioSessionConfigured = useState(false);
 
     // Available playback speeds
     final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
     // Configure iOS audio session for video playback
     useEffect(() {
-      if (Platform.isIOS) {
-        AudioSession.instance.then((session) {
-          session.configure(const AudioSessionConfiguration(
-            avAudioSessionCategory: AVAudioSessionCategory.playback,
-            avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
-            avAudioSessionMode: AVAudioSessionMode.moviePlayback,
-            avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
-            avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
-          ));
+      if (Platform.isIOS && !audioSessionConfigured.value) {
+        audioSessionConfigured.value = true;
+        developer.log('Configuring iOS audio session');
+
+        // Ensure audio session is configured properly
+        AudioSession.instance.then((session) async {
+          try {
+            // First set active to false to reset any existing sessions
+            await session.setActive(false);
+
+            // Configure with proper settings for video playback
+            await session.configure(const AudioSessionConfiguration(
+              avAudioSessionCategory: AVAudioSessionCategory.playback,
+              avAudioSessionCategoryOptions:
+                  AVAudioSessionCategoryOptions.defaultToSpeaker,
+              avAudioSessionMode: AVAudioSessionMode.moviePlayback,
+              avAudioSessionRouteSharingPolicy:
+                  AVAudioSessionRouteSharingPolicy.defaultPolicy,
+              avAudioSessionSetActiveOptions:
+                  AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
+            ));
+
+            // Then set active
+            await session.setActive(true);
+            developer.log('iOS audio session configured successfully');
+          } catch (e) {
+            developer.log('Error configuring iOS audio session: $e');
+          }
         });
       }
       return null;
@@ -604,12 +712,14 @@ class _VideoPlayerPage extends HookConsumerWidget {
           }
         }
 
+        developer.log('Retrying with format hint: $videoUrl');
+
         final retryController = VideoPlayerController.networkUrl(
           Uri.parse(videoUrl),
           formatHint: VideoFormat.other,
           httpHeaders: {
             'User-Agent': Platform.isIOS
-                ? 'AppleCoreMedia/1.0.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
                 : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
           },
         );
@@ -620,12 +730,14 @@ class _VideoPlayerPage extends HookConsumerWidget {
           // For iOS, ensure volume is set to maximum
           if (Platform.isIOS) {
             retryController.setVolume(1.0);
+            developer
+                .log('iOS: Set volume to maximum after retry initialization');
           }
-          
+
           chewieControllerRef.value = ChewieController(
             videoPlayerController: retryController,
             aspectRatio: retryController.value.aspectRatio,
-            autoPlay: false,
+            autoPlay: true,
             looping: false,
             materialProgressColors: ChewieProgressColors(
               playedColor: AppColors.limeGreen,
@@ -634,15 +746,19 @@ class _VideoPlayerPage extends HookConsumerWidget {
               bufferedColor: Colors.white38,
             ),
             allowFullScreen: true,
+            showControls: true,
+            allowPlaybackSpeedChanging: true,
             customControls: const MaterialControls(),
           );
           isBuffering.value = false;
         }).catchError((retryError) {
+          developer.log('Video retry error: $retryError');
           errorMessage.value =
               "Unable to load video: Video format may not be supported on this device";
           isBuffering.value = false;
         });
       } else {
+        developer.log('Video error after retry: $error');
         errorMessage.value =
             "Failed to load video: Please check your internet connection or try again later";
         isBuffering.value = false;
@@ -652,13 +768,19 @@ class _VideoPlayerPage extends HookConsumerWidget {
     // Ensure proper disposal of controllers
     useEffect(() {
       return () {
+        developer.log('Disposing video controllers');
         chewieControllerRef.value?.dispose();
         videoControllerRef.value?.dispose();
-        
+
         // Reset audio session when widget is disposed
         if (Platform.isIOS) {
           AudioSession.instance.then((session) {
-            session.setActive(false);
+            try {
+              session.setActive(false);
+              developer.log('iOS audio session deactivated');
+            } catch (e) {
+              developer.log('Error deactivating iOS audio session: $e');
+            }
           });
         }
       };
@@ -684,11 +806,12 @@ class _VideoPlayerPage extends HookConsumerWidget {
       }
 
       isBuffering.value = true;
+      developer.log('Initializing video: $videoUrl');
 
       // Add platform-specific options for better compatibility
       Map<String, String> headers = {
         'User-Agent': Platform.isIOS
-            ? 'AppleCoreMedia/1.0.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+            ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
             : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
       };
 
@@ -697,30 +820,30 @@ class _VideoPlayerPage extends HookConsumerWidget {
         Uri.parse(videoUrl),
         httpHeaders: headers,
         videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers: false, // Disable mixing on all platforms for consistent behavior
+          mixWithOthers: false, // Disable mixing for better iOS compatibility
           allowBackgroundPlayback: false,
         ),
       );
 
       videoControllerRef.value = controller;
 
-      // For iOS, ensure volume is set to maximum
       controller.initialize().then((_) {
         if (controller.value.hasError) {
           throw Exception(
               "Video initialization failed: ${controller.value.errorDescription}");
         }
 
-        // For iOS, set volume to maximum after initialization
+        // For iOS, ensure volume is set to maximum after initialization
         if (Platform.isIOS) {
           controller.setVolume(1.0);
+          developer.log('iOS: Set volume to maximum after initialization');
         }
 
         // Create Chewie controller for improved UI
         chewieControllerRef.value = ChewieController(
           videoPlayerController: controller,
           aspectRatio: controller.value.aspectRatio,
-          autoPlay: false,
+          autoPlay: true, // Auto-play on iOS to trigger audio
           looping: false,
           materialProgressColors: ChewieProgressColors(
             playedColor: AppColors.limeGreen,
@@ -769,11 +892,26 @@ class _VideoPlayerPage extends HookConsumerWidget {
           },
           allowFullScreen: true,
           fullScreenByDefault: false,
+          showControls: true,
+          allowPlaybackSpeedChanging: true,
           customControls: const MaterialControls(),
         );
 
         isBuffering.value = false;
+
+        // For iOS, ensure audio works by playing and then pausing if autoplay is false
+        if (Platform.isIOS) {
+          // This ensures the audio track is properly initialized
+          Future.delayed(const Duration(milliseconds: 100), () {
+            controller.play().then((_) {
+              developer.log('iOS: Video playback started to initialize audio');
+              // If you don't want autoplay, you can pause it after a short delay
+              // Future.delayed(const Duration(milliseconds: 300), controller.pause);
+            });
+          });
+        }
       }).catchError((error) {
+        developer.log('Video initialization error: $error');
         _handleVideoError(error);
       });
 
@@ -828,6 +966,74 @@ class _VideoPlayerPage extends HookConsumerWidget {
 
               // Simple spacing after video
               const SizedBox(height: 16),
+
+              // iOS playback helper - Audio troubleshooting button for iOS
+              if (Platform.isIOS)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (videoControllerRef.value != null) {
+                          // Force audio initialization
+                          videoControllerRef.value!.setVolume(1.0);
+                          videoControllerRef.value!.play();
+                          developer.log('iOS: Manual audio restart triggered');
+
+                          // Re-configure audio session
+                          AudioSession.instance.then((session) async {
+                            try {
+                              await session.setActive(false);
+                              await session
+                                  .configure(const AudioSessionConfiguration(
+                                avAudioSessionCategory:
+                                    AVAudioSessionCategory.playback,
+                                avAudioSessionCategoryOptions:
+                                    AVAudioSessionCategoryOptions
+                                        .defaultToSpeaker,
+                                avAudioSessionMode:
+                                    AVAudioSessionMode.moviePlayback,
+                              ));
+                              await session.setActive(true);
+                              developer.log(
+                                  'iOS: Audio session reconfigured manually');
+                            } catch (e) {
+                              developer
+                                  .log('Error reconfiguring audio session: $e');
+                            }
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.volume_up,
+                              color: AppColors.limeGreen,
+                              size: 16,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Tap if no sound',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
               // Title with improved typography
               Padding(
