@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 part 'app_theme.g.dart';
 
@@ -28,6 +29,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: GoogleFonts.poppins().fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.navyBlue,
         primary: AppColors.navyBlue,
@@ -37,23 +39,23 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: AppColors.offWhite,
-      textTheme: const TextTheme(
-        headlineSmall: TextStyle(
+      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
+        headlineSmall: const TextStyle(
           color: AppColors.navyBlue,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
-        titleMedium: TextStyle(
+        titleMedium: const TextStyle(
           color: AppColors.navyBlue,
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
-        titleLarge: TextStyle(
+        titleLarge: const TextStyle(
           color: AppColors.navyBlue,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: const TextStyle(
           color: Colors.black87,
           fontSize: 14,
         ),
@@ -100,6 +102,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: GoogleFonts.poppins().fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.navyBlue,
         primary: AppColors.limeGreen,
@@ -109,23 +112,24 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
-      textTheme: const TextTheme(
-        headlineSmall: TextStyle(
+      textTheme:
+          GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme).copyWith(
+        headlineSmall: const TextStyle(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
-        titleMedium: TextStyle(
+        titleMedium: const TextStyle(
           color: Colors.white,
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
-        titleLarge: TextStyle(
+        titleLarge: const TextStyle(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: const TextStyle(
           color: Colors.white70,
           fontSize: 14,
         ),
