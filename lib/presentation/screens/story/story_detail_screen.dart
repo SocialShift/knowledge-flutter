@@ -94,8 +94,11 @@ class StoryDetailScreen extends HookConsumerWidget {
           final pageController = PageController();
           final currentPage = useState(0);
 
-          // Determine total number of pages based on whether video exists
-          final hasVideo = story.mediaUrl.isNotEmpty;
+          // Check if the media URL is an image or a video
+          final isImageMedia = _isImageUrl(story.mediaUrl);
+
+          // Determine total number of pages based on whether valid video exists
+          final hasVideo = story.mediaUrl.isNotEmpty && !isImageMedia;
           final totalPages = hasVideo ? 2 : 1; // Only video page and story page
 
           // Create video controller using Flutter Hooks
@@ -447,7 +450,7 @@ class StoryDetailScreen extends HookConsumerWidget {
                               currentPage.value = index;
                             },
                             children: [
-                              // Video player page (only if video URL exists)
+                              // Video player page (only if media URL is a valid video)
                               if (hasVideo) _VideoPlayerPage(story: story),
 
                               // Complete story on a single page
@@ -619,6 +622,13 @@ class StoryDetailScreen extends HookConsumerWidget {
       ),
     );
   }
+
+  // Helper method to check if the URL points to an image file
+  bool _isImageUrl(String url) {
+    final imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
+    final lowercaseUrl = url.toLowerCase();
+    return imageExtensions.any((ext) => lowercaseUrl.endsWith(ext));
+  }
 }
 
 // Video player page
@@ -638,6 +648,8 @@ class _VideoPlayerPage extends HookConsumerWidget {
     final selectedPlaybackSpeed = useState(1.0);
     final isFullscreen = useState(false);
     final audioSessionConfigured = useState(false);
+
+    // Since this component only renders for video URLs now, we don't need to check again
 
     // Available playback speeds
     final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
