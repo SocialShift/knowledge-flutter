@@ -23,6 +23,7 @@ final cachedProfileProvider = Provider<AsyncValue<Profile>>((ref) {
 class ProfileScreen extends HookConsumerWidget {
   const ProfileScreen({super.key});
 
+  // ignore: unused_element
   Future<bool> _showLogoutConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
@@ -114,6 +115,16 @@ class ProfileScreen extends HookConsumerWidget {
     final profileAsync = ref.watch(cachedProfileProvider);
     final authNotifier = ref.watch(authNotifierProvider.notifier);
 
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final cardBorderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+
     // Hook to check if we need to show feedback dialog on first visit
     useEffect(() {
       // Check on app launch if feedback should be shown
@@ -124,31 +135,31 @@ class ProfileScreen extends HookConsumerWidget {
     }, []);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Profile',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.navyBlue,
+            color: textColor,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.feedback_outlined,
-            color: AppColors.navyBlue,
+            color: textColor,
           ),
           onPressed: () => _showFeedbackDialog(context, ref, forceShow: true),
           tooltip: 'Give Feedback',
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.settings,
-              color: AppColors.navyBlue,
+              color: textColor,
             ),
             onPressed: () {
               // Navigate to settings screen
@@ -159,12 +170,12 @@ class ProfileScreen extends HookConsumerWidget {
         ],
       ),
       body: profileAsync.when(
-        loading: () => _buildProfileSkeleton(ref),
+        loading: () => _buildProfileSkeleton(ref, isDarkMode),
         error: (error, stack) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 color: Colors.red,
                 size: 48,
@@ -182,7 +193,7 @@ class ProfileScreen extends HookConsumerWidget {
                     ),
                     TextSpan(
                       text: error.toString(),
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(color: secondaryTextColor),
                     ),
                   ],
                 ),
@@ -201,14 +212,27 @@ class ProfileScreen extends HookConsumerWidget {
             ],
           ),
         ),
-        data: (profile) =>
-            ProfileBody(profile: profile, authNotifier: authNotifier),
+        data: (profile) => ProfileBody(
+            profile: profile,
+            authNotifier: authNotifier,
+            isDarkMode: isDarkMode),
       ),
     );
   }
 
   // Build a skeleton loading UI for the profile screen
-  Widget _buildProfileSkeleton(WidgetRef ref) {
+  Widget _buildProfileSkeleton(WidgetRef ref, bool isDarkMode) {
+    final skeletonBaseColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100;
+    final skeletonHighlightColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+    final cardGradientStart = isDarkMode
+        ? AppColors.darkSurface.withOpacity(0.7)
+        : AppColors.navyBlue.withOpacity(0.7);
+    final cardGradientEnd = isDarkMode
+        ? AppColors.darkBackground.withOpacity(0.5)
+        : AppColors.navyBlue.withOpacity(0.5);
+
     return RefreshIndicator(
       onRefresh: () async {
         // Refresh the profile data
@@ -217,7 +241,7 @@ class ProfileScreen extends HookConsumerWidget {
         return;
       },
       color: AppColors.limeGreen,
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? AppColors.darkCard : Colors.white,
       strokeWidth: 2.5,
       displacement: 40,
       child: SingleChildScrollView(
@@ -234,8 +258,8 @@ class ProfileScreen extends HookConsumerWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.navyBlue.withOpacity(0.7),
-                    AppColors.navyBlue.withOpacity(0.5),
+                    cardGradientStart,
+                    cardGradientEnd,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -293,7 +317,9 @@ class ProfileScreen extends HookConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.navyBlue.withOpacity(0.1),
+                  color: isDarkMode
+                      ? Colors.grey.shade800.withOpacity(0.3)
+                      : AppColors.navyBlue.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -307,7 +333,7 @@ class ProfileScreen extends HookConsumerWidget {
                           width: 50,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -316,7 +342,7 @@ class ProfileScreen extends HookConsumerWidget {
                           width: 70,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -326,7 +352,9 @@ class ProfileScreen extends HookConsumerWidget {
                   Container(
                     width: 1,
                     height: 40,
-                    color: AppColors.navyBlue.withOpacity(0.1),
+                    color: isDarkMode
+                        ? Colors.grey.shade700
+                        : AppColors.navyBlue.withOpacity(0.1),
                   ),
                   // Following skeleton
                   Expanded(
@@ -336,7 +364,7 @@ class ProfileScreen extends HookConsumerWidget {
                           width: 50,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -345,7 +373,7 @@ class ProfileScreen extends HookConsumerWidget {
                           width: 70,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -362,7 +390,7 @@ class ProfileScreen extends HookConsumerWidget {
               height: 48,
               margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: skeletonHighlightColor,
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
@@ -378,7 +406,7 @@ class ProfileScreen extends HookConsumerWidget {
                     width: 120,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: skeletonHighlightColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -397,10 +425,12 @@ class ProfileScreen extends HookConsumerWidget {
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       height: 120,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: skeletonBaseColor,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.grey.shade300,
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade300,
                           width: 2,
                         ),
                       ),
@@ -411,7 +441,7 @@ class ProfileScreen extends HookConsumerWidget {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -420,7 +450,7 @@ class ProfileScreen extends HookConsumerWidget {
                             width: 40,
                             height: 20,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
@@ -429,7 +459,7 @@ class ProfileScreen extends HookConsumerWidget {
                             width: 60,
                             height: 12,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
@@ -451,7 +481,7 @@ class ProfileScreen extends HookConsumerWidget {
               height: 50,
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: skeletonHighlightColor,
                 borderRadius: BorderRadius.circular(25),
               ),
             ),
@@ -468,11 +498,13 @@ class ProfileScreen extends HookConsumerWidget {
 class ProfileBody extends ConsumerStatefulWidget {
   final Profile profile;
   final dynamic authNotifier;
+  final bool isDarkMode;
 
   const ProfileBody({
     super.key,
     required this.profile,
     required this.authNotifier,
+    required this.isDarkMode,
   });
 
   @override
@@ -494,7 +526,7 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
         onRefresh: () async {
           // Refresh the profile data
           await Future.delayed(Duration.zero);
-          ref.refresh(userProfileProvider);
+          ref.invalidate(userProfileProvider);
           return;
         },
         color: AppColors.limeGreen,
@@ -852,44 +884,88 @@ class SocialCountsWidget extends StatelessWidget {
           ),
         ),
 
-        // Add Friend Button
+        // Add Friend Button with Share Icon
         Container(
-          width: double.infinity,
           margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              // Navigate to add friends screen
-              context.push('/add-friends');
-            },
-            icon: const Icon(Icons.person_add_alt),
-            label: const Text(
-              'Add Friend',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // Navigate to add friends screen
+                    context.push('/add-friends');
+                  },
+                  icon: const Icon(Icons.person_add_alt),
+                  label: const Text(
+                    'Add Friend',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: AppColors.navyBlue,
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 1,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: AppColors.navyBlue.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 300),
+                    )
+                    .slideY(begin: 0.2, end: 0),
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: AppColors.navyBlue,
-              backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              elevation: 1,
-              shadowColor: Colors.black.withOpacity(0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.navyBlue.withOpacity(0.2),
-                  width: 1,
+              const SizedBox(width: 8),
+              Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.navyBlue.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
-              ),
-            ),
-          )
-              .animate()
-              .fadeIn(
-                duration: const Duration(milliseconds: 400),
-                delay: const Duration(milliseconds: 300),
-              )
-              .slideY(begin: 0.2, end: 0),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.share_outlined,
+                    size: 18,
+                    color: AppColors.navyBlue,
+                  ),
+                  onPressed: () {
+                    // Share profile functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Coming soon!'),
+                        backgroundColor: AppColors.navyBlue,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.all(12),
+                      ),
+                    );
+                  },
+                  tooltip: 'Share Profile',
+                  padding: EdgeInsets.zero,
+                ),
+              ).animate().fadeIn(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 350),
+                  ),
+            ],
+          ),
         ),
       ],
     );

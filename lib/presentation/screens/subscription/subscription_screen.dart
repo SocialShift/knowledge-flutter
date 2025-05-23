@@ -10,11 +10,11 @@ class SubscriptionScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subscriptionState = ref.watch(subscriptionNotifierProvider);
+    // final subscriptionState = ref.watch(subscriptionNotifierProvider);
     final subscriptionNotifier =
         ref.watch(subscriptionNotifierProvider.notifier);
-    final selectedPlan =
-        ValueNotifier<SubscriptionPlan>(SubscriptionPlan.monthly);
+    // final selectedPlan =
+    //     ValueNotifier<SubscriptionPlan>(SubscriptionPlan.monthly);
 
     return Scaffold(
       backgroundColor: AppColors.navyBlue,

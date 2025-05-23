@@ -11,7 +11,7 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:audio_session/audio_session.dart';
 import 'dart:developer' as developer;
 
@@ -25,6 +25,12 @@ class StoryDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Get theme colors
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+
     // Fetch story details using the provider
     final storyAsync = ref.watch(storyDetailProvider(storyId));
 
@@ -32,16 +38,16 @@ class StoryDetailScreen extends HookConsumerWidget {
     final quizAsync = ref.watch(storyQuizProvider(storyId));
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       appBar: storyAsync.when(
         data: (story) => AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: backgroundColor,
           elevation: 0,
           centerTitle: true,
           title: Text(
             story.title,
-            style: const TextStyle(
-              color: AppColors.navyBlue,
+            style: TextStyle(
+              color: textColor,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -49,42 +55,42 @@ class StoryDetailScreen extends HookConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.navyBlue),
+            icon: Icon(Icons.arrow_back, color: textColor),
             onPressed: () => context.pop(),
           ),
           actions: const [],
         ),
         loading: () => AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: backgroundColor,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
+          title: Text(
             'Loading...',
             style: TextStyle(
-              color: AppColors.navyBlue,
+              color: textColor,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.navyBlue),
+            icon: Icon(Icons.arrow_back, color: textColor),
             onPressed: () => context.pop(),
           ),
         ),
         error: (_, __) => AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: backgroundColor,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
+          title: Text(
             'Story Details',
             style: TextStyle(
-              color: AppColors.navyBlue,
+              color: textColor,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.navyBlue),
+            icon: Icon(Icons.arrow_back, color: textColor),
             onPressed: () => context.pop(),
           ),
         ),
@@ -95,10 +101,10 @@ class StoryDetailScreen extends HookConsumerWidget {
           final currentPage = useState(0);
 
           // Check if the media URL is an image or a video
-          final isImageMedia = _isImageUrl(story.mediaUrl);
+          final isImageUrl = _isImageUrl(story.mediaUrl);
 
           // Determine total number of pages based on whether valid video exists
-          final hasVideo = story.mediaUrl.isNotEmpty && !isImageMedia;
+          final hasVideo = story.mediaUrl.isNotEmpty && !isImageUrl;
           final totalPages = hasVideo ? 2 : 1; // Only video page and story page
 
           // Create video controller using Flutter Hooks
@@ -107,12 +113,12 @@ class StoryDetailScreen extends HookConsumerWidget {
           final isBuffering = useState(false);
           final errorMessage = useState<String?>(null);
           final hasRetried = useState(false);
-          final selectedPlaybackSpeed = useState(1.0);
-          final isFullscreen = useState(false);
+          // final selectedPlaybackSpeed = useState(1.0);
+          // final isFullscreen = useState(false);
           final audioSessionConfigured = useState(false);
 
           // Available playback speeds
-          final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+          // final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
           // Configure iOS audio session for video playback
           useEffect(() {
@@ -397,7 +403,7 @@ class StoryDetailScreen extends HookConsumerWidget {
           }, [story.mediaUrl]);
 
           return Container(
-            color: Colors.white,
+            color: backgroundColor,
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -406,7 +412,9 @@ class StoryDetailScreen extends HookConsumerWidget {
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.navyBlue,
+                      color: isDarkMode
+                          ? AppColors.darkSurface
+                          : AppColors.navyBlue,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -473,8 +481,11 @@ class StoryDetailScreen extends HookConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: AppColors.navyBlue),
+                          color: backgroundColor,
+                          border: Border.all(
+                              color: isDarkMode
+                                  ? Colors.grey.shade700
+                                  : AppColors.navyBlue),
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
@@ -488,9 +499,9 @@ class StoryDetailScreen extends HookConsumerWidget {
                           onPressed: () {
                             // Bookmark functionality
                           },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.bookmark_border,
-                            color: AppColors.navyBlue,
+                            color: textColor,
                           ),
                           padding: EdgeInsets.zero,
                           visualDensity: VisualDensity.compact,
@@ -505,8 +516,11 @@ class StoryDetailScreen extends HookConsumerWidget {
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: AppColors.navyBlue),
+                              color: backgroundColor,
+                              border: Border.all(
+                                  color: isDarkMode
+                                      ? Colors.grey.shade700
+                                      : AppColors.navyBlue),
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
@@ -516,20 +530,20 @@ class StoryDetailScreen extends HookConsumerWidget {
                                 ),
                               ],
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
                                     Icons.arrow_back_ios_new,
-                                    color: AppColors.navyBlue,
+                                    color: textColor,
                                     size: 16,
                                   ),
-                                  SizedBox(width: 6),
+                                  const SizedBox(width: 6),
                                   Text(
                                     'Back',
                                     style: TextStyle(
-                                      color: AppColors.navyBlue,
+                                      color: textColor,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -577,8 +591,10 @@ class StoryDetailScreen extends HookConsumerWidget {
                                     currentPage.value < (totalPages - 1)
                                         ? 'Next'
                                         : 'Milestones',
-                                    style: const TextStyle(
-                                      color: AppColors.navyBlue,
+                                    style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.black
+                                          : AppColors.navyBlue,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -588,7 +604,9 @@ class StoryDetailScreen extends HookConsumerWidget {
                                     currentPage.value < (totalPages - 1)
                                         ? Icons.arrow_forward_ios
                                         : Icons.quiz_outlined,
-                                    color: AppColors.navyBlue,
+                                    color: isDarkMode
+                                        ? Colors.black
+                                        : AppColors.navyBlue,
                                     size: 16,
                                   ),
                                 ],
@@ -614,7 +632,7 @@ class StoryDetailScreen extends HookConsumerWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Error loading story: $error',
-              style: const TextStyle(color: AppColors.navyBlue),
+              style: TextStyle(color: textColor),
               textAlign: TextAlign.center,
             ),
           ),
@@ -645,14 +663,14 @@ class _VideoPlayerPage extends HookConsumerWidget {
     final isBuffering = useState(false);
     final errorMessage = useState<String?>(null);
     final hasRetried = useState(false);
-    final selectedPlaybackSpeed = useState(1.0);
-    final isFullscreen = useState(false);
+    // final selectedPlaybackSpeed = useState(1.0);
+    // final isFullscreen = useState(false);
     final audioSessionConfigured = useState(false);
 
     // Since this component only renders for video URLs now, we don't need to check again
 
     // Available playback speeds
-    final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+    // final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
     // Configure iOS audio session for video playback
     useEffect(() {
@@ -1351,7 +1369,7 @@ class _CompleteStoryPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${story.year ?? "Historical"}',
+                    '${story.year}',
                     style: const TextStyle(
                       color: AppColors.limeGreen,
                       fontSize: 13,

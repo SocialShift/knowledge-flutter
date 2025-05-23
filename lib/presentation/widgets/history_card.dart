@@ -170,7 +170,9 @@ class HistoryCard extends ConsumerWidget {
                               if (timeline.mainCharacter != null) {
                                 return Expanded(
                                   child: Text(
-                                    timeline.mainCharacter!.persona,
+                                    timeline.mainCharacter!.name.isEmpty
+                                        ? timeline.mainCharacter!.persona
+                                        : timeline.mainCharacter!.name,
                                     style: TextStyle(
                                       color: AppColors.navyBlue,
                                       fontSize: isSmallScreen ? 10 : 11,

@@ -10,6 +10,7 @@ class MainCharacter with _$MainCharacter {
   const factory MainCharacter({
     required String id,
     required String avatarUrl,
+    required String name,
     required String persona,
     String? createdAt,
   }) = _MainCharacter;
@@ -30,6 +31,7 @@ class MainCharacter with _$MainCharacter {
     return MainCharacter(
       id: json['id'].toString(),
       avatarUrl: avatarUrl,
+      name: json['name'] ?? '',
       persona: json['persona'] ?? '',
       createdAt: json['created_at'],
     );

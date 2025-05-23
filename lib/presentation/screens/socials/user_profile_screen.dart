@@ -3,13 +3,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/models/profile.dart';
-import 'package:knowledge/data/providers/social_provider.dart';
+// import 'package:knowledge/data/providers/social_provider.dart';
 import 'package:knowledge/data/repositories/social_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/core/utils/debouncer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
-import 'package:knowledge/presentation/widgets/user_avatar.dart';
+// import 'package:knowledge/presentation/widgets/user_avatar.dart';
 
 class UserProfileScreen extends HookConsumerWidget {
   final int userId;
@@ -21,6 +21,16 @@ class UserProfileScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final cardBorderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+
     final userProfileAsync = ref.watch(userProfileByIdProvider(userId));
 
     // Create a debounced refresh function
@@ -35,28 +45,28 @@ class UserProfileScreen extends HookConsumerWidget {
     }, []);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Profile',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.navyBlue,
+            color: textColor,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: AppColors.navyBlue,
+            color: textColor,
           ),
           onPressed: () => context.pop(),
         ),
       ),
       body: userProfileAsync.when(
-        loading: () => _buildProfileSkeleton(ref),
+        loading: () => _buildProfileSkeleton(ref, isDarkMode),
         error: (error, stack) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -79,7 +89,7 @@ class UserProfileScreen extends HookConsumerWidget {
                     ),
                     TextSpan(
                       text: error.toString(),
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(color: secondaryTextColor),
                     ),
                   ],
                 ),
@@ -98,13 +108,28 @@ class UserProfileScreen extends HookConsumerWidget {
             ],
           ),
         ),
-        data: (profile) => UserProfileBody(profile: profile, userId: userId),
+        data: (profile) => UserProfileBody(
+          profile: profile,
+          userId: userId,
+          isDarkMode: isDarkMode,
+        ),
       ),
     );
   }
 
   // Build a skeleton loading UI for the profile screen
-  Widget _buildProfileSkeleton(WidgetRef ref) {
+  Widget _buildProfileSkeleton(WidgetRef ref, bool isDarkMode) {
+    final skeletonBaseColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100;
+    final skeletonHighlightColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+    final cardGradientStart = isDarkMode
+        ? AppColors.darkSurface.withOpacity(0.7)
+        : AppColors.navyBlue.withOpacity(0.7);
+    final cardGradientEnd = isDarkMode
+        ? AppColors.darkBackground.withOpacity(0.5)
+        : AppColors.navyBlue.withOpacity(0.5);
+
     return RefreshIndicator(
       onRefresh: () async {
         // Refresh the profile data
@@ -113,7 +138,7 @@ class UserProfileScreen extends HookConsumerWidget {
         return;
       },
       color: AppColors.limeGreen,
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? AppColors.darkCard : Colors.white,
       strokeWidth: 2.5,
       displacement: 40,
       child: SingleChildScrollView(
@@ -130,8 +155,8 @@ class UserProfileScreen extends HookConsumerWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.navyBlue.withOpacity(0.7),
-                    AppColors.navyBlue.withOpacity(0.5),
+                    cardGradientStart,
+                    cardGradientEnd,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -189,7 +214,9 @@ class UserProfileScreen extends HookConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.navyBlue.withOpacity(0.1),
+                  color: isDarkMode
+                      ? Colors.grey.shade800.withOpacity(0.3)
+                      : AppColors.navyBlue.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -203,7 +230,7 @@ class UserProfileScreen extends HookConsumerWidget {
                           width: 50,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -212,7 +239,7 @@ class UserProfileScreen extends HookConsumerWidget {
                           width: 70,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -222,7 +249,9 @@ class UserProfileScreen extends HookConsumerWidget {
                   Container(
                     width: 1,
                     height: 40,
-                    color: AppColors.navyBlue.withOpacity(0.1),
+                    color: isDarkMode
+                        ? Colors.grey.shade700
+                        : AppColors.navyBlue.withOpacity(0.1),
                   ),
                   // Following skeleton
                   Expanded(
@@ -232,7 +261,7 @@ class UserProfileScreen extends HookConsumerWidget {
                           width: 50,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -241,7 +270,7 @@ class UserProfileScreen extends HookConsumerWidget {
                           width: 70,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: skeletonHighlightColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -258,7 +287,7 @@ class UserProfileScreen extends HookConsumerWidget {
               height: 48,
               margin: const EdgeInsets.only(top: 10, left: 16, right: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: skeletonHighlightColor,
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
@@ -274,7 +303,7 @@ class UserProfileScreen extends HookConsumerWidget {
                     width: 120,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: skeletonHighlightColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -293,10 +322,12 @@ class UserProfileScreen extends HookConsumerWidget {
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       height: 120,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: skeletonBaseColor,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.grey.shade300,
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade300,
                           width: 2,
                         ),
                       ),
@@ -307,7 +338,7 @@ class UserProfileScreen extends HookConsumerWidget {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -316,7 +347,7 @@ class UserProfileScreen extends HookConsumerWidget {
                             width: 40,
                             height: 20,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
@@ -325,7 +356,7 @@ class UserProfileScreen extends HookConsumerWidget {
                             width: 60,
                             height: 12,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
+                              color: skeletonHighlightColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
@@ -349,15 +380,23 @@ class UserProfileScreen extends HookConsumerWidget {
 class UserProfileBody extends HookConsumerWidget {
   final Profile profile;
   final int userId;
+  final bool isDarkMode;
 
   const UserProfileBody({
     super.key,
     required this.profile,
     required this.userId,
+    required this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final cardBorderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+
     // Check the JSON directly for the profile_id and is_following fields
     final profileData = profile.followers ?? {};
 
@@ -440,7 +479,7 @@ class UserProfileBody extends HookConsumerWidget {
           return;
         },
         color: AppColors.limeGreen,
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? AppColors.darkCard : Colors.white,
         strokeWidth: 2.5,
         displacement: 40,
         child: SingleChildScrollView(
@@ -452,6 +491,7 @@ class UserProfileBody extends HookConsumerWidget {
                 profile: profile,
                 isFollowing: isFollowingState.value,
                 onToggleFollowStatus: toggleFollowStatus,
+                isDarkMode: isDarkMode,
               ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
 
               const SizedBox(height: 12),
@@ -462,6 +502,7 @@ class UserProfileBody extends HookConsumerWidget {
                 userId: userId,
                 isFollowing: isFollowingState.value,
                 onToggleFollowStatus: toggleFollowStatus,
+                isDarkMode: isDarkMode,
               )
                   .animate()
                   .fadeIn(duration: const Duration(milliseconds: 500))
@@ -470,7 +511,10 @@ class UserProfileBody extends HookConsumerWidget {
               const SizedBox(height: 12),
 
               // Overview section with rank, journey and points
-              OverviewWidget(profile: profile)
+              OverviewWidget(
+                profile: profile,
+                isDarkMode: isDarkMode,
+              )
                   .animate()
                   .fadeIn(
                     duration: const Duration(milliseconds: 500),
@@ -482,7 +526,10 @@ class UserProfileBody extends HookConsumerWidget {
 
               // Percentile rank
               if (profile.percentile != null)
-                PercentileWidget(profile: profile)
+                PercentileWidget(
+                  profile: profile,
+                  isDarkMode: isDarkMode,
+                )
                     .animate()
                     .fadeIn(
                       duration: const Duration(milliseconds: 500),
@@ -494,7 +541,10 @@ class UserProfileBody extends HookConsumerWidget {
 
               // Streak information
               if (profile.currentLoginStreak != null)
-                StreakInfoWidget(profile: profile)
+                StreakInfoWidget(
+                  profile: profile,
+                  isDarkMode: isDarkMode,
+                )
                     .animate()
                     .fadeIn(
                       duration: const Duration(milliseconds: 500),
@@ -515,12 +565,14 @@ class ProfileCardWidget extends StatelessWidget {
   final Profile profile;
   final bool isFollowing;
   final VoidCallback onToggleFollowStatus;
+  final bool isDarkMode;
 
   const ProfileCardWidget({
     super.key,
     required this.profile,
     required this.isFollowing,
     required this.onToggleFollowStatus,
+    required this.isDarkMode,
   });
 
   @override
@@ -528,6 +580,13 @@ class ProfileCardWidget extends StatelessWidget {
     final formattedDate = profile.joinedDate != null
         ? DateFormat("MMM d, yyyy").format(DateTime.parse(profile.joinedDate!))
         : "Unknown join date";
+
+    final cardGradientStart = isDarkMode
+        ? AppColors.darkSurface.withOpacity(0.9)
+        : AppColors.navyBlue.withOpacity(0.9);
+    final cardGradientEnd = isDarkMode
+        ? AppColors.darkBackground.withOpacity(0.7)
+        : AppColors.navyBlue.withOpacity(0.7);
 
     return Container(
       width: double.infinity,
@@ -538,8 +597,8 @@ class ProfileCardWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.navyBlue.withOpacity(0.9),
-            AppColors.navyBlue.withOpacity(0.7),
+            cardGradientStart,
+            cardGradientEnd,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -549,7 +608,9 @@ class ProfileCardWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navyBlue.withOpacity(0.3),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.3)
+                : AppColors.navyBlue.withOpacity(0.3),
             blurRadius: 0,
             spreadRadius: 1,
           ),
@@ -584,7 +645,7 @@ class ProfileCardWidget extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
+                          color: isDarkMode ? AppColors.darkCard : Colors.white,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -671,6 +732,7 @@ class SocialCountsWidget extends StatelessWidget {
   final int userId;
   final bool isFollowing;
   final VoidCallback onToggleFollowStatus;
+  final bool isDarkMode;
 
   const SocialCountsWidget({
     super.key,
@@ -678,6 +740,7 @@ class SocialCountsWidget extends StatelessWidget {
     required this.userId,
     required this.isFollowing,
     required this.onToggleFollowStatus,
+    required this.isDarkMode,
   });
 
   @override
@@ -685,6 +748,12 @@ class SocialCountsWidget extends StatelessWidget {
     // Get follower and following counts from profile
     final followerCount = profile.followers?['count'] ?? 0;
     final followingCount = profile.following?['count'] ?? 0;
+
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final cardBorderColor =
+        isDarkMode ? Colors.grey.shade800 : AppColors.navyBlue.withOpacity(0.1);
+    final dividerColor =
+        isDarkMode ? Colors.grey.shade800 : AppColors.navyBlue.withOpacity(0.1);
 
     return Column(
       children: [
@@ -695,19 +764,26 @@ class SocialCountsWidget extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.blue.withOpacity(0.2),
-                Colors.purple.withOpacity(0.1),
-              ],
+              colors: isDarkMode
+                  ? [
+                      Colors.blue.withOpacity(0.1),
+                      Colors.purple.withOpacity(0.05),
+                    ]
+                  : [
+                      Colors.blue.withOpacity(0.2),
+                      Colors.purple.withOpacity(0.1),
+                    ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.navyBlue.withOpacity(0.1),
+              color: cardBorderColor,
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.navyBlue.withOpacity(0.1),
+                color: isDarkMode
+                    ? Colors.black.withOpacity(0.2)
+                    : AppColors.navyBlue.withOpacity(0.1),
                 blurRadius: 8,
                 spreadRadius: 0,
               ),
@@ -728,17 +804,17 @@ class SocialCountsWidget extends StatelessWidget {
                       children: [
                         Text(
                           followerCount.toString(),
-                          style: const TextStyle(
-                            color: AppColors.navyBlue,
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           "Followers",
                           style: TextStyle(
-                            color: AppColors.navyBlue,
+                            color: textColor,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -751,7 +827,7 @@ class SocialCountsWidget extends StatelessWidget {
               Container(
                 width: 1,
                 height: 40,
-                color: AppColors.navyBlue.withOpacity(0.1),
+                color: dividerColor,
               ),
               Expanded(
                 child: InkWell(
@@ -766,17 +842,17 @@ class SocialCountsWidget extends StatelessWidget {
                       children: [
                         Text(
                           followingCount.toString(),
-                          style: const TextStyle(
-                            color: AppColors.navyBlue,
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           "Following",
                           style: TextStyle(
-                            color: AppColors.navyBlue,
+                            color: textColor,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -803,20 +879,27 @@ class SocialCountsWidget extends StatelessWidget {
             onPressed: onToggleFollowStatus,
             icon: Icon(
               isFollowing ? Icons.person_remove : Icons.person_add_alt,
-              color: isFollowing ? AppColors.navyBlue : Colors.black,
+              color: isFollowing
+                  ? (isDarkMode ? Colors.white : AppColors.navyBlue)
+                  : (isDarkMode ? Colors.black : Colors.black),
             ),
             label: Text(
               isFollowing ? 'Unfollow' : 'Follow',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isFollowing ? AppColors.navyBlue : Colors.black,
+                color: isFollowing
+                    ? (isDarkMode ? Colors.white : AppColors.navyBlue)
+                    : (isDarkMode ? Colors.black : Colors.black),
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isFollowing ? Colors.grey.shade200 : AppColors.limeGreen,
-              foregroundColor: isFollowing ? AppColors.navyBlue : Colors.black,
+              backgroundColor: isFollowing
+                  ? (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200)
+                  : AppColors.limeGreen,
+              foregroundColor: isFollowing
+                  ? (isDarkMode ? Colors.white : AppColors.navyBlue)
+                  : Colors.black,
               padding: const EdgeInsets.symmetric(vertical: 12),
               elevation: 2,
               shadowColor: Colors.black26,
@@ -824,7 +907,9 @@ class SocialCountsWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
                   color: isFollowing
-                      ? Colors.grey.shade400
+                      ? (isDarkMode
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade400)
                       : AppColors.limeGreen.withOpacity(0.7),
                   width: 1,
                 ),
@@ -839,10 +924,12 @@ class SocialCountsWidget extends StatelessWidget {
 
 class OverviewWidget extends StatelessWidget {
   final Profile profile;
+  final bool isDarkMode;
 
   const OverviewWidget({
     super.key,
     required this.profile,
+    required this.isDarkMode,
   });
 
   @override
@@ -991,10 +1078,12 @@ class OverviewWidget extends StatelessWidget {
 
 class PercentileWidget extends StatelessWidget {
   final Profile profile;
+  final bool isDarkMode;
 
   const PercentileWidget({
     super.key,
     required this.profile,
+    required this.isDarkMode,
   });
 
   @override
@@ -1108,10 +1197,12 @@ class PercentileWidget extends StatelessWidget {
 
 class StreakInfoWidget extends StatelessWidget {
   final Profile profile;
+  final bool isDarkMode;
 
   const StreakInfoWidget({
     super.key,
     required this.profile,
+    required this.isDarkMode,
   });
 
   @override

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/models/social_user.dart';
 import 'package:knowledge/data/providers/social_provider.dart';
 import 'package:knowledge/data/repositories/social_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:knowledge/data/providers/auth_provider.dart';
 
 class FollowingScreen extends HookConsumerWidget {
   final int profileId;
@@ -19,13 +21,49 @@ class FollowingScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final followingAsync = ref.watch(followingProvider(profileId));
 
+    // State to track which users have had their follow status updated
+    final updatedUsers = useState<Map<int, bool>>({});
+
+    // Get the current logged-in user state
+    final authState = ref.watch(authNotifierProvider);
+
+    // Extract current user ID from auth state
+    final currentUserId = authState.maybeWhen(
+      authenticated: (user, _, __) => user.id,
+      orElse: () => '-1', // Default value when not authenticated
+    );
+
+    // Function to refresh following list
+    void refreshFollowing() {
+      ref.refresh(followingProvider(profileId));
+    }
+
+    // Use effect to refresh on first build
+    useEffect(() {
+      Future.microtask(() => refreshFollowing());
+      return null;
+    }, []);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Following'),
+        title: Text(
+          'Following',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: refreshFollowing,
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
       body: followingAsync.when(
         data: (following) {
@@ -40,19 +78,88 @@ class FollowingScreen extends HookConsumerWidget {
             padding: const EdgeInsets.all(16.0),
             itemBuilder: (context, index) {
               final followedUser = following[index];
-              return _buildUserListItem(
-                context,
-                ref,
-                SocialUser(
-                  userId: followedUser['user_id'] ?? 0,
-                  username: followedUser['username'] ?? '',
-                  profileId: followedUser['profile_id'] ?? 0,
-                  nickname: followedUser['nickname'] ?? '',
-                  avatarUrl:
-                      followedUser['avatar_url'] ?? 'media/images/default.jpeg',
-                  isFollowing:
-                      true, // Since this is a following list, all are already followed
-                ),
+              final userId = followedUser['user_id'] ?? 0;
+              final profileId = followedUser['id'] ?? 0;
+
+              // Convert user_id to string for comparison with currentUserId
+              final userIdString = userId.toString();
+              final isCurrentUser = userIdString == currentUserId;
+
+              // Check if this user's follow status has been manually updated
+              bool isFollowing = updatedUsers.value.containsKey(profileId)
+                  ? updatedUsers.value[profileId]!
+                  : true; // Default to true since this is a following list
+
+              final user = SocialUser(
+                userId: userId,
+                username: followedUser['username'] ?? '',
+                profileId: profileId,
+                nickname:
+                    isCurrentUser ? 'You' : (followedUser['nickname'] ?? ''),
+                avatarUrl:
+                    followedUser['avatar_url'] ?? 'media/images/default.jpeg',
+                isFollowing: isFollowing,
+              );
+
+              return _UserListItem(
+                user: user,
+                isCurrentUser: isCurrentUser,
+                onToggleFollow: () async {
+                  try {
+                    // Immediately update the UI
+                    final newFollowingState = !isFollowing;
+                    updatedUsers.value = {
+                      ...updatedUsers.value,
+                      profileId: newFollowingState,
+                    };
+
+                    // Execute the API call
+                    if (!newFollowingState) {
+                      await ref
+                          .read(socialRepositoryProvider)
+                          .unfollowUser(profileId);
+                    } else {
+                      await ref
+                          .read(socialRepositoryProvider)
+                          .followUser(profileId);
+                    }
+
+                    // Show success message
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(newFollowingState
+                              ? 'Successfully followed ${user.nickname}'
+                              : 'Successfully unfollowed ${user.nickname}'),
+                          backgroundColor: AppColors.limeGreen,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // Revert the UI update if the API call fails
+                    updatedUsers.value = {
+                      ...updatedUsers.value,
+                      profileId: isFollowing,
+                    };
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+                onTap: () {
+                  // Don't navigate if it's the current user
+                  if (!isCurrentUser) {
+                    context.push('/profile/$userId');
+                  }
+                },
               );
             },
           );
@@ -81,12 +188,23 @@ class FollowingScreen extends HookConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildUserListItem(
-    BuildContext context,
-    WidgetRef ref,
-    SocialUser user,
-  ) {
+class _UserListItem extends StatelessWidget {
+  final SocialUser user;
+  final VoidCallback onToggleFollow;
+  final VoidCallback onTap;
+  final bool isCurrentUser;
+
+  const _UserListItem({
+    required this.user,
+    required this.onToggleFollow,
+    required this.onTap,
+    this.isCurrentUser = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
@@ -94,7 +212,7 @@ class FollowingScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () => context.push('/profile/${user.userId}'),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -123,46 +241,47 @@ class FollowingScreen extends HookConsumerWidget {
                   children: [
                     Text(
                       user.nickname,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: isCurrentUser ? AppColors.limeGreen : null,
                       ),
                     ),
-                    Text(
-                      '@${user.username}',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                      ),
-                    ),
+                    // Text(
+                    //   '@${user.username}',
+                    //   style: TextStyle(
+                    //     color: Colors.grey.shade600,
+                    //     fontSize: 14,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
 
-              // Unfollow button (since this is the following screen)
-              ElevatedButton(
-                onPressed: () {
-                  ref
-                      .read(socialNotifierProvider.notifier)
-                      .unfollowUser(user.profileId);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade200,
-                  foregroundColor: Colors.black87,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                child: const Text(
-                  'Unfollow',
-                  style: TextStyle(fontSize: 14),
-                ),
-              ),
+              // Unfollow button - hide for current user
+              // if (!isCurrentUser)
+              //   ElevatedButton(
+              //     onPressed: onToggleFollow,
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: user.isFollowing
+              //           ? Colors.grey.shade200
+              //           : AppColors.navyBlue,
+              //       foregroundColor:
+              //           user.isFollowing ? Colors.black87 : Colors.white,
+              //       elevation: 0,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(20),
+              //       ),
+              //       padding: const EdgeInsets.symmetric(
+              //         horizontal: 16,
+              //         vertical: 8,
+              //       ),
+              //     ),
+              //     child: Text(
+              //       user.isFollowing ? 'Unfollow' : 'Follow',
+              //       style: const TextStyle(fontSize: 14),
+              //     ),
+              //   ),
             ],
           ),
         ),

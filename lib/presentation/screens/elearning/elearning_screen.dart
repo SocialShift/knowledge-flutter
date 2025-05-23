@@ -29,26 +29,41 @@ class ElearningScreen extends HookConsumerWidget {
     // Get the bottom padding to account for the navigation bar
     final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
 
+    // Get theme colors
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : AppColors.navyBlue;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final shimmerColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+
     // Watch the cached filtered paginated timelines provider
     final paginatedTimelines = ref.watch(cachedFilteredTimelinesProvider);
     final paginatedTimelinesNotifier =
         ref.watch(paginatedTimelinesProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.navyBlue,
+      backgroundColor: backgroundColor,
       body: Stack(
         children: [
           // Background gradient
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.lightPurple,
-                  AppColors.navyBlue,
-                ],
-                stops: [0.0, 0.3],
+                colors: isDarkMode
+                    ? [
+                        AppColors.darkSurface,
+                        AppColors.darkBackground,
+                      ]
+                    : [
+                        AppColors.lightPurple,
+                        AppColors.navyBlue,
+                      ],
+                stops: const [0.0, 0.3],
               ),
             ),
           ),
@@ -57,7 +72,7 @@ class ElearningScreen extends HookConsumerWidget {
             child: Column(
               children: [
                 // Fixed Header Section with gradient background
-                const _HeaderSection(),
+                _HeaderSection(),
 
                 const SizedBox(height: 8),
 
@@ -69,7 +84,9 @@ class ElearningScreen extends HookConsumerWidget {
                       Text(
                         'Echoes of the Past',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.9),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -85,9 +102,9 @@ class ElearningScreen extends HookConsumerWidget {
                 // Scrollable Content Area with White Background
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(30),
                         topRight: Radius.circular(30),
                       ),
@@ -95,7 +112,7 @@ class ElearningScreen extends HookConsumerWidget {
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 10,
-                          offset: Offset(0, -2),
+                          offset: const Offset(0, -2),
                         ),
                       ],
                     ),
@@ -110,7 +127,8 @@ class ElearningScreen extends HookConsumerWidget {
                               child: Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 40),
-                                child: _buildLoadingGrid(),
+                                child:
+                                    _buildLoadingGrid(isDarkMode, shimmerColor),
                               ),
                             )
                           : paginatedTimelines.items.isEmpty &&
@@ -160,7 +178,9 @@ class ElearningScreen extends HookConsumerWidget {
                                           Text(
                                             'No matches found',
                                             style: TextStyle(
-                                              color: Colors.grey.shade700,
+                                              color: isDarkMode
+                                                  ? Colors.grey.shade400
+                                                  : Colors.grey.shade700,
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -169,7 +189,9 @@ class ElearningScreen extends HookConsumerWidget {
                                           Text(
                                             'Try a different search term or clear the filters',
                                             style: TextStyle(
-                                              color: Colors.grey.shade600,
+                                              color: isDarkMode
+                                                  ? Colors.grey.shade500
+                                                  : Colors.grey.shade600,
                                               fontSize: 14,
                                             ),
                                           ),
@@ -186,8 +208,9 @@ class ElearningScreen extends HookConsumerWidget {
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor:
                                                   AppColors.limeGreen,
-                                              foregroundColor:
-                                                  AppColors.navyBlue,
+                                              foregroundColor: isDarkMode
+                                                  ? Colors.black
+                                                  : AppColors.navyBlue,
                                             ),
                                           ),
                                         ],
@@ -219,7 +242,7 @@ class ElearningScreen extends HookConsumerWidget {
   }
 
   // Build a grid of skeleton loading items
-  Widget _buildLoadingGrid() {
+  Widget _buildLoadingGrid(bool isDarkMode, Color shimmerColor) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       physics: const NeverScrollableScrollPhysics(),
@@ -232,23 +255,26 @@ class ElearningScreen extends HookConsumerWidget {
       ),
       itemCount: 6, // Show 6 skeleton items
       itemBuilder: (context, index) {
-        return _buildSkeletonCard(index);
+        return _buildSkeletonCard(index, isDarkMode, shimmerColor);
       },
     );
   }
 
   // Build a skeleton card with shimmer effect
-  Widget _buildSkeletonCard(int index) {
+  Widget _buildSkeletonCard(int index, bool isDarkMode, Color shimmerColor) {
     // Add staggered animation based on index
     final delay = Duration(milliseconds: 50 * index);
+    final containerColor = isDarkMode ? AppColors.darkSurface : Colors.white;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: containerColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -261,7 +287,7 @@ class ElearningScreen extends HookConsumerWidget {
           Container(
             height: 140,
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: shimmerColor,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -280,7 +306,7 @@ class ElearningScreen extends HookConsumerWidget {
                   height: 20,
                   width: 60,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: shimmerColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -291,7 +317,7 @@ class ElearningScreen extends HookConsumerWidget {
                   height: 16,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: shimmerColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -302,7 +328,7 @@ class ElearningScreen extends HookConsumerWidget {
                   height: 14,
                   width: 100,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: shimmerColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -313,7 +339,7 @@ class ElearningScreen extends HookConsumerWidget {
                   height: 12,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: shimmerColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -322,7 +348,7 @@ class ElearningScreen extends HookConsumerWidget {
                   height: 12,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: shimmerColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -398,7 +424,9 @@ class _TimelineGridState extends State<_TimelineGrid>
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       color: AppColors.limeGreen,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkSurface
+          : Colors.white,
       strokeWidth: 2.5,
       displacement: 40,
       child: GridView.builder(
@@ -453,6 +481,11 @@ class _HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final iconBgColor = isDarkMode
+        ? Colors.white.withOpacity(0.1)
+        : Colors.white.withOpacity(0.2);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
@@ -479,7 +512,9 @@ class _HeaderSection extends StatelessWidget {
                     Text(
                       'Discover History',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: isDarkMode
+                            ? Colors.white.withOpacity(0.9)
+                            : Colors.white.withOpacity(0.9),
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -509,7 +544,7 @@ class _HeaderSection extends StatelessWidget {
                           width: 40,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.2),
+                            color: iconBgColor,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.1),

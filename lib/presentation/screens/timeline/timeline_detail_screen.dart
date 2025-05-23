@@ -268,7 +268,9 @@ class TimelineDetailScreen extends HookConsumerWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          timeline.mainCharacter!.persona,
+                                          timeline.mainCharacter!.name.isEmpty
+                                              ? 'Historical Figure'
+                                              : timeline.mainCharacter!.name,
                                           style: const TextStyle(
                                             color: AppColors.navyBlue,
                                             fontSize: 18,
@@ -276,9 +278,9 @@ class TimelineDetailScreen extends HookConsumerWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        const Text(
-                                          'Key Figure',
-                                          style: TextStyle(
+                                        Text(
+                                          timeline.mainCharacter!.persona,
+                                          style: const TextStyle(
                                             color: Colors.grey,
                                             fontSize: 14,
                                           ),
@@ -392,6 +394,7 @@ class TimelineDetailScreen extends HookConsumerWidget {
   }
 }
 
+// ignore: unused_element
 class _StoryCard extends StatelessWidget {
   final Story story;
   final VoidCallback onTap;

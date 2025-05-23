@@ -12,20 +12,22 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeNotifierProvider);
     final themeNotifier = ref.watch(themeModeNotifierProvider.notifier);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Settings',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.navyBlue,
+            color: isDarkMode ? Colors.white : AppColors.navyBlue,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.navyBlue),
+        iconTheme: IconThemeData(
+            color: isDarkMode ? Colors.white : AppColors.navyBlue),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -40,14 +42,15 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   _SettingsTile(
                     title: 'Edit Profile',
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.edit_outlined,
-                      color: AppColors.navyBlue,
+                      color:
+                          isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: isDarkMode ? Colors.grey : Colors.grey,
                     ),
                     onTap: () => context.push('/profile/edit'),
                   ),
@@ -57,10 +60,10 @@ class SettingsScreen extends ConsumerWidget {
                       Icons.delete_forever_outlined,
                       color: Colors.red,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: isDarkMode ? Colors.grey : Colors.grey,
                     ),
                     onTap: () {
                       // Navigate to delete account screen
@@ -76,29 +79,32 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // Appearance Section
-              // _SettingsSection(
-              //   title: 'Appearance',
-              //   icon: Icons.color_lens_outlined,
-              //   children: [
-              //     _SettingsTile(
-              //       title: 'Theme',
-              //       leading: Icon(
-              //         themeMode == ThemeMode.dark
-              //             ? Icons.dark_mode_outlined
-              //             : Icons.light_mode_outlined,
-              //         color: AppColors.navyBlue,
-              //       ),
-              //       trailing: Switch(
-              //         value: themeMode == ThemeMode.dark,
-              //         onChanged: (_) => themeNotifier.toggleTheme(),
-              //         activeColor: AppColors.limeGreen,
-              //         activeTrackColor: AppColors.navyBlue.withOpacity(0.5),
-              //       ),
-              //       onTap: () => themeNotifier.toggleTheme(),
-              //     ),
-              //   ],
-              // ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
+              // Accessibility Section
+              _SettingsSection(
+                title: 'Accessibility',
+                icon: Icons.accessibility_new_outlined,
+                children: [
+                  _SettingsTile(
+                    title: 'Dark Mode [BETA]',
+                    leading: Icon(
+                      themeMode == ThemeMode.dark
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      color:
+                          isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+                    ),
+                    trailing: Switch(
+                      value: themeMode == ThemeMode.dark,
+                      onChanged: (_) => themeNotifier.toggleTheme(),
+                      activeColor: AppColors.limeGreen,
+                      activeTrackColor: isDarkMode
+                          ? AppColors.limeGreen.withOpacity(0.3)
+                          : AppColors.navyBlue.withOpacity(0.5),
+                    ),
+                    onTap: () => themeNotifier.toggleTheme(),
+                  ),
+                ],
+              ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
 
               const SizedBox(height: 16),
 
@@ -145,16 +151,18 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: isDarkMode ? AppColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 2),
@@ -179,15 +187,14 @@ class _SettingsSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.white
-                        : AppColors.navyBlue,
+                    color: isDarkMode ? Colors.white : AppColors.navyBlue,
                   ),
                 ),
               ],
             ),
           ),
-          Divider(color: theme.dividerColor),
+          Divider(
+              color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200),
           ...children,
         ],
       ),
@@ -210,7 +217,7 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
@@ -231,9 +238,7 @@ class _SettingsTile extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 15,
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.black87,
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
                   ),
                 ),
               ),

@@ -22,6 +22,7 @@ MainCharacter _$MainCharacterFromJson(Map<String, dynamic> json) {
 mixin _$MainCharacter {
   String get id => throw _privateConstructorUsedError;
   String get avatarUrl => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
   String get persona => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
 
@@ -41,7 +42,12 @@ abstract class $MainCharacterCopyWith<$Res> {
           MainCharacter value, $Res Function(MainCharacter) then) =
       _$MainCharacterCopyWithImpl<$Res, MainCharacter>;
   @useResult
-  $Res call({String id, String avatarUrl, String persona, String? createdAt});
+  $Res call(
+      {String id,
+      String avatarUrl,
+      String name,
+      String persona,
+      String? createdAt});
 }
 
 /// @nodoc
@@ -61,6 +67,7 @@ class _$MainCharacterCopyWithImpl<$Res, $Val extends MainCharacter>
   $Res call({
     Object? id = null,
     Object? avatarUrl = null,
+    Object? name = null,
     Object? persona = null,
     Object? createdAt = freezed,
   }) {
@@ -72,6 +79,10 @@ class _$MainCharacterCopyWithImpl<$Res, $Val extends MainCharacter>
       avatarUrl: null == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
               as String,
       persona: null == persona
           ? _value.persona
@@ -93,7 +104,12 @@ abstract class _$$MainCharacterImplCopyWith<$Res>
       __$$MainCharacterImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String avatarUrl, String persona, String? createdAt});
+  $Res call(
+      {String id,
+      String avatarUrl,
+      String name,
+      String persona,
+      String? createdAt});
 }
 
 /// @nodoc
@@ -111,6 +127,7 @@ class __$$MainCharacterImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? avatarUrl = null,
+    Object? name = null,
     Object? persona = null,
     Object? createdAt = freezed,
   }) {
@@ -122,6 +139,10 @@ class __$$MainCharacterImplCopyWithImpl<$Res>
       avatarUrl: null == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
               as String,
       persona: null == persona
           ? _value.persona
@@ -141,6 +162,7 @@ class _$MainCharacterImpl implements _MainCharacter {
   const _$MainCharacterImpl(
       {required this.id,
       required this.avatarUrl,
+      required this.name,
       required this.persona,
       this.createdAt});
 
@@ -152,13 +174,15 @@ class _$MainCharacterImpl implements _MainCharacter {
   @override
   final String avatarUrl;
   @override
+  final String name;
+  @override
   final String persona;
   @override
   final String? createdAt;
 
   @override
   String toString() {
-    return 'MainCharacter(id: $id, avatarUrl: $avatarUrl, persona: $persona, createdAt: $createdAt)';
+    return 'MainCharacter(id: $id, avatarUrl: $avatarUrl, name: $name, persona: $persona, createdAt: $createdAt)';
   }
 
   @override
@@ -169,6 +193,7 @@ class _$MainCharacterImpl implements _MainCharacter {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
+            (identical(other.name, name) || other.name == name) &&
             (identical(other.persona, persona) || other.persona == persona) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
@@ -177,7 +202,7 @@ class _$MainCharacterImpl implements _MainCharacter {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, avatarUrl, persona, createdAt);
+      Object.hash(runtimeType, id, avatarUrl, name, persona, createdAt);
 
   /// Create a copy of MainCharacter
   /// with the given fields replaced by the non-null parameter values.
@@ -199,6 +224,7 @@ abstract class _MainCharacter implements MainCharacter {
   const factory _MainCharacter(
       {required final String id,
       required final String avatarUrl,
+      required final String name,
       required final String persona,
       final String? createdAt}) = _$MainCharacterImpl;
 
@@ -209,6 +235,8 @@ abstract class _MainCharacter implements MainCharacter {
   String get id;
   @override
   String get avatarUrl;
+  @override
+  String get name;
   @override
   String get persona;
   @override

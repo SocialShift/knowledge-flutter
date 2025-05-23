@@ -18,6 +18,16 @@ class QuizScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300;
+
     // State variables
     final currentQuestionIndex = useState(0);
     final selectedOptionId = useState<String?>(null);
@@ -83,17 +93,18 @@ class QuizScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: quizAsync.when(
-        loading: () => const Center(
+        loading: () => Center(
             child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
+          valueColor: AlwaysStoppedAnimation<Color>(
+              isDarkMode ? AppColors.limeGreen : AppColors.navyBlue),
         )),
         error: (error, stack) => Center(
           child: SelectableText.rich(
             TextSpan(
               text: 'Error loading quiz: ',
-              style: const TextStyle(color: AppColors.navyBlue),
+              style: TextStyle(color: textColor),
               children: [
                 TextSpan(
                   text: error.toString(),
@@ -128,12 +139,14 @@ class QuizScreen extends HookConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.navyBlue.withOpacity(0.1),
+                            color: isDarkMode
+                                ? Colors.grey.shade800.withOpacity(0.5)
+                                : AppColors.navyBlue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back,
-                            color: AppColors.navyBlue,
+                            color: textColor,
                             size: 20,
                           ),
                         ),
@@ -143,26 +156,26 @@ class QuizScreen extends HookConsumerWidget {
                       storyAsync.when(
                         data: (story) => Text(
                           story.title,
-                          style: const TextStyle(
-                            color: AppColors.navyBlue,
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        loading: () => const Text(
+                        loading: () => Text(
                           'Quiz',
                           style: TextStyle(
-                            color: AppColors.navyBlue,
+                            color: textColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        error: (_, __) => const Text(
+                        error: (_, __) => Text(
                           'Quiz',
                           style: TextStyle(
-                            color: AppColors.navyBlue,
+                            color: textColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
@@ -186,8 +199,12 @@ class QuizScreen extends HookConsumerWidget {
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
                           color: index == currentQuestionIndex.value
-                              ? AppColors.navyBlue
-                              : AppColors.navyBlue.withOpacity(0.3),
+                              ? (isDarkMode
+                                  ? AppColors.limeGreen
+                                  : AppColors.navyBlue)
+                              : (isDarkMode
+                                  ? AppColors.limeGreen.withOpacity(0.3)
+                                  : AppColors.navyBlue.withOpacity(0.3)),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -200,8 +217,8 @@ class QuizScreen extends HookConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Text(
                     '0${currentQuestionIndex.value + 1} Question /${totalQuestions < 10 ? '0$totalQuestions' : totalQuestions}',
-                    style: const TextStyle(
-                      color: AppColors.navyBlue,
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -215,8 +232,8 @@ class QuizScreen extends HookConsumerWidget {
                   child: Text(
                     currentQuestion.text,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.navyBlue,
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -234,18 +251,25 @@ class QuizScreen extends HookConsumerWidget {
                         final isSelected = selectedOptionId.value == option.id;
 
                         // Determine option color based on state
-                        Color optionColor = Colors.white;
+                        Color optionColor =
+                            isDarkMode ? AppColors.darkCard : Colors.white;
                         if (hasSubmitted.value) {
                           if (option.isCorrect) {
                             // Always highlight the correct answer after submission
-                            optionColor = Colors.green.shade100;
+                            optionColor = isDarkMode
+                                ? Colors.green.shade900
+                                : Colors.green.shade100;
                           } else if (isSelected && !option.isCorrect) {
                             // Highlight wrong selection in red
-                            optionColor = Colors.red.shade100;
+                            optionColor = isDarkMode
+                                ? Colors.red.shade900
+                                : Colors.red.shade100;
                           }
                         } else if (isSelected) {
                           // Selected but not submitted yet
-                          optionColor = AppColors.navyBlue.withOpacity(0.1);
+                          optionColor = isDarkMode
+                              ? AppColors.navyBlue.withOpacity(0.3)
+                              : AppColors.navyBlue.withOpacity(0.1);
                         }
 
                         return Padding(
@@ -263,13 +287,16 @@ class QuizScreen extends HookConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppColors.navyBlue
-                                      : Colors.grey.shade300,
+                                      ? (isDarkMode
+                                          ? AppColors.limeGreen
+                                          : AppColors.navyBlue)
+                                      : borderColor,
                                   width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black
+                                        .withOpacity(isDarkMode ? 0.2 : 0.05),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -283,8 +310,12 @@ class QuizScreen extends HookConsumerWidget {
                                     height: 32,
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? AppColors.navyBlue
-                                          : Colors.grey.shade200,
+                                          ? (isDarkMode
+                                              ? AppColors.limeGreen
+                                              : AppColors.navyBlue)
+                                          : (isDarkMode
+                                              ? Colors.grey.shade700
+                                              : Colors.grey.shade200),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Center(
@@ -293,7 +324,9 @@ class QuizScreen extends HookConsumerWidget {
                                         style: TextStyle(
                                           color: isSelected
                                               ? Colors.white
-                                              : Colors.black,
+                                              : (isDarkMode
+                                                  ? Colors.white70
+                                                  : Colors.black),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -305,7 +338,7 @@ class QuizScreen extends HookConsumerWidget {
                                     child: Text(
                                       option.text,
                                       style: TextStyle(
-                                        color: AppColors.navyBlue,
+                                        color: textColor,
                                         fontSize: 16,
                                         fontWeight: isSelected
                                             ? FontWeight.w600
@@ -325,7 +358,9 @@ class QuizScreen extends HookConsumerWidget {
                                           ? (option.isCorrect
                                               ? Colors.green
                                               : Colors.red)
-                                          : AppColors.navyBlue,
+                                          : (isDarkMode
+                                              ? AppColors.limeGreen
+                                              : AppColors.navyBlue),
                                       size: 24,
                                     ),
                                 ],
@@ -368,7 +403,8 @@ class QuizScreen extends HookConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black
+                                  .withOpacity(isDarkMode ? 0.2 : 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -423,12 +459,14 @@ class QuizScreen extends HookConsumerWidget {
                             ),
                           ),
                           child: isSubmittingQuiz.value
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.navyBlue),
+                                        isDarkMode
+                                            ? Colors.white
+                                            : AppColors.navyBlue),
                                     strokeWidth: 2,
                                   ),
                                 )

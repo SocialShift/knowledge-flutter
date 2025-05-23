@@ -24,19 +24,60 @@ class BaseGameScreen extends ConsumerStatefulWidget {
   ConsumerState<BaseGameScreen> createState() => _BaseGameScreenState();
 }
 
-class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
+class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
+    with TickerProviderStateMixin {
   bool _showFeedback = false;
   bool? _isCorrect;
   int? _selectedOptionId;
   GameOption? _correctOption;
 
+  // Animation controllers for gamification
+  late AnimationController _scoreAnimationController;
+  late AnimationController _progressAnimationController;
+  late AnimationController _feedbackAnimationController;
+
+  // Encouraging messages
+  final List<String> _encouragingMessages = [
+    "Great job! Keep it up! 🎉",
+    "You're on fire! 🔥",
+    "Excellent work! 🌟",
+    "Amazing! You're crushing it! 💪",
+    "Fantastic! Keep going! 🚀",
+    "Brilliant! You're doing great! ✨",
+    "Outstanding! 🏆",
+    "Superb! You're unstoppable! ⭐",
+  ];
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controllers
+    _scoreAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _progressAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _feedbackAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
     // Load questions when the screen is first shown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadQuestions();
     });
+  }
+
+  @override
+  void dispose() {
+    _scoreAnimationController.dispose();
+    _progressAnimationController.dispose();
+    _feedbackAnimationController.dispose();
+    super.dispose();
   }
 
   void _loadQuestions() async {
@@ -44,6 +85,9 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
       final questions =
           await ref.read(gameQuestionsProvider(widget.gameType).future);
       ref.read(gameStateNotifierProvider.notifier).setQuestions(questions);
+
+      // Animate progress bar
+      _progressAnimationController.forward();
     } catch (e) {
       print('Error loading questions: $e');
     }
@@ -61,31 +105,56 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
 
     if (currentQuestion == null) return;
 
-    // Find the correct option for showing feedback
+    // Find the selected option and correct option
+    final selectedOption = currentQuestion.options.firstWhere(
+      (option) => option.id == optionId,
+      orElse: () => currentQuestion.options.first,
+    );
+
     final correctOption = currentQuestion.options.firstWhere(
       (option) => option.isCorrect,
       orElse: () => currentQuestion.options.first,
     );
 
+    // Determine if answer is correct immediately from the option data
+    final isCorrect = selectedOption.isCorrect;
+
     setState(() {
       _selectedOptionId = optionId;
       _correctOption = correctOption;
-    });
-
-    // Submit the answer to update score
-    final isCorrect = await ref
-        .read(gameStateNotifierProvider.notifier)
-        .submitAnswer(optionId);
-
-    // Show feedback but don't automatically advance to next question
-    setState(() {
       _isCorrect = isCorrect;
       _showFeedback = true;
+    });
+
+    // Trigger feedback animation immediately
+    _feedbackAnimationController.forward();
+
+    // Trigger score animation if correct
+    if (isCorrect) {
+      _scoreAnimationController.forward().then((_) {
+        _scoreAnimationController.reset();
+      });
+
+      // Trigger haptic feedback for correct answer
+      HapticFeedback.lightImpact();
+    }
+
+    // Submit the answer to server in background (fire and forget)
+    // This updates the score and sends data to server without blocking UI
+    ref
+        .read(gameStateNotifierProvider.notifier)
+        .submitAnswer(optionId)
+        .catchError((error) {
+      // Handle any network errors silently or show a non-blocking notification
+      print('Error submitting answer to server: $error');
     });
   }
 
   void _goToNextQuestion() {
     final gameState = ref.read(gameStateNotifierProvider);
+
+    // Reset animations
+    _feedbackAnimationController.reset();
 
     setState(() {
       _showFeedback = false;
@@ -99,11 +168,34 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
     } else {
       // Move to the next question
       ref.read(gameStateNotifierProvider.notifier).nextQuestion();
+
+      // Update progress animation
+      final totalQuestions = gameState.questions.length;
+      final currentIndex = gameState.currentQuestionIndex;
+      final progress = (currentIndex + 1) / totalQuestions;
+
+      _progressAnimationController.animateTo(progress);
     }
+  }
+
+  String _getEncouragingMessage() {
+    final gameState = ref.read(gameStateNotifierProvider);
+    final score = gameState.score;
+
+    if (score >= 8) return _encouragingMessages[7]; // Outstanding
+    if (score >= 6) return _encouragingMessages[6]; // Excellent
+    if (score >= 4) return _encouragingMessages[5]; // Great
+    if (score >= 2) return _encouragingMessages[4]; // Good
+    return _encouragingMessages[0]; // Keep going
   }
 
   void _showGameOverDialog() {
     final gameState = ref.read(gameStateNotifierProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final dialogBgColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final totalQuestions = gameState.questions.length;
+    final percentage = ((gameState.score / totalQuestions) * 100).round();
 
     showDialog(
       context: context,
@@ -113,96 +205,160 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          backgroundColor: dialogBgColor,
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: dialogBgColor,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.emoji_events_outlined,
-                  size: 56,
-                  color: AppColors.limeGreen,
+                // Trophy icon with animation
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.limeGreen.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events_outlined,
+                    size: 40,
+                    color: AppColors.limeGreen,
+                  ),
                 ).animate().scale(
                       duration: const Duration(milliseconds: 500),
                       curve: Curves.elasticOut,
                     ),
                 const SizedBox(height: 20),
+
                 Text(
                   "Game Complete!",
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.navyBlue,
+                    color: textColor,
                   ),
                 ).animate().fadeIn(
                       duration: const Duration(milliseconds: 500),
                     ),
-                const SizedBox(height: 16),
-                Text(
-                  "Your Score: ${gameState.score}",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.navyBlue.withOpacity(0.8),
+                const SizedBox(height: 12),
+
+                // Score display with percentage
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.limeGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: AppColors.limeGreen.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "${gameState.score}/$totalQuestions",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.limeGreen,
+                        ),
+                      ),
+                      Text(
+                        "$percentage% Correct",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: textColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
                   ),
                 ).animate().fadeIn(
                       delay: const Duration(milliseconds: 200),
                       duration: const Duration(milliseconds: 500),
                     ),
+
+                const SizedBox(height: 16),
+
+                // Encouraging message
+                Text(
+                  _getEncouragingMessage(),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: textColor.withOpacity(0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn(
+                      delay: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 500),
+                    ),
+
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(
+                            color: isDarkMode
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          ref.read(gamesRefreshProvider.notifier).state++;
+                          context.go('/home');
+                        },
+                        child: Text(
+                          "Exit",
+                          style: TextStyle(
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : AppColors.navyBlue),
                         ),
-                      ),
-                      onPressed: () {
-                        // First close dialog
-                        Navigator.of(context).pop();
-
-                        // Trigger refresh on the games screen
-                        ref.read(gamesRefreshProvider.notifier).state++;
-
-                        // Navigate to home screen using GoRouter
-                        context.go('/home');
-                      },
-                      child: Text(
-                        "Exit",
-                        style: TextStyle(color: AppColors.navyBlue),
                       ),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          backgroundColor: AppColors.limeGreen,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        backgroundColor: AppColors.limeGreen,
-                        foregroundColor: AppColors.navyBlue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        onPressed: () {
+                          context.pop();
+                          ref
+                              .read(gameStateNotifierProvider.notifier)
+                              .restartGame();
+
+                          // Reset progress animation
+                          _progressAnimationController.reset();
+                          _progressAnimationController.forward();
+                        },
+                        child: const Text(
+                          "Play Again",
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ),
-                      onPressed: () {
-                        context.pop(); // Close dialog
-                        ref
-                            .read(gameStateNotifierProvider.notifier)
-                            .restartGame();
-                      },
-                      child: const Text(
-                        "Play Again",
-                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -223,220 +379,603 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
     final gameState = ref.watch(gameStateNotifierProvider);
     final currentQuestion = gameState.currentQuestion;
     final totalQuestions = gameState.questions.length;
+    final currentIndex = gameState.currentQuestionIndex;
+
+    // Theme-related variables
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // Top navigation bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.navyBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.navyBlue,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  // Title
-                  Text(
-                    widget.gameTitle,
-                    style: const TextStyle(
-                      color: AppColors.navyBlue,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Score indicator
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.limeGreen,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      "Score: ${gameState.score}",
-                      style: const TextStyle(
-                        color: AppColors.navyBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            // Enhanced top navigation with progress
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDarkMode ? AppColors.darkSurface : backgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-            ),
-
-            // Progress indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  totalQuestions,
-                  (index) => Container(
-                    width: index == gameState.currentQuestionIndex ? 24 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: index == gameState.currentQuestionIndex
-                          ? AppColors.navyBlue
-                          : AppColors.navyBlue.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Question number
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                '0${gameState.currentQuestionIndex + 1} Question /${totalQuestions < 10 ? '0$totalQuestions' : totalQuestions}',
-                style: const TextStyle(
-                  color: AppColors.navyBlue,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-            // Question text
-            if (currentQuestion != null)
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Text(
-                  currentQuestion.title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.navyBlue,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
-            // Content section
-            Expanded(
-              child: currentQuestion == null
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
-                      ),
-                    )
-                  : buildQuestionContent(currentQuestion),
-            ),
-
-            // Bottom area: Feedback and Next button
-            Padding(
-              padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Feedback when answer is submitted
-                  if (_showFeedback)
-                    Column(
-                      children: [
-                        Text(
-                          _isCorrect!
-                              ? 'Correct! Well done.'
-                              : 'Incorrect. The correct answer is:',
-                          style: TextStyle(
-                            color: _isCorrect! ? Colors.green : Colors.red,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      // Back button
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? Colors.grey.shade800.withOpacity(0.5)
+                                : AppColors.navyBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          textAlign: TextAlign.center,
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: textColor,
+                            size: 20,
+                          ),
                         ),
-
-                        // Show correct answer when wrong
-                        if (!_isCorrect! && _correctOption != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              _correctOption!.text,
-                              style: const TextStyle(
-                                color: Colors.green,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(width: 12),
+                      // Title
+                      Expanded(
+                        child: Text(
+                          widget.gameTitle,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // Animated score indicator
+                      AnimatedBuilder(
+                        animation: _scoreAnimationController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale:
+                                1.0 + (_scoreAnimationController.value * 0.2),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                              textAlign: TextAlign.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.limeGreen,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: _scoreAnimationController.value > 0
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.limeGreen
+                                              .withOpacity(0.3),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    size: 16,
+                                    color: Colors.black,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "${gameState.score}",
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Progress bar with question counter
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Question ${currentIndex + 1}",
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                      ],
-                    ),
+                          Text(
+                            "$totalQuestions Total",
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      AnimatedBuilder(
+                        animation: _progressAnimationController,
+                        builder: (context, child) {
+                          final progress = totalQuestions > 0
+                              ? (currentIndex + 1) / totalQuestions
+                              : 0.0;
+                          final animatedProgress =
+                              _progressAnimationController.value * progress;
 
-                  // Submit/Next button (similar to quiz screen)
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    margin: _showFeedback
-                        ? const EdgeInsets.only(top: 16)
-                        : EdgeInsets.zero,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      // Disable button when no option selected or when loading
-                      onPressed: _selectedOptionId == null
-                          ? null
-                          : () {
-                              if (!_showFeedback) {
-                                // Submit the answer
-                                _handleOptionSelected(_selectedOptionId!);
-                              } else {
-                                // Move to next question
-                                _goToNextQuestion();
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.limeGreen,
-                        foregroundColor: Colors.black,
-                        disabledBackgroundColor: Colors.grey.withOpacity(0.3),
-                        disabledForegroundColor: Colors.black.withOpacity(0.5),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                          return Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: LinearProgressIndicator(
+                                value: animatedProgress,
+                                backgroundColor: Colors.transparent,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.limeGreen,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      child: Text(
-                        !_showFeedback ? 'Submit' : 'Next',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
+              ),
+            ),
+
+            // Main content area with optimized layout
+            Expanded(
+              child: currentQuestion == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.limeGreen),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Loading questions...",
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Enhanced question card
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: isDarkMode
+                                      ? [
+                                          AppColors.darkCard,
+                                          AppColors.darkSurface
+                                        ]
+                                      : [Colors.white, AppColors.offWhite],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDarkMode
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade200,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black
+                                        .withOpacity(isDarkMode ? 0.2 : 0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Question header with icon
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.limeGreen
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          Icons.quiz_outlined,
+                                          color: AppColors.limeGreen,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          "Question",
+                                          style: TextStyle(
+                                            color: textColor.withOpacity(0.7),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  // Question text
+                                  Text(
+                                    currentQuestion.title,
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.4,
+                                    ),
+                                  ),
+
+                                  // Compact image section if exists
+                                  if (currentQuestion.imageUrl != null &&
+                                      currentQuestion.imageUrl!.isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        height: 140,
+                                        width: double.infinity,
+                                        color: isDarkMode
+                                            ? Colors.grey.shade800
+                                            : Colors.grey.shade100,
+                                        child: Image.network(
+                                          currentQuestion.imageUrl!,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                              AppColors
+                                                                  .limeGreen),
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    "Loading image...",
+                                                    style: TextStyle(
+                                                      color: textColor
+                                                          .withOpacity(0.5),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .image_not_supported_outlined,
+                                                    color: isDarkMode
+                                                        ? Colors.grey.shade600
+                                                        : Colors.grey.shade400,
+                                                    size: 32,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    "Image unavailable",
+                                                    style: TextStyle(
+                                                      color: textColor
+                                                          .withOpacity(0.5),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ).animate().fadeIn(
+                                duration: const Duration(milliseconds: 500)),
+
+                            const SizedBox(height: 20),
+
+                            // Options section with enhanced design
+                            ...currentQuestion.options
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              final index = entry.key;
+                              final option = entry.value;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildCompactOptionButton(
+                                        option, index, isDarkMode, textColor)
+                                    .animate(
+                                        delay:
+                                            Duration(milliseconds: 100 * index))
+                                    .slideX(
+                                        begin: 0.2,
+                                        duration:
+                                            const Duration(milliseconds: 300))
+                                    .fadeIn(),
+                              );
+                            }).toList(),
+
+                            const SizedBox(height: 20),
+
+                            // Enhanced feedback section
+                            if (_showFeedback)
+                              AnimatedBuilder(
+                                animation: _feedbackAnimationController,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: 0.9 +
+                                        (_feedbackAnimationController.value *
+                                            0.1),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: _isCorrect!
+                                              ? [
+                                                  Colors.green.withOpacity(0.1),
+                                                  Colors.green
+                                                      .withOpacity(0.05),
+                                                ]
+                                              : [
+                                                  Colors.red.withOpacity(0.1),
+                                                  Colors.red.withOpacity(0.05),
+                                                ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: _isCorrect!
+                                              ? Colors.green
+                                              : Colors.red,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: (_isCorrect!
+                                                          ? Colors.green
+                                                          : Colors.red)
+                                                      .withOpacity(0.1),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  _isCorrect!
+                                                      ? Icons.check
+                                                      : Icons.close,
+                                                  color: _isCorrect!
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  _isCorrect!
+                                                      ? 'Correct! Well done! 🎉'
+                                                      : 'Not quite right 😅',
+                                                  style: TextStyle(
+                                                    color: _isCorrect!
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (!_isCorrect! &&
+                                              _correctOption != null) ...[
+                                            const SizedBox(height: 12),
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green
+                                                    .withOpacity(0.05),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: Colors.green
+                                                      .withOpacity(0.2),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.lightbulb_outline,
+                                                    color: Colors.green,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Correct answer: ${_correctOption!.text}',
+                                                      style: TextStyle(
+                                                        color: Colors.green,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+
+            // Enhanced fixed bottom button area
+            Container(
+              padding: const EdgeInsets.fromLTRB(
+                  16, 16, 16, 20), // Fixed bottom padding
+              decoration: BoxDecoration(
+                color: isDarkMode ? AppColors.darkSurface : backgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56, // Increased height to prevent text cutoff
+                  child: ElevatedButton(
+                    // Disable button when no option selected
+                    onPressed: _selectedOptionId == null
+                        ? null
+                        : () {
+                            if (!_showFeedback) {
+                              // Submit the answer
+                              _handleOptionSelected(_selectedOptionId!);
+                            } else {
+                              // Move to next question
+                              _goToNextQuestion();
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.limeGreen,
+                      foregroundColor: Colors.black,
+                      disabledBackgroundColor: isDarkMode
+                          ? Colors.grey.shade800.withOpacity(0.5)
+                          : Colors.grey.withOpacity(0.3),
+                      disabledForegroundColor: isDarkMode
+                          ? Colors.grey.shade500
+                          : Colors.black.withOpacity(0.5),
+                      elevation: _selectedOptionId != null ? 4 : 0,
+                      shadowColor: AppColors.limeGreen.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          !_showFeedback
+                              ? Icons.send_rounded
+                              : Icons.arrow_forward_rounded,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          !_showFeedback ? 'Submit Answer' : 'Next Question',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      .animate(target: _selectedOptionId != null ? 1 : 0)
+                      .shimmer(duration: const Duration(milliseconds: 1000)),
+                ),
               ),
             ),
           ],
@@ -445,188 +984,155 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen> {
     );
   }
 
-  // This method should be overridden by subclasses to provide specific UI
-  @protected
-  Widget buildQuestionContent(GameQuestion question) {
-    // Check if the question has an image (for image-based games)
-    final hasImage = question.imageUrl != null && question.imageUrl!.isNotEmpty;
-
-    return Column(
-      children: [
-        // Display the image if it exists
-        if (hasImage)
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.grey.shade200,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                question.imageUrl!,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.grey.shade400,
-                          size: 32,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Failed to load image",
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
-
-        // Options list
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: ListView.builder(
-              itemCount: question.options.length,
-              itemBuilder: (context, index) {
-                final option = question.options[index];
-                return buildOptionButton(option, index);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Helper method to build option buttons with new design
-  @protected
-  Widget buildOptionButton(GameOption option, int index) {
+  // Enhanced compact option button design
+  Widget _buildCompactOptionButton(
+      GameOption option, int index, bool isDarkMode, Color textColor) {
     final isSelected = _selectedOptionId == option.id;
-
-    // Get feedback state - correct or incorrect selection
-    final isCorrectOption = option.isCorrect;
     final isIncorrectSelection =
         isSelected && !option.isCorrect && _showFeedback;
-    final isCorrectSelection = isSelected && option.isCorrect && _showFeedback;
     final isCorrectAnswer = option.isCorrect && _showFeedback;
 
     // Determine option color based on state
-    Color optionColor = Colors.white;
+    Color optionColor = isDarkMode ? AppColors.darkSurface : Colors.white;
+    Color borderColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+
     if (isCorrectAnswer) {
-      // Always highlight the correct answer after submission
-      optionColor = Colors.green.shade100;
+      optionColor = isDarkMode ? Colors.green.shade900 : Colors.green.shade50;
+      borderColor = Colors.green;
     } else if (isIncorrectSelection) {
-      // Highlight wrong selection in red
-      optionColor = Colors.red.shade100;
+      optionColor = isDarkMode ? Colors.red.shade900 : Colors.red.shade50;
+      borderColor = Colors.red;
     } else if (isSelected) {
-      // Selected but not submitted yet
-      optionColor = AppColors.navyBlue.withOpacity(0.1);
+      optionColor = isDarkMode
+          ? AppColors.limeGreen.withOpacity(0.15)
+          : AppColors.limeGreen.withOpacity(0.08);
+      borderColor = AppColors.limeGreen;
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: GestureDetector(
-        onTap: _showFeedback
-            ? null
-            : () => setState(() => _selectedOptionId = option.id),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: optionColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? AppColors.navyBlue : Colors.grey.shade300,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return GestureDetector(
+      onTap: _showFeedback
+          ? null
+          : () {
+              setState(() => _selectedOptionId = option.id);
+              HapticFeedback.selectionClick();
+            },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: optionColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: borderColor,
+            width: isSelected ? 2 : 1,
           ),
-          child: Row(
-            children: [
-              // Option letter (A, B, C, D)
+          boxShadow: isSelected && !_showFeedback
+              ? [
+                  BoxShadow(
+                    color: AppColors.limeGreen.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        child: Row(
+          children: [
+            // Enhanced option letter circle
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [
+                          AppColors.limeGreen,
+                          AppColors.limeGreen.withOpacity(0.8)
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: !isSelected
+                    ? (isDarkMode ? Colors.grey.shade700 : Colors.grey.shade100)
+                    : null,
+                shape: BoxShape.circle,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.limeGreen.withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  String.fromCharCode(65 + index),
+                  style: TextStyle(
+                    color: isSelected
+                        ? Colors.black
+                        : (isDarkMode ? Colors.white : Colors.black87),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Option text
+            Expanded(
+              child: Text(
+                option.text,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            // Status icon for feedback
+            if (_showFeedback && (isSelected || option.isCorrect))
               Container(
-                width: 32,
-                height: 32,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.navyBlue : Colors.grey.shade200,
+                  color: (option.isCorrect ? Colors.green : Colors.red)
+                      .withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Text(
-                    String.fromCharCode(65 + index),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                child: Icon(
+                  option.isCorrect ? Icons.check_rounded : Icons.close_rounded,
+                  color: option.isCorrect ? Colors.green : Colors.red,
+                  size: 18,
                 ),
               ),
-              const SizedBox(width: 16),
-              // Option text
-              Expanded(
-                child: Text(
-                  option.text,
-                  style: TextStyle(
-                    color: AppColors.navyBlue,
-                    fontSize: 16,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-              // Checkmark for selected option
-              if (isSelected)
-                Icon(
-                  _showFeedback
-                      ? (option.isCorrect ? Icons.check_circle : Icons.cancel)
-                      : Icons.check_circle,
-                  color: _showFeedback
-                      ? (option.isCorrect ? Colors.green : Colors.red)
-                      : AppColors.navyBlue,
-                  size: 24,
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  // This method should be overridden by subclasses to provide specific UI
+  @protected
+  Widget buildQuestionContent(
+      GameQuestion question, bool isDarkMode, Color textColor) {
+    // This method is kept for backward compatibility but the new layout
+    // handles content directly in the build method
+    return const SizedBox.shrink();
+  }
+
+  // Helper method to build option buttons - kept for backward compatibility
+  @protected
+  Widget buildOptionButton(
+      GameOption option, int index, bool isDarkMode, Color textColor) {
+    return _buildCompactOptionButton(option, index, isDarkMode, textColor);
   }
 }

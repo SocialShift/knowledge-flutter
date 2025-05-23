@@ -82,7 +82,19 @@ class EditProfileScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.grey[50];
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final dividerColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300;
+    final fieldColor = isDarkMode ? AppColors.darkSurface : Colors.white;
+
     final profileAsync = ref.watch(userProfileProvider);
     final profileNotifier = ref.watch(profileNotifierProvider.notifier);
     final isLoading = useState(false);
@@ -124,7 +136,8 @@ class EditProfileScreen extends HookConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('Image selected successfully'),
-                backgroundColor: AppColors.navyBlue,
+                backgroundColor:
+                    isDarkMode ? AppColors.darkCard : AppColors.navyBlue,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -187,7 +200,7 @@ class EditProfileScreen extends HookConsumerWidget {
         if (context.mounted) {
           context.pop();
           // Refresh profile data
-          ref.refresh(userProfileProvider);
+          ref.invalidate(userProfileProvider);
         }
       } catch (e) {
         if (context.mounted) {
@@ -209,19 +222,19 @@ class EditProfileScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Edit Profile',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.navyBlue,
+            color: textColor,
           ),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: AppColors.navyBlue),
+        iconTheme: IconThemeData(color: textColor),
         actions: [
           // Save button in the app bar (primary save location)
           TextButton.icon(
@@ -263,7 +276,7 @@ class EditProfileScreen extends HookConsumerWidget {
                 ),
                 TextSpan(
                   text: error.toString(),
-                  style: TextStyle(color: Colors.grey[800]),
+                  style: TextStyle(color: secondaryTextColor),
                 ),
               ],
             ),
@@ -304,7 +317,9 @@ class EditProfileScreen extends HookConsumerWidget {
                                   tag: 'profileAvatar',
                                   child: CircleAvatar(
                                     radius: 55,
-                                    backgroundColor: Colors.white,
+                                    backgroundColor: isDarkMode
+                                        ? AppColors.darkCard
+                                        : Colors.white,
                                     child: ClipOval(
                                       child: selectedImage.value != null
                                           ? Image.file(
@@ -354,7 +369,7 @@ class EditProfileScreen extends HookConsumerWidget {
                         Text(
                           'Tap to change profile photo',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: secondaryTextColor,
                             fontSize: 14,
                           ),
                         ).animate().fadeIn(),
@@ -374,6 +389,11 @@ class EditProfileScreen extends HookConsumerWidget {
                         nicknameController,
                         Icons.person_outline,
                         required: true,
+                        isDarkMode: isDarkMode,
+                        fieldColor: fieldColor,
+                        borderColor: borderColor,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
                       ),
                       const SizedBox(height: 16),
                       _buildDropdownField(
@@ -390,6 +410,11 @@ class EditProfileScreen extends HookConsumerWidget {
                           }
                         },
                         required: true,
+                        isDarkMode: isDarkMode,
+                        fieldColor: fieldColor,
+                        borderColor: borderColor,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
                       ),
                       const SizedBox(height: 16),
                       _buildInfoField(
@@ -399,8 +424,20 @@ class EditProfileScreen extends HookConsumerWidget {
                         Icons.email_outlined,
                         enabled: false,
                         helperText: 'Your email cannot be changed',
+                        isDarkMode: isDarkMode,
+                        fieldColor: isDarkMode
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade100,
+                        borderColor: borderColor,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
                       ),
                     ],
+                    isDarkMode: isDarkMode,
+                    cardColor: cardColor,
+                    borderColor: borderColor,
+                    textColor: textColor,
+                    dividerColor: dividerColor,
                   ).animate().fadeIn().slideY(
                         begin: 0.1,
                         delay: const Duration(milliseconds: 200),
@@ -428,6 +465,11 @@ class EditProfileScreen extends HookConsumerWidget {
                             selectedState.value = value;
                           }
                         },
+                        isDarkMode: isDarkMode,
+                        fieldColor: fieldColor,
+                        borderColor: borderColor,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
                       ),
                       const SizedBox(height: 16),
                       _buildDropdownField(
@@ -441,8 +483,18 @@ class EditProfileScreen extends HookConsumerWidget {
                             selectedLanguage.value = value;
                           }
                         },
+                        isDarkMode: isDarkMode,
+                        fieldColor: fieldColor,
+                        borderColor: borderColor,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
                       ),
                     ],
+                    isDarkMode: isDarkMode,
+                    cardColor: cardColor,
+                    borderColor: borderColor,
+                    textColor: textColor,
+                    dividerColor: dividerColor,
                   ).animate().fadeIn().slideY(
                         begin: 0.1,
                         delay: const Duration(milliseconds: 300),
@@ -465,12 +517,18 @@ class EditProfileScreen extends HookConsumerWidget {
     required String title,
     required IconData icon,
     required List<Widget> children,
+    required bool isDarkMode,
+    required Color cardColor,
+    required Color borderColor,
+    required Color textColor,
+    required Color dividerColor,
   }) {
     return Card(
       elevation: 0,
+      color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: borderColor),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Padding(
@@ -483,21 +541,21 @@ class EditProfileScreen extends HookConsumerWidget {
               children: [
                 Icon(
                   icon,
-                  color: AppColors.navyBlue,
+                  color: textColor,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.navyBlue,
+                    color: textColor,
                   ),
                 ),
               ],
             ),
-            const Divider(height: 24),
+            Divider(height: 24, color: dividerColor),
             ...children,
           ],
         ),
@@ -513,6 +571,11 @@ class EditProfileScreen extends HookConsumerWidget {
     bool enabled = true,
     bool required = false,
     String? helperText,
+    required bool isDarkMode,
+    required Color fieldColor,
+    required Color borderColor,
+    required Color textColor,
+    required Color secondaryTextColor,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,7 +585,7 @@ class EditProfileScreen extends HookConsumerWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.grey.shade700,
+                color: secondaryTextColor,
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),
@@ -544,32 +607,39 @@ class EditProfileScreen extends HookConsumerWidget {
           controller: controller,
           enabled: enabled,
           style: TextStyle(
-            color: enabled ? Colors.grey.shade800 : Colors.grey.shade500,
+            color: enabled ? textColor : secondaryTextColor,
           ),
           decoration: InputDecoration(
             hintText: 'Enter your $label',
+            hintStyle: TextStyle(
+              color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade500,
+            ),
             helperText: helperText,
             helperStyle: TextStyle(
-              color: Colors.grey.shade500,
+              color: secondaryTextColor,
               fontSize: 12,
             ),
             prefixIcon: Icon(
               icon,
-              color: enabled ? AppColors.navyBlue : Colors.grey,
+              color: enabled
+                  ? (isDarkMode ? AppColors.limeGreen : AppColors.navyBlue)
+                  : Colors.grey,
               size: 20,
             ),
             filled: true,
-            fillColor: enabled ? Colors.white : Colors.grey.shade100,
+            fillColor: enabled
+                ? fieldColor
+                : (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.grey.shade300,
+                color: borderColor,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.grey.shade300,
+                color: borderColor,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -597,6 +667,11 @@ class EditProfileScreen extends HookConsumerWidget {
     IconData icon,
     Function(String?)? onChanged, {
     bool required = false,
+    required bool isDarkMode,
+    required Color fieldColor,
+    required Color borderColor,
+    required Color textColor,
+    required Color secondaryTextColor,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,7 +681,7 @@ class EditProfileScreen extends HookConsumerWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.grey.shade700,
+                color: secondaryTextColor,
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),
@@ -626,26 +701,27 @@ class EditProfileScreen extends HookConsumerWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.navyBlue),
-          dropdownColor: Colors.white,
+          icon: Icon(Icons.arrow_drop_down,
+              color: isDarkMode ? AppColors.limeGreen : AppColors.navyBlue),
+          dropdownColor: isDarkMode ? AppColors.darkSurface : Colors.white,
           decoration: InputDecoration(
             prefixIcon: Icon(
               icon,
-              color: AppColors.navyBlue,
+              color: isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
               size: 20,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: fieldColor,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.grey.shade300,
+                color: borderColor,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.grey.shade300,
+                color: borderColor,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -663,14 +739,17 @@ class EditProfileScreen extends HookConsumerWidget {
           hint: Text(
             'Select your $label',
             style: TextStyle(
-              color: Colors.grey.shade500,
+              color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade500,
             ),
           ),
           isExpanded: true,
           items: options.map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value),
+              child: Text(
+                value,
+                style: TextStyle(color: textColor),
+              ),
             );
           }).toList(),
           onChanged: onChanged,

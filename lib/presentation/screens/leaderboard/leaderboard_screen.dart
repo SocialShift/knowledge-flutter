@@ -11,6 +11,16 @@ class LeaderboardScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black54;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+    final cardBorderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+
     // Fetch leaderboard data
     final leaderboardAsync = ref.watch(leaderboardProvider);
 
@@ -20,7 +30,7 @@ class LeaderboardScreen extends HookConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: RefreshIndicator(
         onRefresh: () async {
           refreshLeaderboard();
@@ -28,21 +38,26 @@ class LeaderboardScreen extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 500));
         },
         color: AppColors.limeGreen,
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         child: Stack(
           children: [
             // Background gradient only for the top section
             Container(
               height: 220, // Just enough for the header
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.lightPurple,
-                    AppColors.navyBlue,
-                  ],
-                  stops: [0.0, 0.7],
+                  colors: isDarkMode
+                      ? [
+                          AppColors.darkSurface,
+                          AppColors.darkBackground,
+                        ]
+                      : [
+                          AppColors.lightPurple,
+                          AppColors.navyBlue,
+                        ],
+                  stops: const [0.0, 0.7],
                 ),
               ),
             ),
@@ -155,9 +170,9 @@ class LeaderboardScreen extends HookConsumerWidget {
                 // White background container that scrolls with content
                 SliverToBoxAdapter(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20),
                       ),
@@ -186,24 +201,27 @@ class LeaderboardScreen extends HookConsumerWidget {
                                     value: '12',
                                     label: 'Medals',
                                     color: AppColors.limeGreen,
+                                    isDarkMode: isDarkMode,
                                   ),
                                   _StatCard(
                                     icon: Icons.psychology,
                                     value: '85%',
                                     label: 'Quiz',
                                     color: AppColors.navyBlue,
+                                    isDarkMode: isDarkMode,
                                   ),
                                   _StatCard(
                                     icon: Icons.local_fire_department,
                                     value: currentStreak,
                                     label: 'Streak',
                                     color: AppColors.lightPurple,
+                                    isDarkMode: isDarkMode,
                                   ),
                                 ],
                               ),
                             ).animate().fadeIn().slideY(begin: 0.2);
                           },
-                          loading: () => _buildStatsSkeleton(),
+                          loading: () => _buildStatsSkeleton(isDarkMode),
                           error: (error, _) => Padding(
                             padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
                             child: Row(
@@ -213,18 +231,21 @@ class LeaderboardScreen extends HookConsumerWidget {
                                   value: '0',
                                   label: 'Medals',
                                   color: AppColors.limeGreen,
+                                  isDarkMode: isDarkMode,
                                 ),
                                 _StatCard(
                                   icon: Icons.psychology,
                                   value: '0%',
                                   label: 'Quiz Score',
                                   color: AppColors.navyBlue,
+                                  isDarkMode: isDarkMode,
                                 ),
                                 _StatCard(
                                   icon: Icons.local_fire_department,
                                   value: '0',
                                   label: 'Day Streak',
                                   color: AppColors.lightPurple,
+                                  isDarkMode: isDarkMode,
                                 ),
                               ],
                             ),
@@ -239,7 +260,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               Text(
                                 'Recent Achievements',
                                 style: TextStyle(
-                                  color: AppColors.navyBlue,
+                                  color: textColor,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -278,6 +299,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               final achievement = _demoAchievements[index];
                               return _AchievementCard(
                                 achievement: achievement,
+                                isDarkMode: isDarkMode,
                               ).animate().fadeIn(
                                     delay: Duration(milliseconds: index * 100),
                                   );
@@ -293,7 +315,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                               Text(
                                 'Top Learners',
                                 style: TextStyle(
-                                  color: AppColors.navyBlue,
+                                  color: textColor,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -329,6 +351,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                                 return _LeaderboardItem(
                                   rank: user.rank,
                                   user: user,
+                                  isDarkMode: isDarkMode,
                                 ).animate().fadeIn(
                                       delay:
                                           Duration(milliseconds: index * 100),
@@ -336,13 +359,13 @@ class LeaderboardScreen extends HookConsumerWidget {
                               },
                             );
                           },
-                          loading: () => _buildLeaderboardSkeleton(),
+                          loading: () => _buildLeaderboardSkeleton(isDarkMode),
                           error: (error, _) => Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Center(
                               child: Text(
                                 'Error loading leaderboard: $error',
-                                style: TextStyle(color: AppColors.navyBlue),
+                                style: TextStyle(color: textColor),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -405,7 +428,14 @@ class LeaderboardScreen extends HookConsumerWidget {
         );
   }
 
-  Widget _buildStatsSkeleton() {
+  Widget _buildStatsSkeleton(bool isDarkMode) {
+    final skeletonColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100;
+    final skeletonHighlightColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       child: Row(
@@ -416,10 +446,10 @@ class LeaderboardScreen extends HookConsumerWidget {
               margin: const EdgeInsets.symmetric(horizontal: 8),
               height: 106,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: skeletonColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.grey.shade200,
+                  color: borderColor,
                   width: 2,
                 ),
               ),
@@ -430,7 +460,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                     height: 32,
                     width: 32,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: skeletonHighlightColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -439,7 +469,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                     height: 24,
                     width: 50,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: skeletonHighlightColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -448,7 +478,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                     height: 12,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: skeletonHighlightColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -465,7 +495,14 @@ class LeaderboardScreen extends HookConsumerWidget {
         );
   }
 
-  Widget _buildLeaderboardSkeleton() {
+  Widget _buildLeaderboardSkeleton(bool isDarkMode) {
+    final skeletonColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50;
+    final skeletonHighlightColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+    final borderColor =
+        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -476,10 +513,10 @@ class LeaderboardScreen extends HookConsumerWidget {
             padding: const EdgeInsets.all(16),
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: skeletonColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.grey.shade200,
+                color: borderColor,
                 width: 2,
               ),
             ),
@@ -490,7 +527,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: skeletonHighlightColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -500,7 +537,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: skeletonHighlightColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -515,7 +552,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                         height: 16,
                         width: 120,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: skeletonHighlightColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
@@ -524,7 +561,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                         height: 12,
                         width: 80,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: skeletonHighlightColor,
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -536,7 +573,7 @@ class LeaderboardScreen extends HookConsumerWidget {
                   height: 28,
                   width: 70,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: skeletonHighlightColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -558,16 +595,22 @@ class _StatCard extends StatelessWidget {
   final String value;
   final String label;
   final Color color;
+  final bool isDarkMode;
 
   const _StatCard({
     required this.icon,
     required this.value,
     required this.label,
     required this.color,
+    required this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
+    final borderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+    final labelColor = isDarkMode ? Colors.white70 : Colors.black87;
+
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -576,7 +619,7 @@ class _StatCard extends StatelessWidget {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.grey.shade300,
+            color: borderColor,
             width: 2,
           ),
         ),
@@ -596,7 +639,7 @@ class _StatCard extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.black87,
+                color: labelColor,
                 fontSize: 12,
               ),
             ),
@@ -623,18 +666,26 @@ class Achievement {
 
 class _AchievementCard extends StatelessWidget {
   final Achievement achievement;
+  final bool isDarkMode;
 
-  const _AchievementCard({required this.achievement});
+  const _AchievementCard({
+    required this.achievement,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final borderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+    final textColor = isDarkMode ? Colors.white70 : Colors.black87;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey.shade300,
+          color: borderColor,
           width: 2,
         ),
       ),
@@ -664,7 +715,7 @@ class _AchievementCard extends StatelessWidget {
             child: Text(
               achievement.description,
               style: TextStyle(
-                color: Colors.black87,
+                color: textColor,
                 fontSize: 12,
               ),
               textAlign: TextAlign.center,
@@ -681,14 +732,21 @@ class _AchievementCard extends StatelessWidget {
 class _LeaderboardItem extends StatelessWidget {
   final int rank;
   final LeaderboardUser user;
+  final bool isDarkMode;
 
   const _LeaderboardItem({
     required this.rank,
     required this.user,
+    required this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
+    final borderColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final secondaryTextColor = isDarkMode ? Colors.white70 : Colors.black54;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -696,7 +754,7 @@ class _LeaderboardItem extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey.shade300,
+          color: borderColor,
           width: 2,
         ),
       ),
@@ -738,7 +796,7 @@ class _LeaderboardItem extends StatelessWidget {
                 Text(
                   user.nickname,
                   style: TextStyle(
-                    color: AppColors.navyBlue,
+                    color: textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -746,7 +804,7 @@ class _LeaderboardItem extends StatelessWidget {
                 Text(
                   user.badge,
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: secondaryTextColor,
                     fontSize: 12,
                   ),
                 ),
@@ -764,8 +822,8 @@ class _LeaderboardItem extends StatelessWidget {
             ),
             child: Text(
               '${user.points} pts',
-              style: const TextStyle(
-                color: AppColors.navyBlue,
+              style: TextStyle(
+                color: textColor,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -159,7 +159,7 @@ class _GameQuestionsProviderElement
   int get gameType => (origin as GameQuestionsProvider).gameType;
 }
 
-String _$gameStateNotifierHash() => r'5939173b54d83774372356e03ecea92bbecfb5bb';
+String _$gameStateNotifierHash() => r'1f23412ef96c92765477c2b1b1ceffaca516ee00';
 
 /// See also [GameStateNotifier].
 @ProviderFor(GameStateNotifier)

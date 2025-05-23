@@ -8,6 +8,7 @@ class CircularTimeline extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onPeriodSelected;
   final List<String>? timelineIds;
+  final ScrollController? scrollController;
 
   const CircularTimeline({
     super.key,
@@ -15,6 +16,7 @@ class CircularTimeline extends StatelessWidget {
     required this.selectedIndex,
     required this.onPeriodSelected,
     this.timelineIds,
+    this.scrollController,
   });
 
   @override
@@ -26,6 +28,7 @@ class CircularTimeline extends StatelessWidget {
           // Main timeline content
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               // Add +1 to itemCount to include the "End!" label
@@ -121,48 +124,44 @@ class CircularTimeline extends StatelessWidget {
                                         ]
                                       : [],
                                 ),
-                                child: Center(
-                                  child: Hero(
-                                    tag: timelineId != null
-                                        ? 'timeline_$timelineId'
-                                        : 'timeline_${period.year}',
-                                    child: ClipOval(
-                                      child: CachedNetworkImage(
-                                        imageUrl: period.imageUrl,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                        // Optimize image cache settings for iOS
-                                        memCacheWidth: 160,
-                                        memCacheHeight: 160,
-                                        maxWidthDiskCache: 240,
-                                        maxHeightDiskCache: 240,
-                                        fadeInDuration:
-                                            const Duration(milliseconds: 100),
-                                        filterQuality: FilterQuality.medium,
-                                        placeholder: (context, url) =>
-                                            Container(
-                                          color: Colors.grey[800],
-                                          child: const Center(
-                                            child: SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                            Color>(
-                                                        AppColors.limeGreen),
-                                                strokeWidth: 2,
-                                              ),
+                                child: Hero(
+                                  tag: timelineId != null
+                                      ? 'timeline_$timelineId'
+                                      : 'timeline_${period.year}',
+                                  child: ClipOval(
+                                    child: CachedNetworkImage(
+                                      imageUrl: period.imageUrl,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      // Optimize image cache settings for iOS
+                                      memCacheWidth: 160,
+                                      memCacheHeight: 160,
+                                      maxWidthDiskCache: 240,
+                                      maxHeightDiskCache: 240,
+                                      fadeInDuration:
+                                          const Duration(milliseconds: 100),
+                                      filterQuality: FilterQuality.medium,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[800],
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      AppColors.limeGreen),
+                                              strokeWidth: 2,
                                             ),
                                           ),
                                         ),
-                                        errorWidget: (context, url, error) =>
-                                            Container(
-                                          color: Colors.grey[800],
-                                          child: const Icon(Icons.error,
-                                              color: Colors.white54),
-                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Container(
+                                        color: Colors.grey[800],
+                                        child: const Icon(Icons.error,
+                                            color: Colors.white54),
                                       ),
                                     ),
                                   ),

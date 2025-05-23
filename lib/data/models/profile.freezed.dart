@@ -34,8 +34,7 @@ mixin _$Profile {
   String? get joinedDate => throw _privateConstructorUsedError;
   Map<String, dynamic>? get followers => throw _privateConstructorUsedError;
   Map<String, dynamic>? get following =>
-      throw _privateConstructorUsedError; // Whether the current user is following this profile
-  bool? get isFollowing => throw _privateConstructorUsedError; // Stats fields
+      throw _privateConstructorUsedError; // Stats fields
   int? get rank => throw _privateConstructorUsedError;
   int? get totalUsers => throw _privateConstructorUsedError;
   int? get percentile => throw _privateConstructorUsedError;
@@ -74,7 +73,6 @@ abstract class $ProfileCopyWith<$Res> {
       String? joinedDate,
       Map<String, dynamic>? followers,
       Map<String, dynamic>? following,
-      bool? isFollowing,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -114,7 +112,6 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? joinedDate = freezed,
     Object? followers = freezed,
     Object? following = freezed,
-    Object? isFollowing = freezed,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -178,10 +175,6 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.following
           : following // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
-      isFollowing: freezed == isFollowing
-          ? _value.isFollowing
-          : isFollowing // ignore: cast_nullable_to_non_nullable
-              as bool?,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -243,7 +236,6 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       String? joinedDate,
       Map<String, dynamic>? followers,
       Map<String, dynamic>? following,
-      bool? isFollowing,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -281,7 +273,6 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? joinedDate = freezed,
     Object? followers = freezed,
     Object? following = freezed,
-    Object? isFollowing = freezed,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -345,10 +336,6 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value._following
           : following // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
-      isFollowing: freezed == isFollowing
-          ? _value.isFollowing
-          : isFollowing // ignore: cast_nullable_to_non_nullable
-              as bool?,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -406,7 +393,6 @@ class _$ProfileImpl implements _Profile {
       this.joinedDate,
       final Map<String, dynamic>? followers,
       final Map<String, dynamic>? following,
-      this.isFollowing,
       this.rank,
       this.totalUsers,
       this.percentile,
@@ -474,9 +460,6 @@ class _$ProfileImpl implements _Profile {
     return EqualUnmodifiableMapView(value);
   }
 
-// Whether the current user is following this profile
-  @override
-  final bool? isFollowing;
 // Stats fields
   @override
   final int? rank;
@@ -499,7 +482,7 @@ class _$ProfileImpl implements _Profile {
 
   @override
   String toString() {
-    return 'Profile(nickname: $nickname, email: $email, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, isFollowing: $isFollowing, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
+    return 'Profile(nickname: $nickname, email: $email, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
   }
 
   @override
@@ -531,8 +514,6 @@ class _$ProfileImpl implements _Profile {
                 .equals(other._followers, _followers) &&
             const DeepCollectionEquality()
                 .equals(other._following, _following) &&
-            (identical(other.isFollowing, isFollowing) ||
-                other.isFollowing == isFollowing) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.totalUsers, totalUsers) ||
                 other.totalUsers == totalUsers) &&
@@ -569,7 +550,6 @@ class _$ProfileImpl implements _Profile {
         joinedDate,
         const DeepCollectionEquality().hash(_followers),
         const DeepCollectionEquality().hash(_following),
-        isFollowing,
         rank,
         totalUsers,
         percentile,
@@ -612,7 +592,6 @@ abstract class _Profile implements Profile {
       final String? joinedDate,
       final Map<String, dynamic>? followers,
       final Map<String, dynamic>? following,
-      final bool? isFollowing,
       final int? rank,
       final int? totalUsers,
       final int? percentile,
@@ -650,10 +629,7 @@ abstract class _Profile implements Profile {
   @override
   Map<String, dynamic>? get followers;
   @override
-  Map<String, dynamic>?
-      get following; // Whether the current user is following this profile
-  @override
-  bool? get isFollowing; // Stats fields
+  Map<String, dynamic>? get following; // Stats fields
   @override
   int? get rank;
   @override

@@ -10,6 +10,7 @@ _$MainCharacterImpl _$$MainCharacterImplFromJson(Map<String, dynamic> json) =>
     _$MainCharacterImpl(
       id: json['id'] as String,
       avatarUrl: json['avatarUrl'] as String,
+      name: json['name'] as String,
       persona: json['persona'] as String,
       createdAt: json['createdAt'] as String?,
     );
@@ -18,6 +19,7 @@ Map<String, dynamic> _$$MainCharacterImplToJson(_$MainCharacterImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'avatarUrl': instance.avatarUrl,
+      'name': instance.name,
       'persona': instance.persona,
       'createdAt': instance.createdAt,
     };

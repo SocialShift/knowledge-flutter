@@ -69,6 +69,8 @@ dependencies:
   audio_session: ^0.2.1
   flutter_svg: ^2.0.9
   google_fonts: ^6.1.0
+  hero_animation: ^1.1.4
+  spring_button: ^2.0.0
 
 dev_dependencies:
   flutter_test:

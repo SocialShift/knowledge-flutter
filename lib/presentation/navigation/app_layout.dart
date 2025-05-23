@@ -13,17 +13,27 @@ class AppLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _calculateSelectedIndex(context);
-    final safePadding = MediaQuery.of(context).padding;
+    // Get theme brightness
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : Colors.white;
+    final shadowColor = isDarkMode
+        ? Colors.black.withOpacity(0.2)
+        : Colors.black.withOpacity(0.05);
+    final indicatorColor = AppColors.limeGreen;
+    final selectedIconColor =
+        isDarkMode ? AppColors.limeGreen : AppColors.navyBlue;
+    final unselectedIconColor = isDarkMode ? Colors.grey.shade400 : Colors.grey;
 
     return Scaffold(
       body: child,
       extendBody: true,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: backgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: shadowColor,
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -45,6 +55,9 @@ class AppLayout extends StatelessWidget {
                   selectedIcon: Icons.home_filled,
                   isSelected: currentIndex == 0,
                   onTap: () => context.go('/home'),
+                  selectedIconColor: selectedIconColor,
+                  unselectedIconColor: unselectedIconColor,
+                  indicatorColor: indicatorColor,
                 ),
                 _buildNavItem(
                   context: context,
@@ -52,6 +65,9 @@ class AppLayout extends StatelessWidget {
                   selectedIcon: Icons.menu_book,
                   isSelected: currentIndex == 1,
                   onTap: () => context.go('/elearning'),
+                  selectedIconColor: selectedIconColor,
+                  unselectedIconColor: unselectedIconColor,
+                  indicatorColor: indicatorColor,
                 ),
                 _buildNavItem(
                   context: context,
@@ -59,6 +75,9 @@ class AppLayout extends StatelessWidget {
                   selectedIcon: Icons.psychology,
                   isSelected: currentIndex == 2,
                   onTap: () => context.go('/games'),
+                  selectedIconColor: selectedIconColor,
+                  unselectedIconColor: unselectedIconColor,
+                  indicatorColor: indicatorColor,
                 ),
                 _buildNavItem(
                   context: context,
@@ -66,6 +85,9 @@ class AppLayout extends StatelessWidget {
                   selectedIcon: Icons.emoji_events,
                   isSelected: currentIndex == 3,
                   onTap: () => context.go('/leaderboard'),
+                  selectedIconColor: selectedIconColor,
+                  unselectedIconColor: unselectedIconColor,
+                  indicatorColor: indicatorColor,
                 ),
                 _buildNavItem(
                   context: context,
@@ -74,6 +96,9 @@ class AppLayout extends StatelessWidget {
                   isSelected: currentIndex == 4,
                   onTap: () => context.go('/profile'),
                   showProfileIndicator: true,
+                  selectedIconColor: selectedIconColor,
+                  unselectedIconColor: unselectedIconColor,
+                  indicatorColor: indicatorColor,
                 ),
               ],
             ),
@@ -90,6 +115,9 @@ class AppLayout extends StatelessWidget {
     required bool isSelected,
     required VoidCallback onTap,
     bool showProfileIndicator = false,
+    required Color selectedIconColor,
+    required Color unselectedIconColor,
+    required Color indicatorColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -107,7 +135,7 @@ class AppLayout extends StatelessWidget {
                   child: Icon(
                     isSelected ? selectedIcon : icon,
                     key: ValueKey(isSelected),
-                    color: isSelected ? AppColors.navyBlue : Colors.grey,
+                    color: isSelected ? selectedIconColor : unselectedIconColor,
                     size: isSelected ? 28 : 26,
                   ),
                 ),
@@ -117,7 +145,7 @@ class AppLayout extends StatelessWidget {
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: AppColors.limeGreen,
+                      color: indicatorColor,
                       shape: BoxShape.circle,
                     ),
                   ),
