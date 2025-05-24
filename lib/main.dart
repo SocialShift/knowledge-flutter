@@ -9,8 +9,12 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
+import 'package:knowledge/presentation/widgets/animated_loading_screen.dart';
 import 'package:knowledge/core/utils/platform_optimizations.dart';
+import 'package:knowledge/data/repositories/timeline_repository.dart';
+import 'package:knowledge/data/providers/profile_provider.dart';
 import 'dart:io' show Platform;
+import 'dart:math' as math;
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:developer' as developer;
@@ -82,9 +86,17 @@ class _KnowledgeState extends ConsumerState<Knowledge>
     // Add observer for app lifecycle events
     WidgetsBinding.instance.addObserver(this);
 
-    // Initialize session management
+    // Initialize session management and start data preloading immediately
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _checkAndRestoreSession();
+      // Start preloading data immediately in parallel with session check
+      // This ensures faster app experience regardless of auth state
+      final preloadFuture = _preloadEssentialData();
+
+      // Check session in parallel
+      final sessionFuture = _checkAndRestoreSession();
+
+      // Wait for both to complete
+      await Future.wait([preloadFuture, sessionFuture]);
 
       // Start periodic session checks after initial check
       final authNotifier = ref.read(authNotifierProvider.notifier);
@@ -154,6 +166,9 @@ class _KnowledgeState extends ConsumerState<Knowledge>
 
         // Set authenticated state with user info
         authNotifier.restoreSession(user, hasProfile);
+
+        // Preload user-specific data after authentication
+        await _preloadUserData();
       }
     } catch (e) {
       // Session invalid or error occurred - remain in unauthenticated state
@@ -162,6 +177,60 @@ class _KnowledgeState extends ConsumerState<Knowledge>
       setState(() {
         _initialSessionCheckComplete = true;
       });
+    }
+  }
+
+  // Preload essential app data immediately for faster UI performance
+  Future<void> _preloadEssentialData() async {
+    try {
+      debugPrint('Starting essential data preloading...');
+
+      // Start preloading timelines immediately (don't wait for auth)
+      final timelinesAsync = ref.read(timelinesProvider.future);
+      final timelines = await timelinesAsync;
+      debugPrint('Timelines preloaded: ${timelines.length} timelines');
+
+      // Preload stories for the first few timelines (most commonly accessed)
+      if (timelines.isNotEmpty) {
+        // Load stories for first 5 timelines for better initial experience
+        final preloadCount = math.min(5, timelines.length);
+        final preloadFutures = <Future>[];
+
+        for (int i = 0; i < preloadCount; i++) {
+          final timelineId = timelines[i].id;
+          preloadFutures.add(
+            ref.read(timelineStoriesProvider(timelineId).future).catchError(
+              (error) {
+                debugPrint(
+                    'Error preloading stories for timeline $timelineId: $error');
+                // Don't let one timeline failure stop others from loading
+                return [];
+              },
+            ),
+          );
+        }
+
+        // Wait for all preloading to complete
+        await Future.wait(preloadFutures);
+        debugPrint(
+            'Successfully preloaded stories for $preloadCount timelines');
+      }
+    } catch (e) {
+      // Don't let preloading errors affect app startup
+      debugPrint('Error during essential data preloading: $e');
+    }
+  }
+
+  // Preload additional user-specific data after authentication
+  Future<void> _preloadUserData() async {
+    try {
+      // Preload user profile (if not already loaded)
+      ref.read(userProfileProvider);
+
+      // Preload any user-specific data here
+      debugPrint('User-specific data preloading completed');
+    } catch (e) {
+      debugPrint('Error during user data preloading: $e');
     }
   }
 
@@ -214,75 +283,15 @@ class _KnowledgeState extends ConsumerState<Knowledge>
     final router = ref.watch(routerProvider);
     final authState = ref.watch(authNotifierProvider);
 
-    // Show loading indicator while checking session status for the first time
+    // Show animated loading screen while checking session status for the first time
     if (!_initialSessionCheckComplete &&
         authState.maybeMap(initial: (_) => true, orElse: () => false)) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // App logo
-                Image.asset(
-                  'assets/images/logo/logo.png',
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: AppColors.navyBlue.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.school,
-                      size: 80,
-                      color: AppColors.navyBlue,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // Animated loading indicator
-                Container(
-                  width: 48,
-                  height: 48,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.navyBlue.withOpacity(0.1),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: const CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-                    strokeWidth: 3,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Loading...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.navyBlue.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        home: const AnimatedLoadingScreen(),
         theme: _configureOptimizedTheme(AppTheme.lightTheme),
         darkTheme: _configureOptimizedTheme(AppTheme.darkTheme),
+        themeMode: ref.watch(themeModeNotifierProvider),
       );
     }
 

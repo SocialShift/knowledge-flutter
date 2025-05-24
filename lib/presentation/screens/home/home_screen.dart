@@ -14,6 +14,7 @@ import 'package:knowledge/presentation/widgets/circular_timeline.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 // import 'package:knowledge/data/providers/filter_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
+import 'package:knowledge/presentation/widgets/butterfly_loading_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // Create cached versions of providers with keepAlive set to true
@@ -100,21 +101,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _changeTimeline(List<Timeline> timelines, int delta) {
     if (timelines.isEmpty) return;
 
+    // Prevent multiple rapid animations
+    if (_animationController.isAnimating) return;
+
     // Set animation direction
     _animationDirection = delta;
 
-    // Reset the animation controller
-    _animationController.reset();
+    // Calculate new index
+    final newIndex = (_selectedTimelineIndex + delta) % timelines.length;
+    final correctedIndex = newIndex < 0 ? timelines.length - 1 : newIndex;
 
-    // Start the animation
-    _animationController.forward();
+    // Only animate if index actually changes
+    if (correctedIndex == _selectedTimelineIndex) return;
 
     setState(() {
-      _selectedTimelineIndex =
-          (_selectedTimelineIndex + delta) % timelines.length;
-      if (_selectedTimelineIndex < 0)
-        _selectedTimelineIndex = timelines.length - 1;
+      _selectedTimelineIndex = correctedIndex;
     });
+
+    // Reset and start the animation
+    _animationController.reset();
+    _animationController.forward();
 
     // Scroll the timeline to center the selected item
     _scrollToSelectedTimeline();
@@ -394,13 +400,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 }
 
                 if (timelines.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No timelines available',
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.white),
-                    ),
-                  );
+                  return _buildEmptyStateWithWhiteArea(context, isDarkMode,
+                      cardColor, topPadding, bottomPadding);
                 }
 
                 final timelinePeriods = _convertToTimelinePeriods(timelines);
@@ -1280,63 +1281,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       ),
                                     ],
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Skeleton header
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            20, 16, 20, 8),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              height: 24,
-                                              width: 4,
-                                              decoration: BoxDecoration(
-                                                color: isDarkMode
-                                                    ? Colors.grey.shade700
-                                                    : Colors.grey.shade300,
-                                                borderRadius:
-                                                    BorderRadius.circular(2),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              height: 22,
-                                              width: 80,
-                                              decoration: BoxDecoration(
-                                                color: isDarkMode
-                                                    ? Colors.grey.shade700
-                                                    : Colors.grey.shade300,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // Skeleton list items
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 8),
-                                        child: Column(
-                                          children: List.generate(
-                                            5,
-                                            (index) => _buildStorySkeleton(
-                                                index, isDarkMode),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(40),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const ButterflyLoadingWidget(
+                                            size: 100,
+                                            showBackground: false,
+                                            showDots: false,
                                           ),
-                                        ),
+                                          const SizedBox(height: 24),
+                                          Text(
+                                            '"The beautiful thing about learning is nobody can take it away from you."',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                      .withOpacity(0.8)
+                                                  : AppColors.navyBlue
+                                                      .withOpacity(0.7),
+                                              fontSize: 14,
+                                              fontStyle: FontStyle.italic,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ).animate().shimmer(
-                                        delay:
-                                            const Duration(milliseconds: 200),
-                                        duration:
-                                            const Duration(milliseconds: 1000),
-                                        curve: Curves.easeInOut,
-                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1419,11 +1394,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     ],
                                   ),
                                   child: Center(
-                                    child: Text(
-                                      'Error loading stories: $error',
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                      ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red.withOpacity(0.7),
+                                          size: 48,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SelectableText.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text:
+                                                    'Error loading stories:\n',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: error.toString(),
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white
+                                                          .withOpacity(0.8)
+                                                      : AppColors.navyBlue
+                                                          .withOpacity(0.8),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -1436,158 +1444,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 );
               },
-              loading: () => Column(
-                children: [
-                  // Skeleton header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Row(
-                      children: [
-                        // Logo skeleton
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: isDarkMode
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Text skeleton
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 16,
-                                width: 150,
-                                decoration: BoxDecoration(
-                                  color: isDarkMode
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                height: 14,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  color: isDarkMode
-                                      ? Colors.white.withOpacity(0.05)
-                                      : Colors.white.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Icon skeleton
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: isDarkMode
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Timeline circles skeleton
-                  SizedBox(
-                    height: 150,
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          5,
-                          (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.white.withOpacity(0.1)
-                                  : Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Stories container skeleton
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Skeleton header
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                            child: Row(
-                              children: [
-                                Container(
-                                  height: 24,
-                                  width: 4,
-                                  decoration: BoxDecoration(
-                                    color: isDarkMode
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  height: 22,
-                                  width: 80,
-                                  decoration: BoxDecoration(
-                                    color: isDarkMode
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Skeleton list items
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: List.generate(
-                                5,
-                                (index) =>
-                                    _buildStorySkeleton(index, isDarkMode),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ).animate().shimmer(
-                    delay: const Duration(milliseconds: 200),
-                    duration: const Duration(milliseconds: 1000),
-                    curve: Curves.easeInOut,
-                  ),
+              loading: () => _buildLoadingStateWithWhiteArea(
+                  context, isDarkMode, cardColor, topPadding, bottomPadding),
               error: (error, stack) => Center(
                 child: Text(
                   'Error loading timelines: $error',
@@ -1600,104 +1458,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ),
     );
-  }
-
-  // Helper method to build a story skeleton loading item
-  Widget _buildStorySkeleton(int index, bool isDarkMode) {
-    // Add staggered delay based on index
-    final shimmerDelay = Duration(milliseconds: 100 * index);
-    final skeletonColor =
-        isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
-    final containerColor = isDarkMode ? AppColors.darkCard : Colors.white;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      height: 100,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: containerColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
-            blurRadius: 5,
-            spreadRadius: 1,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Image placeholder
-          Container(
-            width: 100,
-            decoration: BoxDecoration(
-              color: skeletonColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Text placeholders
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 16,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: skeletonColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 14,
-                    width: 150,
-                    decoration: BoxDecoration(
-                      color: skeletonColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Container(
-                        height: 12,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: skeletonColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        height: 24,
-                        width: 24,
-                        decoration: BoxDecoration(
-                          color: skeletonColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
-    ).animate(delay: shimmerDelay).fadeIn(
-          duration: const Duration(milliseconds: 500),
-        );
   }
 
   // ignore: unused_element
@@ -1713,6 +1473,447 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _showMonetizationDialog(BuildContext context) {
     // Instead of showing a dialog, navigate to the subscription screen
     context.push('/subscription');
+  }
+
+  Widget _buildLoadingStateWithWhiteArea(BuildContext context, bool isDarkMode,
+      Color cardColor, double topPadding, double bottomPadding) {
+    return CustomScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      slivers: [
+        // Add padding for status bar
+        SliverPadding(
+          padding: EdgeInsets.only(top: topPadding),
+          sliver: SliverToBoxAdapter(child: Container()),
+        ),
+
+        // Header with logo and welcome text
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                // Logo
+                SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: Image.asset(
+                    'assets/images/logo/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Welcome text
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'The History Erased',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.9),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Now in Your Hands',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.7)
+                              : Colors.white.withOpacity(0.7),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Placeholder for timeline circles
+        SliverToBoxAdapter(
+          child: Container(
+            height: 120,
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Timeline placeholder circles
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return Container(
+                        width: 16,
+                        height: 16,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.2),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+                  // Line loading indicator
+                  Container(
+                    width: 200,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(1.5),
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
+                        _AnimatedLineLoader(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // White area with enhanced butterfly loading
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              // Layer 4 - Deepest shadow layer
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? Colors.black.withOpacity(0.12)
+                      : const Color(0xFFE2E8F0).withOpacity(0.5),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(38),
+                    topRight: Radius.circular(31),
+                  ),
+                ),
+              ),
+
+              // Layer 3 - Third shadow layer
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? Colors.black.withOpacity(0.08)
+                      : const Color(0xFFF1F5F9).withOpacity(0.7),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(35),
+                    topRight: Radius.circular(28),
+                  ),
+                ),
+              ),
+
+              // Layer 2 - Second shadow layer
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? Colors.black.withOpacity(0.04)
+                      : const Color(0xFFF8FAFC).withOpacity(0.8),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(25),
+                  ),
+                ),
+              ),
+
+              // Layer 1 - Main loading content
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  gradient: isDarkMode
+                      ? LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.darkCard,
+                            AppColors.darkCard.withOpacity(0.98),
+                          ],
+                        )
+                      : LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            const Color(0xFFFDFDFD),
+                          ],
+                        ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 20,
+                      offset: const Offset(0, -6),
+                      spreadRadius: 2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 10,
+                      offset: const Offset(0, -3),
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const ButterflyLoadingWidget(
+                          size: 140,
+                          showDots: false,
+                          showBackground: false,
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          '"Knowledge is the wing wherewith we fly to heaven."',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: isDarkMode
+                                ? Colors.white.withOpacity(0.8)
+                                : AppColors.navyBlue.withOpacity(0.7),
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyStateWithWhiteArea(BuildContext context, bool isDarkMode,
+      Color cardColor, double topPadding, double bottomPadding) {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: ClampingScrollPhysics(),
+      ),
+      slivers: [
+        // Add padding for status bar
+        SliverPadding(
+          padding: EdgeInsets.only(top: topPadding),
+          sliver: SliverToBoxAdapter(child: Container()),
+        ),
+
+        // Header with logo and welcome text
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                // Logo
+                SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: Image.asset(
+                    'assets/images/logo/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Welcome text
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'The History Erased',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.9),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Now in Your Hands',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.7)
+                              : Colors.white.withOpacity(0.7),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // White area with empty message
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              // Layer 3 - Deepest shadow layer
+              Container(
+                height: MediaQuery.of(context).size.height * 0.6,
+                margin: const EdgeInsets.only(top: 8),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? Colors.black.withOpacity(0.1)
+                      : const Color(0xFFE2E8F0).withOpacity(0.5),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(35),
+                    topRight: Radius.circular(28),
+                  ),
+                ),
+              ),
+
+              // Layer 2 - Second shadow layer
+              Container(
+                height: MediaQuery.of(context).size.height * 0.6,
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? Colors.black.withOpacity(0.05)
+                      : const Color(0xFFF1F5F9).withOpacity(0.7),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(25),
+                  ),
+                ),
+              ),
+
+              // Layer 1 - Main content
+              Container(
+                height: MediaQuery.of(context).size.height * 0.6,
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, -4),
+                      spreadRadius: 1,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 6,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.timeline,
+                        size: 64,
+                        color: isDarkMode
+                            ? Colors.white.withOpacity(0.3)
+                            : AppColors.navyBlue.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No timelines available',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.7)
+                              : AppColors.navyBlue.withOpacity(0.7),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _AnimatedLineLoader() {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 2000),
+      builder: (context, value, child) {
+        return Container(
+          width: 200 * value,
+          height: 3,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.limeGreen.withOpacity(0.8),
+                AppColors.limeGreen,
+                AppColors.navyBlue.withOpacity(0.6),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(1.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.limeGreen.withOpacity(0.3),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        );
+      },
+      onEnd: () {
+        // Restart animation
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      },
+    );
   }
 
   // ignore: unused_element
