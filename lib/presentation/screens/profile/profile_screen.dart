@@ -299,7 +299,7 @@ class ProfileScreen extends HookConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 0),
 
             // Social counts skeleton
             Container(
@@ -586,7 +586,7 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
                     .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
 
               // Logout button
-              const SizedBox(height: 32),
+              const SizedBox(height: 0),
               LogoutButtonWidget(authNotifier: widget.authNotifier)
                   .animate()
                   .fadeIn(
@@ -618,7 +618,7 @@ class ProfileCardWidget extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -784,7 +784,7 @@ class SocialCountsWidget extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+          margin: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -1258,7 +1258,7 @@ class StreakInfoWidget extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(

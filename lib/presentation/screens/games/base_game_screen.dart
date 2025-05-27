@@ -7,6 +7,7 @@ import 'package:knowledge/data/providers/game_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/presentation/screens/games/games_screen.dart';
+import 'package:knowledge/presentation/screens/games/game_completion_screen.dart';
 
 class BaseGameScreen extends ConsumerStatefulWidget {
   final String gameId;
@@ -191,186 +192,19 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
 
   void _showGameOverDialog() {
     final gameState = ref.read(gameStateNotifierProvider);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final dialogBgColor = isDarkMode ? AppColors.darkCard : Colors.white;
-    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
     final totalQuestions = gameState.questions.length;
-    final percentage = ((gameState.score / totalQuestions) * 100).round();
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: dialogBgColor,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: dialogBgColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Trophy icon with animation
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.limeGreen.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.emoji_events_outlined,
-                    size: 40,
-                    color: AppColors.limeGreen,
-                  ),
-                ).animate().scale(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.elasticOut,
-                    ),
-                const SizedBox(height: 20),
-
-                Text(
-                  "Game Complete!",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ).animate().fadeIn(
-                      duration: const Duration(milliseconds: 500),
-                    ),
-                const SizedBox(height: 12),
-
-                // Score display with percentage
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.limeGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: AppColors.limeGreen.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        "${gameState.score}/$totalQuestions",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.limeGreen,
-                        ),
-                      ),
-                      Text(
-                        "$percentage% Correct",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(
-                      delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 500),
-                    ),
-
-                const SizedBox(height: 16),
-
-                // Encouraging message
-                Text(
-                  _getEncouragingMessage(),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: textColor.withOpacity(0.8),
-                  ),
-                  textAlign: TextAlign.center,
-                ).animate().fadeIn(
-                      delay: const Duration(milliseconds: 400),
-                      duration: const Duration(milliseconds: 500),
-                    ),
-
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(
-                            color: isDarkMode
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          ref.read(gamesRefreshProvider.notifier).state++;
-                          context.go('/home');
-                        },
-                        child: Text(
-                          "Exit",
-                          style: TextStyle(
-                              color: isDarkMode
-                                  ? Colors.white70
-                                  : AppColors.navyBlue),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          backgroundColor: AppColors.limeGreen,
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          context.pop();
-                          ref
-                              .read(gameStateNotifierProvider.notifier)
-                              .restartGame();
-
-                          // Reset progress animation
-                          _progressAnimationController.reset();
-                          _progressAnimationController.forward();
-                        },
-                        child: const Text(
-                          "Play Again",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ).animate().scale(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-      },
+    // Navigate to the new GameCompletionScreen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GameCompletionScreen(
+          gameId: widget.gameId,
+          gameTitle: widget.gameTitle,
+          gameType: widget.gameType,
+          score: gameState.score,
+          totalQuestions: totalQuestions,
+        ),
+      ),
     );
   }
 
@@ -620,36 +454,36 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                                 children: [
                                   // Question header with icon
                                   Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.limeGreen
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: Icon(
-                                          Icons.quiz_outlined,
-                                          color: AppColors.limeGreen,
-                                          size: 20,
-                                        ),
+                                      // children: [
+                                      //   Container(
+                                      //     padding: const EdgeInsets.all(8),
+                                      //     decoration: BoxDecoration(
+                                      //       color: AppColors.limeGreen
+                                      //           .withOpacity(0.1),
+                                      //       borderRadius:
+                                      //           BorderRadius.circular(8),
+                                      //     ),
+                                      //     child: Icon(
+                                      //       Icons.quiz_outlined,
+                                      //       color: AppColors.limeGreen,
+                                      //       size: 20,
+                                      //     ),
+                                      //   ),
+                                      //   const SizedBox(width: 12),
+                                      //   Expanded(
+                                      //     child: Text(
+                                      //       "Question",
+                                      //       style: TextStyle(
+                                      //         color: textColor.withOpacity(0.7),
+                                      //         fontSize: 12,
+                                      //         fontWeight: FontWeight.w600,
+                                      //         letterSpacing: 0.5,
+                                      //       ),
+                                      //     ),
+                                      //   ),
+                                      // ],
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          "Question",
-                                          style: TextStyle(
-                                            color: textColor.withOpacity(0.7),
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 5),
 
                                   // Question text
                                   Text(

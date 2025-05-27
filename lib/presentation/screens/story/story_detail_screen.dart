@@ -5,13 +5,12 @@ import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-// import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
 import 'dart:io' show Platform;
-// import 'package:flutter/services.dart';
 import 'package:audio_session/audio_session.dart';
 import 'dart:developer' as developer;
 
@@ -407,7 +406,7 @@ class StoryDetailScreen extends HookConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Main content
+                // Main content with enhanced animations
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -426,7 +425,7 @@ class StoryDetailScreen extends HookConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        // Pagination dots with enhanced design
+                        // Pagination dots with enhanced design and animations
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
                           child: Row(
@@ -445,12 +444,31 @@ class StoryDetailScreen extends HookConsumerWidget {
                                       : Colors.white.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                              ),
+                              )
+                                  .animate()
+                                  .scale(
+                                    delay: Duration(milliseconds: 100 * index),
+                                    duration: const Duration(milliseconds: 400),
+                                    curve: Curves.elasticOut,
+                                  )
+                                  .then()
+                                  .shimmer(
+                                    duration:
+                                        const Duration(milliseconds: 1000),
+                                    color: AppColors.limeGreen.withOpacity(0.5),
+                                  ),
                             ),
                           ),
-                        ),
+                        )
+                            .animate()
+                            .slideY(
+                              begin: -0.5,
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutBack,
+                            )
+                            .fadeIn(),
 
-                        // Content
+                        // Content with smooth page transitions
                         Expanded(
                           child: PageView(
                             controller: pageController,
@@ -459,10 +477,33 @@ class StoryDetailScreen extends HookConsumerWidget {
                             },
                             children: [
                               // Video player page (only if media URL is a valid video)
-                              if (hasVideo) _VideoPlayerPage(story: story),
+                              if (hasVideo)
+                                _VideoPlayerPage(story: story)
+                                    .animate()
+                                    .slideX(
+                                      begin: 0.3,
+                                      duration:
+                                          const Duration(milliseconds: 800),
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .fadeIn(
+                                      duration:
+                                          const Duration(milliseconds: 600),
+                                    ),
 
                               // Complete story on a single page
-                              _CompleteStoryPage(story: story),
+                              _CompleteStoryPage(story: story)
+                                  .animate()
+                                  .slideX(
+                                    begin: hasVideo ? 0.3 : 0.2,
+                                    duration: const Duration(milliseconds: 800),
+                                    curve: Curves.easeOutCubic,
+                                  )
+                                  .fadeIn(
+                                    duration: const Duration(milliseconds: 600),
+                                    delay: Duration(
+                                        milliseconds: hasVideo ? 200 : 0),
+                                  ),
                             ],
                           ),
                         ),
@@ -471,12 +512,12 @@ class StoryDetailScreen extends HookConsumerWidget {
                   ),
                 ),
 
-                // Bottom navigation buttons
+                // Bottom navigation buttons with enhanced animations
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Row(
                     children: [
-                      // Bookmark button
+                      // Bookmark button with hover and tap animations
                       Container(
                         width: 48,
                         height: 48,
@@ -497,7 +538,7 @@ class StoryDetailScreen extends HookConsumerWidget {
                         ),
                         child: IconButton(
                           onPressed: () {
-                            // Bookmark functionality
+                            // Bookmark functionality with haptic feedback
                           },
                           icon: Icon(
                             Icons.bookmark_border,
@@ -506,10 +547,23 @@ class StoryDetailScreen extends HookConsumerWidget {
                           padding: EdgeInsets.zero,
                           visualDensity: VisualDensity.compact,
                         ),
-                      ),
+                      )
+                          .animate()
+                          .slideY(
+                            begin: 1.0,
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeOutBack,
+                            delay: const Duration(milliseconds: 400),
+                          )
+                          .fadeIn()
+                          .then()
+                          .shimmer(
+                            duration: const Duration(milliseconds: 1200),
+                            color: AppColors.limeGreen.withOpacity(0.3),
+                          ),
                       const SizedBox(width: 12),
 
-                      // Back button
+                      // Back button with slide animation
                       Expanded(
                         child: GestureDetector(
                           onTap: () => context.pop(),
@@ -538,7 +592,13 @@ class StoryDetailScreen extends HookConsumerWidget {
                                     Icons.arrow_back_ios_new,
                                     color: textColor,
                                     size: 16,
-                                  ),
+                                  ).animate().slideX(
+                                        begin: -0.5,
+                                        duration:
+                                            const Duration(milliseconds: 400),
+                                        delay:
+                                            const Duration(milliseconds: 800),
+                                      ),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Back',
@@ -547,16 +607,29 @@ class StoryDetailScreen extends HookConsumerWidget {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
-                                  ),
+                                  ).animate().fadeIn(
+                                        duration:
+                                            const Duration(milliseconds: 400),
+                                        delay:
+                                            const Duration(milliseconds: 900),
+                                      ),
                                 ],
                               ),
                             ),
                           ),
-                        ),
+                        )
+                            .animate()
+                            .slideY(
+                              begin: 1.0,
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutBack,
+                              delay: const Duration(milliseconds: 500),
+                            )
+                            .fadeIn(),
                       ),
                       const SizedBox(width: 12),
 
-                      // Next/Quiz button
+                      // Next/Quiz button with enhanced animations
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -573,13 +646,25 @@ class StoryDetailScreen extends HookConsumerWidget {
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: AppColors.limeGreen,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.limeGreen,
+                                  AppColors.limeGreen.withOpacity(0.8),
+                                ],
+                              ),
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
                                   color: AppColors.limeGreen.withOpacity(0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
+                                ),
+                                BoxShadow(
+                                  color: AppColors.limeGreen.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  spreadRadius: 2,
                                 ),
                               ],
                             ),
@@ -598,7 +683,12 @@ class StoryDetailScreen extends HookConsumerWidget {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
-                                  ),
+                                  ).animate().fadeIn(
+                                        duration:
+                                            const Duration(milliseconds: 400),
+                                        delay:
+                                            const Duration(milliseconds: 1000),
+                                      ),
                                   const SizedBox(width: 6),
                                   Icon(
                                     currentPage.value < (totalPages - 1)
@@ -608,25 +698,54 @@ class StoryDetailScreen extends HookConsumerWidget {
                                         ? Colors.black
                                         : AppColors.navyBlue,
                                     size: 16,
-                                  ),
+                                  ).animate().slideX(
+                                        begin: 0.5,
+                                        duration:
+                                            const Duration(milliseconds: 400),
+                                        delay:
+                                            const Duration(milliseconds: 1100),
+                                      ),
                                 ],
                               ),
                             ),
                           ),
-                        ),
+                        )
+                            .animate()
+                            .slideY(
+                              begin: 1.0,
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutBack,
+                              delay: const Duration(milliseconds: 600),
+                            )
+                            .fadeIn()
+                            .then()
+                            .shimmer(
+                              duration: const Duration(milliseconds: 1500),
+                              color: Colors.white.withOpacity(0.5),
+                            ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          );
+          )
+              .animate()
+              .slideY(
+                begin: 0.1,
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutCubic,
+              )
+              .fadeIn();
         },
         loading: () => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
           ),
-        ),
+        ).animate().fadeIn().scale(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutBack,
+            ),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -636,7 +755,10 @@ class StoryDetailScreen extends HookConsumerWidget {
               textAlign: TextAlign.center,
             ),
           ),
-        ),
+        ).animate().fadeIn().slideY(
+              begin: 0.3,
+              duration: const Duration(milliseconds: 600),
+            ),
       ),
     );
   }
@@ -1289,7 +1411,7 @@ class _CompleteStoryPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Enhanced Thumbnail with shadow and rounded corners
+            // Enhanced Thumbnail with shadow, rounded corners and animations
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
@@ -1323,9 +1445,23 @@ class _CompleteStoryPage extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
+            )
+                .animate()
+                .scale(
+                  begin: const Offset(0.8, 0.8),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutBack,
+                )
+                .fadeIn(
+                  duration: const Duration(milliseconds: 600),
+                )
+                .then()
+                .shimmer(
+                  duration: const Duration(milliseconds: 1200),
+                  color: Colors.white.withOpacity(0.3),
+                ),
 
-            // Title with improved typography
+            // Title with improved typography and animations
             Padding(
               padding: const EdgeInsets.only(top: 24, bottom: 8),
               child: Row(
@@ -1341,7 +1477,18 @@ class _CompleteStoryPage extends StatelessWidget {
                         letterSpacing: 0.2,
                         height: 1.3,
                       ),
-                    ),
+                    )
+                        .animate()
+                        .slideX(
+                          begin: -0.3,
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOutCubic,
+                          delay: const Duration(milliseconds: 200),
+                        )
+                        .fadeIn(
+                          duration: const Duration(milliseconds: 500),
+                          delay: const Duration(milliseconds: 200),
+                        ),
                   ),
                 ],
               ),
@@ -1366,7 +1513,11 @@ class _CompleteStoryPage extends StatelessWidget {
                     Icons.history,
                     color: AppColors.limeGreen,
                     size: 16,
-                  ),
+                  ).animate().scale(
+                        delay: const Duration(milliseconds: 400),
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.elasticOut,
+                      ),
                   const SizedBox(width: 6),
                   Text(
                     '${story.year}',
@@ -1375,12 +1526,25 @@ class _CompleteStoryPage extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
-                  ),
+                  ).animate().fadeIn(
+                        delay: const Duration(milliseconds: 500),
+                        duration: const Duration(milliseconds: 400),
+                      ),
                 ],
               ),
-            ),
+            )
+                .animate()
+                .slideX(
+                  begin: -0.5,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutBack,
+                  delay: const Duration(milliseconds: 300),
+                )
+                .fadeIn(
+                  delay: const Duration(milliseconds: 300),
+                ),
 
-            // Reading time estimate
+            // Reading time estimate with animations
             Container(
               margin: const EdgeInsets.only(bottom: 20),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1395,7 +1559,10 @@ class _CompleteStoryPage extends StatelessWidget {
                     Icons.timer_outlined,
                     color: Colors.white70,
                     size: 16,
-                  ),
+                  ).animate().rotate(
+                        delay: const Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 800),
+                      ),
                   const SizedBox(width: 6),
                   Text(
                     '${_calculateReadingTime(story.content)} min read',
@@ -1404,12 +1571,25 @@ class _CompleteStoryPage extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),
+                  ).animate().fadeIn(
+                        delay: const Duration(milliseconds: 700),
+                        duration: const Duration(milliseconds: 400),
+                      ),
                 ],
               ),
-            ),
+            )
+                .animate()
+                .scale(
+                  begin: const Offset(0.8, 0.8),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutBack,
+                  delay: const Duration(milliseconds: 500),
+                )
+                .fadeIn(
+                  delay: const Duration(milliseconds: 500),
+                ),
 
-            // Full story content in one section
+            // Full story content in one section with animations
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1426,9 +1606,20 @@ class _CompleteStoryPage extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-            ),
+            )
+                .animate()
+                .slideY(
+                  begin: 0.3,
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutCubic,
+                  delay: const Duration(milliseconds: 600),
+                )
+                .fadeIn(
+                  duration: const Duration(milliseconds: 600),
+                  delay: const Duration(milliseconds: 600),
+                ),
 
-            // Engagement metrics with enhanced UI
+            // Engagement metrics with enhanced UI and animations
             Padding(
               padding: const EdgeInsets.only(top: 30, bottom: 16),
               child: Container(
@@ -1494,7 +1685,11 @@ class _CompleteStoryPage extends StatelessWidget {
                             color: Colors.white,
                             size: 24,
                           ),
-                        ),
+                        ).animate().scale(
+                              delay: const Duration(milliseconds: 800),
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.elasticOut,
+                            ),
                         const SizedBox(height: 8),
                         Text(
                           '${story.views}',
@@ -1503,14 +1698,20 @@ class _CompleteStoryPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
-                        ),
+                        ).animate().fadeIn(
+                              delay: const Duration(milliseconds: 900),
+                              duration: const Duration(milliseconds: 400),
+                            ),
                         const Text(
                           'Views',
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
                           ),
-                        ),
+                        ).animate().fadeIn(
+                              delay: const Duration(milliseconds: 1000),
+                              duration: const Duration(milliseconds: 400),
+                            ),
                       ],
                     ),
 
@@ -1550,7 +1751,17 @@ class _CompleteStoryPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+            )
+                .animate()
+                .slideY(
+                  begin: 0.2,
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOutBack,
+                  delay: const Duration(milliseconds: 700),
+                )
+                .fadeIn(
+                  delay: const Duration(milliseconds: 700),
+                ),
 
             // Ready for quiz indicator
             // Center(

@@ -16,14 +16,18 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
   late AnimationController _logoController;
   late AnimationController _quoteController;
   late AnimationController _backgroundController;
+  late AnimationController _particlesController;
 
   late Animation<double> _butterflyFly;
   late Animation<double> _butterflyScale;
   late Animation<double> _butterflyOpacity;
+  late Animation<double> _butterflyFadeOut;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
   late Animation<double> _quoteOpacity;
-  late Animation<double> _backgroundPulse;
+  late Animation<double> _backgroundFloat1;
+  late Animation<double> _backgroundFloat2;
+  late Animation<double> _particlesAnimation;
 
   final List<String> _inspirationalQuotes = [
     "Knowledge is the wing wherewith we fly to heaven.",
@@ -50,12 +54,12 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
 
     // Initialize animation controllers
     _butterflyController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
 
     _logoController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
@@ -65,25 +69,30 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
     );
 
     _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 6000),
       vsync: this,
     );
 
-    // Butterfly animations
+    _particlesController = AnimationController(
+      duration: const Duration(milliseconds: 8000),
+      vsync: this,
+    );
+
+    // Butterfly animations - extended timeline
     _butterflyFly = Tween<double>(
       begin: -200.0,
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _butterflyController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeInOutCubic),
+      curve: const Interval(0.0, 0.4, curve: Curves.easeInOutCubic),
     ));
 
     _butterflyScale = Tween<double>(
       begin: 0.5,
-      end: 1.2,
+      end: 1.0,
     ).animate(CurvedAnimation(
       parent: _butterflyController,
-      curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
     ));
 
     _butterflyOpacity = Tween<double>(
@@ -91,16 +100,25 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _butterflyController,
-      curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
+      curve: const Interval(0.0, 0.2, curve: Curves.easeIn),
     ));
 
-    // Logo animations
+    // Butterfly fade out animation
+    _butterflyFadeOut = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _butterflyController,
+      curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+    ));
+
+    // Smooth logo animations - no elastic bounce
     _logoScale = Tween<double>(
-      begin: 0.0,
+      begin: 0.8,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _logoController,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutCubic,
     ));
 
     _logoOpacity = Tween<double>(
@@ -108,7 +126,7 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _logoController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      curve: Curves.easeIn,
     ));
 
     // Quote animation
@@ -120,13 +138,30 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
       curve: Curves.easeInOut,
     ));
 
-    // Background pulse animation
-    _backgroundPulse = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
+    // Background floating animations
+    _backgroundFloat1 = Tween<double>(
+      begin: 0.0,
+      end: 2 * math.pi,
     ).animate(CurvedAnimation(
       parent: _backgroundController,
-      curve: Curves.easeInOut,
+      curve: Curves.linear,
+    ));
+
+    _backgroundFloat2 = Tween<double>(
+      begin: 0.0,
+      end: 4 * math.pi,
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.linear,
+    ));
+
+    // Particles animation
+    _particlesAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _particlesController,
+      curve: Curves.linear,
     ));
 
     // Start animation sequence
@@ -134,23 +169,24 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
   }
 
   void _startAnimationSequence() async {
-    // Start background pulse (infinite)
-    _backgroundController.repeat(reverse: true);
+    // Start background animations (infinite)
+    _backgroundController.repeat();
+    _particlesController.repeat();
 
-    // Start butterfly flying in
+    // Start butterfly flying in and hovering
     await _butterflyController.forward();
 
-    // Small delay before butterfly transforms
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Small delay before logo appears
+    await Future.delayed(const Duration(milliseconds: 200));
 
-    // Trigger haptic feedback for transformation
+    // Trigger haptic feedback for logo appearance
     if (Theme.of(context).platform == TargetPlatform.iOS) {
       HapticFeedback.lightImpact();
     }
 
-    // Start logo transformation and quote appearance
+    // Start logo appearance and quote
     _logoController.forward();
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 400));
     _quoteController.forward();
   }
 
@@ -160,6 +196,7 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
     _logoController.dispose();
     _quoteController.dispose();
     _backgroundController.dispose();
+    _particlesController.dispose();
     super.dispose();
   }
 
@@ -168,203 +205,421 @@ class _AnimatedLoadingScreenState extends State<AnimatedLoadingScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.navyBlue,
+      body: Stack(
+        children: [
+          // Dynamic animated background - covers entire screen
+          Positioned.fill(
+            child: _buildAnimatedBackground(isDark),
+          ),
+
+          // Main content with SafeArea
+          SafeArea(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: AnimatedBuilder(
+                animation: Listenable.merge([
+                  _butterflyController,
+                  _logoController,
+                  _quoteController,
+                ]),
+                builder: (context, child) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Main animation area
+                      SizedBox(
+                        height: 200,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Butterfly animation with fade out
+                            AnimatedBuilder(
+                              animation: _butterflyFadeOut,
+                              builder: (context, child) {
+                                return Opacity(
+                                  opacity: _butterflyFadeOut.value,
+                                  child: Transform.translate(
+                                    offset: Offset(
+                                      _butterflyFly.value,
+                                      math.sin(_butterflyController.value *
+                                              4 *
+                                              math.pi) *
+                                          15,
+                                    ),
+                                    child: Transform.scale(
+                                      scale: _butterflyScale.value,
+                                      child: Opacity(
+                                        opacity: _butterflyOpacity.value,
+                                        child: Transform.rotate(
+                                          angle: math.sin(
+                                                  _butterflyController.value *
+                                                      6 *
+                                                      math.pi) *
+                                              0.15,
+                                          child: _ButterflyWidget(
+                                            size: 120,
+                                            animationValue:
+                                                _butterflyController.value,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            // Smooth logo transition with simple glow effect
+                            if (_logoController.value > 0.0)
+                              Transform.scale(
+                                scale: _logoScale.value,
+                                child: Opacity(
+                                  opacity: _logoOpacity.value,
+                                  child: Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.limeGreen
+                                              .withOpacity(0.4),
+                                          blurRadius: 40,
+                                          spreadRadius: 12,
+                                        ),
+                                        BoxShadow(
+                                          color: AppColors.limeGreen
+                                              .withOpacity(0.2),
+                                          blurRadius: 60,
+                                          spreadRadius: 20,
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.white.withOpacity(0.1),
+                                          blurRadius: 20,
+                                          spreadRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Image.asset(
+                                      'assets/images/logo/logo.png',
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.limeGreen
+                                                    .withOpacity(0.4),
+                                                blurRadius: 40,
+                                                spreadRadius: 12,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.school,
+                                            size: 70,
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 60),
+
+                      // Animated quote
+                      Opacity(
+                        opacity: _quoteOpacity.value,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Column(
+                            children: [
+                              Text(
+                                '"$_currentQuote"',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.4,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                width: 60,
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppColors.limeGreen,
+                                      Colors.white,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(1),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          AppColors.limeGreen.withOpacity(0.4),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // Animated dots loading indicator
+                      if (_quoteController.value > 0.5)
+                        _AnimatedDots(
+                          color: AppColors.limeGreen,
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground(bool isDark) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        _backgroundController,
+        _particlesController,
+      ]),
+      builder: (context, child) {
+        return Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
+                      const Color(0xFF1A1A2E),
                       AppColors.darkBackground,
-                      AppColors.darkSurface,
-                      AppColors.darkBackground,
+                      const Color(0xFF16213E),
                     ]
                   : [
-                      Colors.white,
-                      AppColors.offWhite,
-                      Colors.white,
+                      const Color(0xFF1E3A8A),
+                      AppColors.navyBlue,
+                      const Color(0xFF312E81),
                     ],
               stops: const [0.0, 0.5, 1.0],
             ),
           ),
-          child: AnimatedBuilder(
-            animation: Listenable.merge([
-              _butterflyController,
-              _logoController,
-              _quoteController,
-              _backgroundController,
-            ]),
-            builder: (context, child) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Main animation area
-                  SizedBox(
-                    height: 200,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Background glow effect
-                        AnimatedBuilder(
-                          animation: _backgroundPulse,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _backgroundPulse.value,
-                              child: Container(
-                                width: 180,
-                                height: 180,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: RadialGradient(
-                                    colors: [
-                                      AppColors.limeGreen.withOpacity(0.1),
-                                      AppColors.navyBlue.withOpacity(0.05),
-                                      Colors.transparent,
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        // Butterfly animation
-                        if (_butterflyController.value < 0.8)
-                          Transform.translate(
-                            offset: Offset(
-                              _butterflyFly.value,
-                              math.sin(_butterflyController.value *
-                                      4 *
-                                      math.pi) *
-                                  20,
-                            ),
-                            child: Transform.scale(
-                              scale: _butterflyScale.value,
-                              child: Opacity(
-                                opacity: _butterflyOpacity.value,
-                                child: Transform.rotate(
-                                  angle: math.sin(_butterflyController.value *
-                                          8 *
-                                          math.pi) *
-                                      0.2,
-                                  child: _ButterflyWidget(
-                                    size: 120,
-                                    animationValue: _butterflyController.value,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        // Logo transformation
-                        if (_logoController.value > 0.0)
-                          Transform.scale(
-                            scale: _logoScale.value,
-                            child: Opacity(
-                              opacity: _logoOpacity.value,
-                              child: Container(
-                                width: 150,
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          AppColors.limeGreen.withOpacity(0.3),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    'assets/images/logo/logo.png',
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: AppColors.navyBlue
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: const Icon(
-                                          Icons.school,
-                                          size: 80,
-                                          color: AppColors.navyBlue,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 60),
-
-                  // Animated quote
-                  Opacity(
-                    opacity: _quoteOpacity.value,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        children: [
-                          Text(
-                            '"$_currentQuote"',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: isDark
-                                      ? Colors.white.withOpacity(0.9)
-                                      : AppColors.navyBlue.withOpacity(0.8),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                  fontStyle: FontStyle.italic,
-                                  height: 1.4,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            width: 60,
-                            height: 2,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [
-                                  AppColors.limeGreen,
-                                  AppColors.navyBlue,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(1),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // Animated dots loading indicator
-                  if (_quoteController.value > 0.5)
-                    _AnimatedDots(
-                      color: isDark ? AppColors.limeGreen : AppColors.navyBlue,
-                    ),
+          child: Stack(
+            children: [
+              // Floating abstract shapes
+              _buildFloatingShape(
+                top: MediaQuery.of(context).size.height * 0.1 +
+                    math.sin(_backgroundFloat1.value) * 30,
+                left: -100 + math.cos(_backgroundFloat1.value * 0.7) * 50,
+                width: 250,
+                height: 180,
+                colors: [
+                  AppColors.limeGreen.withOpacity(0.15),
+                  AppColors.limeGreen.withOpacity(0.05),
                 ],
-              );
-            },
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.elliptical(180, 100),
+                  bottomRight: Radius.elliptical(120, 80),
+                ),
+              ),
+
+              _buildFloatingShape(
+                top: MediaQuery.of(context).size.height * 0.3 +
+                    math.cos(_backgroundFloat2.value * 0.8) * 40,
+                right: -120 + math.sin(_backgroundFloat2.value * 0.6) * 60,
+                width: 200,
+                height: 150,
+                colors: [
+                  Colors.white.withOpacity(0.12),
+                  Colors.white.withOpacity(0.03),
+                ],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.elliptical(150, 90),
+                  bottomLeft: Radius.elliptical(100, 70),
+                ),
+              ),
+
+              _buildFloatingShape(
+                bottom: MediaQuery.of(context).size.height * 0.2 +
+                    math.sin(_backgroundFloat1.value * 1.2) * 25,
+                left: -80 + math.cos(_backgroundFloat1.value * 0.9) * 40,
+                width: 180,
+                height: 120,
+                colors: [
+                  const Color(0xFF00FF88).withOpacity(0.08),
+                  Colors.transparent,
+                ],
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.elliptical(120, 70),
+                  bottomRight: Radius.elliptical(90, 50),
+                ),
+              ),
+
+              // Floating particles
+              ...List.generate(8, (index) {
+                final offset = index * 0.5;
+                final x = 50 +
+                    (index * 45) +
+                    math.sin(_particlesAnimation.value * 2 * math.pi + offset) *
+                        30;
+                final y = 100 +
+                    (index * 80) +
+                    math.cos(_particlesAnimation.value * 2 * math.pi +
+                            offset * 1.5) *
+                        50;
+
+                return Positioned(
+                  left: x,
+                  top: y,
+                  child: _buildFloatingParticle(
+                    size: 8 + (index % 3) * 4,
+                    opacity: 0.4 +
+                        math.sin(_particlesAnimation.value * 4 * math.pi +
+                                offset) *
+                            0.3,
+                    color: index % 3 == 0
+                        ? AppColors.limeGreen
+                        : index % 3 == 1
+                            ? Colors.white
+                            : const Color(0xFF00FF88),
+                  ),
+                );
+              }),
+
+              // Dynamic wavy patterns
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.25,
+                left: 0,
+                right: 0,
+                child: Transform.translate(
+                  offset: Offset(math.sin(_backgroundFloat1.value) * 20, 0),
+                  child: CustomPaint(
+                    size: Size(double.infinity, 60),
+                    painter: AnimatedWavyLinePainter(
+                      color: Colors.white.withOpacity(0.1),
+                      strokeWidth: 2,
+                      animationValue: _backgroundFloat1.value,
+                    ),
+                  ),
+                ),
+              ),
+
+              Positioned(
+                bottom: MediaQuery.of(context).size.height * 0.3,
+                left: 0,
+                right: 0,
+                child: Transform.translate(
+                  offset: Offset(math.cos(_backgroundFloat2.value) * 15, 0),
+                  child: CustomPaint(
+                    size: Size(double.infinity, 40),
+                    painter: AnimatedWavyLinePainter(
+                      color: AppColors.limeGreen.withOpacity(0.08),
+                      strokeWidth: 1.5,
+                      animationValue: _backgroundFloat2.value * 0.7,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Glass morphism overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withOpacity(0.05),
+                      Colors.transparent,
+                      Colors.white.withOpacity(0.02),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFloatingShape({
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    required double width,
+    required double height,
+    required List<Color> colors,
+    required BorderRadius borderRadius,
+  }) {
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          borderRadius: borderRadius,
         ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingParticle({
+    required double size,
+    required double opacity,
+    required Color color,
+  }) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withOpacity(opacity),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(opacity * 0.5),
+            blurRadius: size * 0.8,
+            spreadRadius: size * 0.2,
+          ),
+        ],
       ),
     );
   }
@@ -812,5 +1067,56 @@ class _AnimatedDotsState extends State<_AnimatedDots>
         );
       },
     );
+  }
+}
+
+// Custom painter for animated wavy lines
+class AnimatedWavyLinePainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double animationValue;
+
+  AnimatedWavyLinePainter({
+    required this.color,
+    this.strokeWidth = 2.0,
+    required this.animationValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+    final waveHeight = size.height * 0.3;
+    final waveLength = size.width / 4;
+    final animationOffset = animationValue * waveLength;
+
+    // Start point
+    path.moveTo(-animationOffset, size.height / 2);
+
+    // Create smooth wavy curves with animation
+    for (int i = -1; i < 5; i++) {
+      final x1 = (i * waveLength) + (waveLength * 0.25) - animationOffset;
+      final y1 = (size.height / 2) + (i.isEven ? -waveHeight : waveHeight);
+      final x2 = (i * waveLength) + (waveLength * 0.75) - animationOffset;
+      final y2 = (size.height / 2) + (i.isEven ? -waveHeight : waveHeight);
+      final x3 = (i + 1) * waveLength - animationOffset;
+      final y3 = size.height / 2;
+
+      path.cubicTo(x1, y1, x2, y2, x3, y3);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(AnimatedWavyLinePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.animationValue != animationValue;
   }
 }

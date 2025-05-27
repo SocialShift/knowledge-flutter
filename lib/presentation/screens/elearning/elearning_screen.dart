@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:knowledge/data/models/history_item.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/providers/timeline_provider.dart';
 import 'package:knowledge/data/providers/filter_provider.dart';
-import 'package:knowledge/presentation/widgets/history_card.dart';
+import 'package:knowledge/presentation/widgets/timeline_discovery_card.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
@@ -441,24 +440,16 @@ class _TimelineGridState extends State<_TimelineGrid>
         physics: const AlwaysScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 16,
+          mainAxisSpacing: 20,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.65, // Changed from 0.7 to 0.65 to fix overflow
+          childAspectRatio: 0.68, // Adjusted for the simplified card design
         ),
         itemCount: widget.timelines.length,
         itemBuilder: (context, index) {
           final timeline = widget.timelines[index];
-          // Convert Timeline to HistoryItem for use with HistoryCard
-          final historyItem = HistoryItem(
-            id: timeline.id,
-            title: timeline.title,
-            subtitle: timeline.description,
-            imageUrl: timeline.imageUrl,
-            year: timeline.year,
-          );
 
-          return HistoryCard(
-            item: historyItem,
+          return TimelineDiscoveryCard(
+            timeline: timeline,
             onTap: () {
               context.push('/timeline/${timeline.id}');
             },

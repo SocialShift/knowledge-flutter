@@ -673,3 +673,4 @@ class _AnimatedDotsState extends State<_AnimatedDots>
     );
   }
 }
+ 

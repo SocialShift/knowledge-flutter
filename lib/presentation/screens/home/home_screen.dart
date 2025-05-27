@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -65,7 +66,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(
+          milliseconds: 350), // Slightly longer for smoother transitions
     );
   }
 
@@ -97,7 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return timelines.map((timeline) => timeline.id).toList();
   }
 
-  // Change timeline and handle boundary conditions
+  // Change timeline and handle boundary conditions with optimized animations
   void _changeTimeline(List<Timeline> timelines, int delta) {
     if (timelines.isEmpty) return;
 
@@ -114,35 +116,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // Only animate if index actually changes
     if (correctedIndex == _selectedTimelineIndex) return;
 
+    // Update state immediately for responsive UI
     setState(() {
       _selectedTimelineIndex = correctedIndex;
     });
 
-    // Reset and start the animation
+    // Add subtle haptic feedback for better UX
+    HapticFeedback.selectionClick();
+
+    // Start optimized animation with better curve
     _animationController.reset();
     _animationController.forward();
 
-    // Scroll the timeline to center the selected item
-    _scrollToSelectedTimeline();
+    // Scroll the timeline to center the selected item with improved timing
+    Future.delayed(const Duration(milliseconds: 50), () {
+      _scrollToSelectedTimeline();
+    });
   }
 
-  // Scroll to center the selected timeline
+  // Scroll to center the selected timeline with optimized performance
   void _scrollToSelectedTimeline() {
+    if (!_timelineScrollController.hasClients) return;
+
     // Calculate the position to scroll to (each item is approximately 150 wide)
     final itemWidth = 150.0;
     final screenWidth = MediaQuery.of(context).size.width;
-    final offset = _selectedTimelineIndex * itemWidth -
+    final targetOffset = _selectedTimelineIndex * itemWidth -
         (screenWidth / 2) +
         (itemWidth / 2);
 
-    // Animate to that position
-    if (_timelineScrollController.hasClients) {
-      _timelineScrollController.animateTo(
-        math.max(0, offset),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+    // Clamp the offset to valid scroll range
+    final maxScrollExtent = _timelineScrollController.position.maxScrollExtent;
+    final clampedOffset =
+        math.max(0.0, math.min(targetOffset, maxScrollExtent));
+
+    // Use optimized animation curve for better performance
+    _timelineScrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -418,12 +431,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 return GestureDetector(
                   onHorizontalDragEnd: (details) {
-                    // Detect swipe direction based on velocity
+                    // Detect swipe direction based on velocity with improved sensitivity
                     if (details.primaryVelocity != null) {
-                      if (details.primaryVelocity! > 0) {
+                      final velocity = details.primaryVelocity!;
+                      // Require minimum velocity for better gesture recognition
+                      if (velocity > 300) {
                         // Swipe right - go to previous timeline
                         _changeTimeline(timelines, -1);
-                      } else if (details.primaryVelocity! < 0) {
+                      } else if (velocity < -300) {
                         // Swipe left - go to next timeline
                         _changeTimeline(timelines, 1);
                       }
@@ -477,39 +492,135 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           const Duration(milliseconds: 500),
                                     ),
                                 const SizedBox(width: 12),
-                                // Welcome text
+                                // Dynamic timeline title
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'The History Erased',
-                                        style: TextStyle(
-                                          color: isDarkMode
-                                              ? Colors.white.withOpacity(0.9)
-                                              : Colors.white.withOpacity(0.9),
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
+                                  child: AnimatedBuilder(
+                                    animation: _animationController,
+                                    builder: (context, child) {
+                                      // Get the current timeline title
+                                      final currentTitle = timelines
+                                                  .isNotEmpty &&
+                                              _selectedTimelineIndex <
+                                                  timelines.length
+                                          ? timelines[_selectedTimelineIndex]
+                                              .title
+                                          : 'The History Erased';
+
+                                      // Calculate animation values for smooth title transitions
+                                      final isAnimating =
+                                          _animationController.isAnimating;
+                                      final animationValue =
+                                          _animationController.value;
+
+                                      // Smooth opacity and slide transitions
+                                      final opacity = isAnimating
+                                          ? 0.3 + (animationValue * 0.7)
+                                          : 1.0;
+                                      final slideOffset = isAnimating
+                                          ? _animationDirection *
+                                              (1.0 - animationValue) *
+                                              0.15
+                                          : 0.0;
+
+                                      return Transform.translate(
+                                        offset: Offset(
+                                          MediaQuery.of(context).size.width *
+                                              slideOffset,
+                                          0,
                                         ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        'Now in Your Hands',
-                                        style: TextStyle(
-                                          color: isDarkMode
-                                              ? Colors.white.withOpacity(0.7)
-                                              : Colors.white.withOpacity(0.7),
-                                          fontSize: 16,
+                                        child: Opacity(
+                                          opacity: opacity,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // Main timeline title with smooth transitions
+                                              AnimatedSwitcher(
+                                                duration: const Duration(
+                                                    milliseconds: 400),
+                                                transitionBuilder:
+                                                    (child, animation) {
+                                                  return SlideTransition(
+                                                    position: Tween<Offset>(
+                                                      begin: Offset(
+                                                          _animationDirection *
+                                                              0.3,
+                                                          0),
+                                                      end: Offset.zero,
+                                                    ).animate(CurvedAnimation(
+                                                      parent: animation,
+                                                      curve:
+                                                          Curves.easeOutCubic,
+                                                    )),
+                                                    child: FadeTransition(
+                                                      opacity: animation,
+                                                      child: child,
+                                                    ),
+                                                  );
+                                                },
+                                                child: Text(
+                                                  currentTitle,
+                                                  key: ValueKey(currentTitle),
+                                                  style: TextStyle(
+                                                    color: isDarkMode
+                                                        ? Colors.white
+                                                            .withOpacity(0.95)
+                                                        : Colors.white
+                                                            .withOpacity(0.95),
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    letterSpacing: 0.3,
+                                                    shadows: [
+                                                      Shadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.3),
+                                                        offset:
+                                                            const Offset(0, 1),
+                                                        blurRadius: 3,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              // Subtitle with enhanced styling
+                                              Text(
+                                                'Now in Your Hands',
+                                                style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white
+                                                          .withOpacity(0.75)
+                                                      : Colors.white
+                                                          .withOpacity(0.75),
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w400,
+                                                  letterSpacing: 0.2,
+                                                  shadows: [
+                                                    Shadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.2),
+                                                      offset:
+                                                          const Offset(0, 1),
+                                                      blurRadius: 2,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ).animate().fadeIn().slideX(
                                         begin: -0.2,
                                         delay:
                                             const Duration(milliseconds: 300),
                                         duration:
-                                            const Duration(milliseconds: 500),
+                                            const Duration(milliseconds: 600),
+                                        curve: Curves.easeOutCubic,
                                       ),
                                 ),
 
@@ -1486,7 +1597,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           sliver: SliverToBoxAdapter(child: Container()),
         ),
 
-        // Header with logo and welcome text
+        // Header with logo and loading text
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -1502,29 +1613,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Welcome text
+                // Loading state title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'The History Erased',
-                        style: TextStyle(
-                          color: isDarkMode
-                              ? Colors.white.withOpacity(0.9)
-                              : Colors.white.withOpacity(0.9),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      // Animated loading title
+                      TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 1500),
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity:
+                                0.6 + (math.sin(value * 4 * math.pi) * 0.3),
+                            child: Text(
+                              'Discovering Timelines...',
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white.withOpacity(0.9)
+                                    : Colors.white.withOpacity(0.9),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 1),
+                      const SizedBox(height: 2),
                       Text(
                         'Now in Your Hands',
                         style: TextStyle(
                           color: isDarkMode
-                              ? Colors.white.withOpacity(0.7)
-                              : Colors.white.withOpacity(0.7),
-                          fontSize: 16,
+                              ? Colors.white.withOpacity(0.75)
+                              : Colors.white.withOpacity(0.75),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 0.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1738,7 +1877,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           sliver: SliverToBoxAdapter(child: Container()),
         ),
 
-        // Header with logo and welcome text
+        // Header with logo and empty state text
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -1754,7 +1893,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Welcome text
+                // Empty state title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1767,16 +1906,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               : Colors.white.withOpacity(0.9),
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.3),
+                              offset: const Offset(0, 1),
+                              blurRadius: 3,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 1),
+                      const SizedBox(height: 2),
                       Text(
                         'Now in Your Hands',
                         style: TextStyle(
                           color: isDarkMode
-                              ? Colors.white.withOpacity(0.7)
-                              : Colors.white.withOpacity(0.7),
-                          fontSize: 16,
+                              ? Colors.white.withOpacity(0.75)
+                              : Colors.white.withOpacity(0.75),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 0.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
                     ],
