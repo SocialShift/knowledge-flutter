@@ -146,6 +146,9 @@ class _KnowledgeState extends ConsumerState<Knowledge>
       // Check session validity when app is resumed
       final authNotifier = ref.read(authNotifierProvider.notifier);
       authNotifier.checkSessionValidity();
+
+      // Also check email verification status when app is resumed
+      authNotifier.checkAndHandleEmailVerification();
     }
   }
 
@@ -166,6 +169,9 @@ class _KnowledgeState extends ConsumerState<Knowledge>
 
         // Set authenticated state with user info
         authNotifier.restoreSession(user, hasProfile);
+
+        // Check email verification status after restoring session
+        await authNotifier.checkAndHandleEmailVerification();
 
         // Preload user-specific data after authentication
         await _preloadUserData();

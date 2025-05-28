@@ -47,7 +47,7 @@ class AuthRepository {
           id: userData['id'].toString(),
           email: userData['email'],
           username: userData['email'].split('@')[0],
-          isEmailVerified: false,
+          isEmailVerified: userData['is_verified'] ?? false,
         );
       } else {
         final message = response.data['detail'] ??
@@ -154,6 +154,99 @@ class AuthRepository {
     if (response.statusCode != 200) {
       final message = response.data['detail'] ?? 'Password reset failed';
       throw message.toString();
+    }
+  }
+
+  Future<void> verifyEmail(String email, String otp) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/verify-email',
+        data: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return; // Successful verification
+      } else {
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Email verification failed';
+        throw message.toString();
+      }
+    } on DioException catch (e) {
+      print('DioException in verifyEmail: ${e.response?.data}');
+
+      if (e.response?.data != null) {
+        final message =
+            e.response?.data['detail'] ?? e.response?.data['message'];
+        if (message != null) throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    }
+  }
+
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/resend-verification',
+        data: {
+          'email': email,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return; // Successful resend
+      } else {
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Failed to resend verification email';
+        throw message.toString();
+      }
+    } on DioException catch (e) {
+      print('DioException in resendVerificationEmail: ${e.response?.data}');
+
+      if (e.response?.data != null) {
+        final message =
+            e.response?.data['detail'] ?? e.response?.data['message'];
+        if (message != null) throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    }
+  }
+
+  // Check if the current user's email is verified
+  Future<bool> checkUserVerificationStatus() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      if (response.statusCode == 200) {
+        final userData = response.data['user'] ?? {};
+        return userData['is_verified'] ?? false;
+      } else {
+        throw 'Failed to check verification status';
+      }
+    } catch (e) {
+      print('Error checking user verification status: $e');
+      throw 'Failed to check verification status: ${e.toString()}';
+    }
+  }
+
+  // Get user email for verification purposes
+  Future<String> getCurrentUserEmail() async {
+    try {
+      final response = await _apiService.get('/auth/user/me');
+
+      if (response.statusCode == 200) {
+        final userData = response.data['user'] ?? {};
+        return userData['email'] ?? '';
+      } else {
+        throw 'Failed to get user email';
+      }
+    } catch (e) {
+      print('Error getting current user email: $e');
+      throw 'Failed to get user email: ${e.toString()}';
     }
   }
 

@@ -3,16 +3,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
-import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io' show Platform;
-import 'package:audio_session/audio_session.dart';
-import 'dart:developer' as developer;
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -33,719 +30,52 @@ class StoryDetailScreen extends HookConsumerWidget {
     // Fetch story details using the provider
     final storyAsync = ref.watch(storyDetailProvider(storyId));
 
-    // Fetch quiz for this story - use the actual storyId passed to this screen
-    final quizAsync = ref.watch(storyQuizProvider(storyId));
+    // State for navigation between video and story parts
+    final currentPart = useState(0); // 0 = video part, 1 = story part
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: storyAsync.when(
-        data: (story) => AppBar(
-          backgroundColor: backgroundColor,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            story.title,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: textColor),
-            onPressed: () => context.pop(),
-          ),
-          actions: const [],
-        ),
-        loading: () => AppBar(
-          backgroundColor: backgroundColor,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Loading...',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: textColor),
-            onPressed: () => context.pop(),
-          ),
-        ),
-        error: (_, __) => AppBar(
-          backgroundColor: backgroundColor,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Story Details',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: textColor),
-            onPressed: () => context.pop(),
-          ),
-        ),
-      ),
       body: storyAsync.when(
         data: (story) {
-          final pageController = PageController();
-          final currentPage = useState(0);
+          final hasVideo =
+              story.mediaUrl.isNotEmpty && !_isImageUrl(story.mediaUrl);
 
-          // Check if the media URL is an image or a video
-          final isImageUrl = _isImageUrl(story.mediaUrl);
-
-          // Determine total number of pages based on whether valid video exists
-          final hasVideo = story.mediaUrl.isNotEmpty && !isImageUrl;
-          final totalPages = hasVideo ? 2 : 1; // Only video page and story page
-
-          // Create video controller using Flutter Hooks
-          final videoControllerRef = useState<VideoPlayerController?>(null);
-          final chewieControllerRef = useState<ChewieController?>(null);
-          final isBuffering = useState(false);
-          final errorMessage = useState<String?>(null);
-          final hasRetried = useState(false);
-          // final selectedPlaybackSpeed = useState(1.0);
-          // final isFullscreen = useState(false);
-          final audioSessionConfigured = useState(false);
-
-          // Available playback speeds
-          // final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-
-          // Configure iOS audio session for video playback
-          useEffect(() {
-            if (Platform.isIOS && !audioSessionConfigured.value) {
-              audioSessionConfigured.value = true;
-              developer.log('Configuring iOS audio session');
-
-              // Ensure audio session is configured properly
-              AudioSession.instance.then((session) async {
-                try {
-                  // First set active to false to reset any existing sessions
-                  await session.setActive(false);
-
-                  // Configure with proper settings for video playback
-                  await session.configure(const AudioSessionConfiguration(
-                    avAudioSessionCategory: AVAudioSessionCategory.playback,
-                    avAudioSessionCategoryOptions:
-                        AVAudioSessionCategoryOptions.defaultToSpeaker,
-                    avAudioSessionMode: AVAudioSessionMode.moviePlayback,
-                    avAudioSessionRouteSharingPolicy:
-                        AVAudioSessionRouteSharingPolicy.defaultPolicy,
-                    avAudioSessionSetActiveOptions:
-                        AVAudioSessionSetActiveOptions
-                            .notifyOthersOnDeactivation,
-                  ));
-
-                  // Then set active
-                  await session.setActive(true);
-                  developer.log('iOS audio session configured successfully');
-                } catch (e) {
-                  developer.log('Error configuring iOS audio session: $e');
-                }
-              });
-            }
-            return null;
-          }, const []);
-
-          // Retry video initialization
-          void _retryInitialization() {
-            errorMessage.value = null;
-            isBuffering.value = true;
-            hasRetried.value = false;
-
-            // Clean up existing controllers
-            chewieControllerRef.value?.dispose();
-            chewieControllerRef.value = null;
-
-            videoControllerRef.value?.dispose();
-            videoControllerRef.value = null;
-
-            // Force rebuild
-            Future.microtask(() {});
-          }
-
-          // Handle video playback errors
-          void _handleVideoError(dynamic error) {
-            // If first attempt failed and we haven't retried yet, try with different settings
-            if (!hasRetried.value) {
-              hasRetried.value = true;
-              videoControllerRef.value?.dispose();
-
-              // Try with a different format hint
-              final Uri originalUri = Uri.parse(story.mediaUrl);
-              String videoUrl = story.mediaUrl;
-
-              if (originalUri.scheme == 'http') {
-                videoUrl =
-                    'https://${originalUri.authority}${originalUri.path}';
-                if (originalUri.hasQuery) {
-                  videoUrl += '?${originalUri.query}';
-                }
-              }
-
-              developer.log('Retrying with format hint: $videoUrl');
-
-              final retryController = VideoPlayerController.networkUrl(
-                Uri.parse(videoUrl),
-                formatHint: VideoFormat.other,
-                httpHeaders: {
-                  'User-Agent': Platform.isIOS
-                      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
-                      : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-                },
-              );
-
-              videoControllerRef.value = retryController;
-
-              retryController.initialize().then((_) {
-                // For iOS, ensure volume is set to maximum
-                if (Platform.isIOS) {
-                  retryController.setVolume(1.0);
-                  developer.log(
-                      'iOS: Set volume to maximum after retry initialization');
-                }
-
-                chewieControllerRef.value = ChewieController(
-                  videoPlayerController: retryController,
-                  aspectRatio: retryController.value.aspectRatio,
-                  autoPlay: true,
-                  looping: false,
-                  materialProgressColors: ChewieProgressColors(
-                    playedColor: AppColors.limeGreen,
-                    handleColor: AppColors.limeGreen,
-                    backgroundColor: Colors.white24,
-                    bufferedColor: Colors.white38,
-                  ),
-                  allowFullScreen: true,
-                  showControls: true,
-                  allowPlaybackSpeedChanging: true,
-                  customControls: const MaterialControls(),
-                );
-                isBuffering.value = false;
-              }).catchError((retryError) {
-                developer.log('Video retry error: $retryError');
-                errorMessage.value =
-                    "Unable to load video: Video format may not be supported on this device";
-                isBuffering.value = false;
-              });
-            } else {
-              developer.log('Video error after retry: $error');
-              errorMessage.value =
-                  "Failed to load video: Please check your internet connection or try again later";
-              isBuffering.value = false;
-            }
-          }
-
-          // Ensure proper disposal of controllers
-          useEffect(() {
-            return () {
-              developer.log('Disposing video controllers');
-              chewieControllerRef.value?.dispose();
-              videoControllerRef.value?.dispose();
-
-              // Reset audio session when widget is disposed
-              if (Platform.isIOS) {
-                AudioSession.instance.then((session) {
-                  try {
-                    session.setActive(false);
-                    developer.log('iOS audio session deactivated');
-                  } catch (e) {
-                    developer.log('Error deactivating iOS audio session: $e');
-                  }
-                });
-              }
-            };
-          }, []);
-
-          // Initialize the video player with better error handling
-          useEffect(() {
-            if (story.mediaUrl.isEmpty) {
-              errorMessage.value = "No video available";
-              return null;
-            }
-
-            final Uri originalUri = Uri.parse(story.mediaUrl);
-            String videoUrl = story.mediaUrl;
-
-            // Check if the URL uses HTTPS
-            if (originalUri.scheme == 'http') {
-              // Convert to HTTPS for iOS compatibility
-              videoUrl = 'https://${originalUri.authority}${originalUri.path}';
-              if (originalUri.hasQuery) {
-                videoUrl += '?${originalUri.query}';
-              }
-            }
-
-            isBuffering.value = true;
-            developer.log('Initializing video: $videoUrl');
-
-            // Add platform-specific options for better compatibility
-            Map<String, String> headers = {
-              'User-Agent': Platform.isIOS
-                  ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
-                  : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-            };
-
-            // Create controller with platform-specific settings
-            final controller = VideoPlayerController.networkUrl(
-              Uri.parse(videoUrl),
-              httpHeaders: headers,
-              videoPlayerOptions: VideoPlayerOptions(
-                mixWithOthers:
-                    false, // Disable mixing for better iOS compatibility
-                allowBackgroundPlayback: false,
-              ),
-            );
-
-            videoControllerRef.value = controller;
-
-            controller.initialize().then((_) {
-              if (controller.value.hasError) {
-                throw Exception(
-                    "Video initialization failed: ${controller.value.errorDescription}");
-              }
-
-              // For iOS, ensure volume is set to maximum after initialization
-              if (Platform.isIOS) {
-                controller.setVolume(1.0);
-                developer
-                    .log('iOS: Set volume to maximum after initialization');
-              }
-
-              // Create Chewie controller for improved UI
-              chewieControllerRef.value = ChewieController(
-                videoPlayerController: controller,
-                aspectRatio: controller.value.aspectRatio,
-                autoPlay: true, // Auto-play on iOS to trigger audio
-                looping: false,
-                materialProgressColors: ChewieProgressColors(
-                  playedColor: AppColors.limeGreen,
-                  handleColor: AppColors.limeGreen,
-                  backgroundColor: Colors.white24,
-                  bufferedColor: Colors.white38,
-                ),
-                placeholder: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
-                  ),
-                ),
-                errorBuilder: (context, errorMessage) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.white70,
-                          size: 48,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          errorMessage,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _retryInitialization,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.limeGreen,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                          ),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                allowFullScreen: true,
-                fullScreenByDefault: false,
-                showControls: true,
-                allowPlaybackSpeedChanging: true,
-                customControls: const MaterialControls(),
-              );
-
-              isBuffering.value = false;
-
-              // For iOS, ensure audio works by playing and then pausing if autoplay is false
-              if (Platform.isIOS) {
-                // This ensures the audio track is properly initialized
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  controller.play().then((_) {
-                    developer
-                        .log('iOS: Video playback started to initialize audio');
-                    // If you don't want autoplay, you can pause it after a short delay
-                    // Future.delayed(const Duration(milliseconds: 300), controller.pause);
-                  });
-                });
-              }
-            }).catchError((error) {
-              developer.log('Video initialization error: $error');
-              _handleVideoError(error);
+          // If no video, skip directly to story part
+          if (!hasVideo && currentPart.value == 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              currentPart.value = 1;
             });
+          }
 
-            return null;
-          }, [story.mediaUrl]);
-
-          return Container(
-            color: backgroundColor,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Main content with enhanced animations
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? AppColors.darkSurface
-                          : AppColors.navyBlue,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 15,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Pagination dots with enhanced design and animations
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              totalPages, // Updated number of dots based on video presence
-                              (index) => AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: index == currentPage.value ? 24 : 8,
-                                height: 8,
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                decoration: BoxDecoration(
-                                  color: index == currentPage.value
-                                      ? AppColors.limeGreen
-                                      : Colors.white.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              )
-                                  .animate()
-                                  .scale(
-                                    delay: Duration(milliseconds: 100 * index),
-                                    duration: const Duration(milliseconds: 400),
-                                    curve: Curves.elasticOut,
-                                  )
-                                  .then()
-                                  .shimmer(
-                                    duration:
-                                        const Duration(milliseconds: 1000),
-                                    color: AppColors.limeGreen.withOpacity(0.5),
-                                  ),
-                            ),
-                          ),
-                        )
-                            .animate()
-                            .slideY(
-                              begin: -0.5,
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeOutBack,
-                            )
-                            .fadeIn(),
-
-                        // Content with smooth page transitions
-                        Expanded(
-                          child: PageView(
-                            controller: pageController,
-                            onPageChanged: (index) {
-                              currentPage.value = index;
-                            },
-                            children: [
-                              // Video player page (only if media URL is a valid video)
-                              if (hasVideo)
-                                _VideoPlayerPage(story: story)
-                                    .animate()
-                                    .slideX(
-                                      begin: 0.3,
-                                      duration:
-                                          const Duration(milliseconds: 800),
-                                      curve: Curves.easeOutCubic,
-                                    )
-                                    .fadeIn(
-                                      duration:
-                                          const Duration(milliseconds: 600),
-                                    ),
-
-                              // Complete story on a single page
-                              _CompleteStoryPage(story: story)
-                                  .animate()
-                                  .slideX(
-                                    begin: hasVideo ? 0.3 : 0.2,
-                                    duration: const Duration(milliseconds: 800),
-                                    curve: Curves.easeOutCubic,
-                                  )
-                                  .fadeIn(
-                                    duration: const Duration(milliseconds: 600),
-                                    delay: Duration(
-                                        milliseconds: hasVideo ? 200 : 0),
-                                  ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          return Stack(
+            children: [
+              // Main content based on current part
+              if (currentPart.value == 0 && hasVideo)
+                _VideoPartScreen(
+                  story: story,
+                  hasVideo: hasVideo,
+                  onContinue: () => currentPart.value = 1,
+                  onBack: () => context.pop(),
+                )
+              else
+                _StoryPartScreen(
+                  story: story,
+                  onBack: hasVideo
+                      ? () =>
+                          currentPart.value = 0 // Go back to video if it exists
+                      : () => context
+                          .pop(), // Go back to previous screen if no video
+                  onMilestones: () => context.push('/quiz/$storyId'),
+                  hasVideo: hasVideo, // Pass hasVideo information
                 ),
-
-                // Bottom navigation buttons with enhanced animations
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Row(
-                    children: [
-                      // Bookmark button with hover and tap animations
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          border: Border.all(
-                              color: isDarkMode
-                                  ? Colors.grey.shade700
-                                  : AppColors.navyBlue),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: () {
-                            // Bookmark functionality with haptic feedback
-                          },
-                          icon: Icon(
-                            Icons.bookmark_border,
-                            color: textColor,
-                          ),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      )
-                          .animate()
-                          .slideY(
-                            begin: 1.0,
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeOutBack,
-                            delay: const Duration(milliseconds: 400),
-                          )
-                          .fadeIn()
-                          .then()
-                          .shimmer(
-                            duration: const Duration(milliseconds: 1200),
-                            color: AppColors.limeGreen.withOpacity(0.3),
-                          ),
-                      const SizedBox(width: 12),
-
-                      // Back button with slide animation
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => context.pop(),
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: backgroundColor,
-                              border: Border.all(
-                                  color: isDarkMode
-                                      ? Colors.grey.shade700
-                                      : AppColors.navyBlue),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.arrow_back_ios_new,
-                                    color: textColor,
-                                    size: 16,
-                                  ).animate().slideX(
-                                        begin: -0.5,
-                                        duration:
-                                            const Duration(milliseconds: 400),
-                                        delay:
-                                            const Duration(milliseconds: 800),
-                                      ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Back',
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ).animate().fadeIn(
-                                        duration:
-                                            const Duration(milliseconds: 400),
-                                        delay:
-                                            const Duration(milliseconds: 900),
-                                      ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                            .animate()
-                            .slideY(
-                              begin: 1.0,
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeOutBack,
-                              delay: const Duration(milliseconds: 500),
-                            )
-                            .fadeIn(),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Next/Quiz button with enhanced animations
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            if (currentPage.value < totalPages - 1) {
-                              pageController.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            } else {
-                              // If on the last page, go to quiz
-                              context.push('/quiz/$storyId');
-                            }
-                          },
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppColors.limeGreen,
-                                  AppColors.limeGreen.withOpacity(0.8),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.limeGreen.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                                BoxShadow(
-                                  color: AppColors.limeGreen.withOpacity(0.1),
-                                  blurRadius: 20,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    currentPage.value < (totalPages - 1)
-                                        ? 'Next'
-                                        : 'Milestones',
-                                    style: TextStyle(
-                                      color: isDarkMode
-                                          ? Colors.black
-                                          : AppColors.navyBlue,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ).animate().fadeIn(
-                                        duration:
-                                            const Duration(milliseconds: 400),
-                                        delay:
-                                            const Duration(milliseconds: 1000),
-                                      ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    currentPage.value < (totalPages - 1)
-                                        ? Icons.arrow_forward_ios
-                                        : Icons.quiz_outlined,
-                                    color: isDarkMode
-                                        ? Colors.black
-                                        : AppColors.navyBlue,
-                                    size: 16,
-                                  ).animate().slideX(
-                                        begin: 0.5,
-                                        duration:
-                                            const Duration(milliseconds: 400),
-                                        delay:
-                                            const Duration(milliseconds: 1100),
-                                      ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                            .animate()
-                            .slideY(
-                              begin: 1.0,
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeOutBack,
-                              delay: const Duration(milliseconds: 600),
-                            )
-                            .fadeIn()
-                            .then()
-                            .shimmer(
-                              duration: const Duration(milliseconds: 1500),
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-              .animate()
-              .slideY(
-                begin: 0.1,
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutCubic,
-              )
-              .fadeIn();
+            ],
+          );
         },
         loading: () => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
           ),
-        ).animate().fadeIn().scale(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOutBack,
-            ),
+        ),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -755,10 +85,7 @@ class StoryDetailScreen extends HookConsumerWidget {
               textAlign: TextAlign.center,
             ),
           ),
-        ).animate().fadeIn().slideY(
-              begin: 0.3,
-              duration: const Duration(milliseconds: 600),
-            ),
+        ),
       ),
     );
   }
@@ -769,594 +96,379 @@ class StoryDetailScreen extends HookConsumerWidget {
     final lowercaseUrl = url.toLowerCase();
     return imageExtensions.any((ext) => lowercaseUrl.endsWith(ext));
   }
+
+  // Helper method to format duration
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return duration.inHours > 0
+        ? "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds"
+        : "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  // Helper method to calculate reading time
+  int _calculateReadingTime(String text) {
+    // Average reading speed: 200 words per minute
+    final wordCount = text.split(' ').length;
+    final minutes = (wordCount / 200).ceil();
+    return minutes > 0 ? minutes : 1; // Minimum 1 minute
+  }
 }
 
-// Video player page
-class _VideoPlayerPage extends HookConsumerWidget {
+// Video Part Screen - Shows video with bottom card containing timestamps, title, views
+class _VideoPartScreen extends HookConsumerWidget {
   final Story story;
+  final bool hasVideo;
+  final VoidCallback onContinue;
+  final VoidCallback onBack;
 
-  const _VideoPlayerPage({required this.story});
+  const _VideoPartScreen({
+    required this.story,
+    required this.hasVideo,
+    required this.onContinue,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Create video controller using Flutter Hooks
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final videoControllerRef = useState<VideoPlayerController?>(null);
-    final chewieControllerRef = useState<ChewieController?>(null);
-    final isBuffering = useState(false);
-    final errorMessage = useState<String?>(null);
-    final hasRetried = useState(false);
-    // final selectedPlaybackSpeed = useState(1.0);
-    // final isFullscreen = useState(false);
-    final audioSessionConfigured = useState(false);
 
-    // Since this component only renders for video URLs now, we don't need to check again
-
-    // Available playback speeds
-    // final playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-
-    // Configure iOS audio session for video playback
-    useEffect(() {
-      if (Platform.isIOS && !audioSessionConfigured.value) {
-        audioSessionConfigured.value = true;
-        developer.log('Configuring iOS audio session');
-
-        // Ensure audio session is configured properly
-        AudioSession.instance.then((session) async {
-          try {
-            // First set active to false to reset any existing sessions
-            await session.setActive(false);
-
-            // Configure with proper settings for video playback
-            await session.configure(const AudioSessionConfiguration(
-              avAudioSessionCategory: AVAudioSessionCategory.playback,
-              avAudioSessionCategoryOptions:
-                  AVAudioSessionCategoryOptions.defaultToSpeaker,
-              avAudioSessionMode: AVAudioSessionMode.moviePlayback,
-              avAudioSessionRouteSharingPolicy:
-                  AVAudioSessionRouteSharingPolicy.defaultPolicy,
-              avAudioSessionSetActiveOptions:
-                  AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
-            ));
-
-            // Then set active
-            await session.setActive(true);
-            developer.log('iOS audio session configured successfully');
-          } catch (e) {
-            developer.log('Error configuring iOS audio session: $e');
-          }
-        });
-      }
-      return null;
-    }, const []);
-
-    // Retry video initialization
-    void _retryInitialization() {
-      errorMessage.value = null;
-      isBuffering.value = true;
-      hasRetried.value = false;
-
-      // Clean up existing controllers
-      chewieControllerRef.value?.dispose();
-      chewieControllerRef.value = null;
-
-      videoControllerRef.value?.dispose();
-      videoControllerRef.value = null;
-
-      // Force rebuild
-      Future.microtask(() {});
-    }
-
-    // Handle video playback errors
-    void _handleVideoError(dynamic error) {
-      // If first attempt failed and we haven't retried yet, try with different settings
-      if (!hasRetried.value) {
-        hasRetried.value = true;
-        videoControllerRef.value?.dispose();
-
-        // Try with a different format hint
-        final Uri originalUri = Uri.parse(story.mediaUrl);
-        String videoUrl = story.mediaUrl;
-
-        if (originalUri.scheme == 'http') {
-          videoUrl = 'https://${originalUri.authority}${originalUri.path}';
-          if (originalUri.hasQuery) {
-            videoUrl += '?${originalUri.query}';
-          }
-        }
-
-        developer.log('Retrying with format hint: $videoUrl');
-
-        final retryController = VideoPlayerController.networkUrl(
-          Uri.parse(videoUrl),
-          formatHint: VideoFormat.other,
-          httpHeaders: {
-            'User-Agent': Platform.isIOS
-                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
-                : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-          },
-        );
-
-        videoControllerRef.value = retryController;
-
-        retryController.initialize().then((_) {
-          // For iOS, ensure volume is set to maximum
-          if (Platform.isIOS) {
-            retryController.setVolume(1.0);
-            developer
-                .log('iOS: Set volume to maximum after retry initialization');
-          }
-
-          chewieControllerRef.value = ChewieController(
-            videoPlayerController: retryController,
-            aspectRatio: retryController.value.aspectRatio,
-            autoPlay: true,
-            looping: false,
-            materialProgressColors: ChewieProgressColors(
-              playedColor: AppColors.limeGreen,
-              handleColor: AppColors.limeGreen,
-              backgroundColor: Colors.white24,
-              bufferedColor: Colors.white38,
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Video Player (40% of screen with 1:1 aspect ratio)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1.0, // 1:1 aspect ratio
+                child: Transform.scale(
+                  scale: 1.2, // Zoom the video
+                  child: hasVideo
+                      ? _AutoPlayVideoWidget(
+                          story: story,
+                          onControllerReady: (controller) {
+                            videoControllerRef.value = controller;
+                          },
+                        )
+                      : Container(
+                          color: Colors.black,
+                          child: const Center(
+                            child: Icon(
+                              Icons.play_circle_outline,
+                              color: Colors.white54,
+                              size: 80,
+                            ),
+                          ),
+                        ),
+                ),
+              ),
             ),
-            allowFullScreen: true,
-            showControls: true,
-            allowPlaybackSpeedChanging: true,
-            customControls: const MaterialControls(),
-          );
-          isBuffering.value = false;
-        }).catchError((retryError) {
-          developer.log('Video retry error: $retryError');
-          errorMessage.value =
-              "Unable to load video: Video format may not be supported on this device";
-          isBuffering.value = false;
-        });
-      } else {
-        developer.log('Video error after retry: $error');
-        errorMessage.value =
-            "Failed to load video: Please check your internet connection or try again later";
-        isBuffering.value = false;
-      }
-    }
+          ).animate().fadeIn(duration: 800.ms, delay: 200.ms).slideY(
+              begin: -0.3,
+              end: 0,
+              duration: 1000.ms,
+              curve: Curves.easeOutCubic),
 
-    // Ensure proper disposal of controllers
-    useEffect(() {
-      return () {
-        developer.log('Disposing video controllers');
-        chewieControllerRef.value?.dispose();
-        videoControllerRef.value?.dispose();
-
-        // Reset audio session when widget is disposed
-        if (Platform.isIOS) {
-          AudioSession.instance.then((session) {
-            try {
-              session.setActive(false);
-              developer.log('iOS audio session deactivated');
-            } catch (e) {
-              developer.log('Error deactivating iOS audio session: $e');
-            }
-          });
-        }
-      };
-    }, []);
-
-    // Initialize the video player with better error handling
-    useEffect(() {
-      if (story.mediaUrl.isEmpty) {
-        errorMessage.value = "No video available";
-        return null;
-      }
-
-      final Uri originalUri = Uri.parse(story.mediaUrl);
-      String videoUrl = story.mediaUrl;
-
-      // Check if the URL uses HTTPS
-      if (originalUri.scheme == 'http') {
-        // Convert to HTTPS for iOS compatibility
-        videoUrl = 'https://${originalUri.authority}${originalUri.path}';
-        if (originalUri.hasQuery) {
-          videoUrl += '?${originalUri.query}';
-        }
-      }
-
-      isBuffering.value = true;
-      developer.log('Initializing video: $videoUrl');
-
-      // Add platform-specific options for better compatibility
-      Map<String, String> headers = {
-        'User-Agent': Platform.isIOS
-            ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
-            : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-      };
-
-      // Create controller with platform-specific settings
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        httpHeaders: headers,
-        videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers: false, // Disable mixing for better iOS compatibility
-          allowBackgroundPlayback: false,
-        ),
-      );
-
-      videoControllerRef.value = controller;
-
-      controller.initialize().then((_) {
-        if (controller.value.hasError) {
-          throw Exception(
-              "Video initialization failed: ${controller.value.errorDescription}");
-        }
-
-        // For iOS, ensure volume is set to maximum after initialization
-        if (Platform.isIOS) {
-          controller.setVolume(1.0);
-          developer.log('iOS: Set volume to maximum after initialization');
-        }
-
-        // Create Chewie controller for improved UI
-        chewieControllerRef.value = ChewieController(
-          videoPlayerController: controller,
-          aspectRatio: controller.value.aspectRatio,
-          autoPlay: true, // Auto-play on iOS to trigger audio
-          looping: false,
-          materialProgressColors: ChewieProgressColors(
-            playedColor: AppColors.limeGreen,
-            handleColor: AppColors.limeGreen,
-            backgroundColor: Colors.white24,
-            bufferedColor: Colors.white38,
-          ),
-          placeholder: const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
+          // Back button overlay
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 16,
+            child: GestureDetector(
+              onTap: onBack,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ),
-          ),
-          errorBuilder: (context, errorMessage) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.white70,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    errorMessage,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _retryInitialization,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.limeGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                    ),
-                    child: const Text('Retry'),
+          ).animate().fadeIn(duration: 600.ms, delay: 400.ms).scale(
+              begin: const Offset(0.8, 0.8),
+              duration: 600.ms,
+              curve: Curves.elasticOut),
+
+          // Static Bottom Card (60% of screen)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDarkMode ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
                   ),
                 ],
               ),
-            );
-          },
-          allowFullScreen: true,
-          fullScreenByDefault: false,
-          showControls: true,
-          allowPlaybackSpeedChanging: true,
-          customControls: const MaterialControls(),
-        );
-
-        isBuffering.value = false;
-
-        // For iOS, ensure audio works by playing and then pausing if autoplay is false
-        if (Platform.isIOS) {
-          // This ensures the audio track is properly initialized
-          Future.delayed(const Duration(milliseconds: 100), () {
-            controller.play().then((_) {
-              developer.log('iOS: Video playback started to initialize audio');
-              // If you don't want autoplay, you can pause it after a short delay
-              // Future.delayed(const Duration(milliseconds: 300), controller.pause);
-            });
-          });
-        }
-      }).catchError((error) {
-        developer.log('Video initialization error: $error');
-        _handleVideoError(error);
-      });
-
-      return null;
-    }, [story.mediaUrl]);
-
-    // Use RepaintBoundary for better performance with the video player
-    return RepaintBoundary(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-
-              // Video player with Chewie controls
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.black,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: errorMessage.value != null
-                        ? _buildErrorWidget()
-                        : isBuffering.value
-                            ? const Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.limeGreen),
-                                ),
-                              )
-                            : chewieControllerRef.value != null
-                                ? Chewie(
-                                    controller: chewieControllerRef.value!,
-                                  )
-                                : const SizedBox(),
                   ),
-                ),
-              ),
 
-              // Simple spacing after video
-              const SizedBox(height: 16),
-
-              // iOS playback helper - Audio troubleshooting button for iOS
-              if (Platform.isIOS)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (videoControllerRef.value != null) {
-                          // Force audio initialization
-                          videoControllerRef.value!.setVolume(1.0);
-                          videoControllerRef.value!.play();
-                          developer.log('iOS: Manual audio restart triggered');
-
-                          // Re-configure audio session
-                          AudioSession.instance.then((session) async {
-                            try {
-                              await session.setActive(false);
-                              await session
-                                  .configure(const AudioSessionConfiguration(
-                                avAudioSessionCategory:
-                                    AVAudioSessionCategory.playback,
-                                avAudioSessionCategoryOptions:
-                                    AVAudioSessionCategoryOptions
-                                        .defaultToSpeaker,
-                                avAudioSessionMode:
-                                    AVAudioSessionMode.moviePlayback,
-                              ));
-                              await session.setActive(true);
-                              developer.log(
-                                  'iOS: Audio session reconfigured manually');
-                            } catch (e) {
-                              developer
-                                  .log('Error reconfiguring audio session: $e');
-                            }
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(30),
+                  // Fixed Header Section (Title, Views, Year)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Story Title
+                        Text(
+                          story.title,
+                          style: TextStyle(
+                            color:
+                                isDarkMode ? Colors.white : AppColors.navyBlue,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ),
                         ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
+
+                        const SizedBox(height: 12),
+
+                        // Views and Year
+                        Row(
                           children: [
                             Icon(
-                              Icons.volume_up,
-                              color: AppColors.limeGreen,
+                              Icons.visibility,
+                              color: Colors.grey,
                               size: 16,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Text(
-                              'Tap if no sound',
+                              '${story.views} views',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Colors.grey,
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(
+                              Icons.calendar_today,
+                              color: Colors.grey,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${story.year}',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
 
-              // Title with improved typography
-              Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 8),
-                child: Text(
-                  story.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.2,
-                    height: 1.3,
-                  ),
-                ),
-              ),
+                        const SizedBox(height: 16),
 
-              // Timestamps section (if video has timestamps)
-              if (story.timestamps.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8.0, bottom: 12.0),
-                      child: Text(
-                        'Timestamps',
-                        style: TextStyle(
-                          color: AppColors.limeGreen,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: story.timestamps.map((timestamp) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                if (videoControllerRef.value != null) {
-                                  videoControllerRef.value!.seekTo(
-                                      Duration(seconds: timestamp.timeSec));
-                                  videoControllerRef.value!.play();
-                                }
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.limeGreen.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      _formatDuration(
-                                          Duration(seconds: timestamp.timeSec)),
-                                      style: const TextStyle(
-                                        color: AppColors.limeGreen,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      timestamp.label,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.play_circle_outline,
-                                    color: AppColors.limeGreen,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                // If no timestamps, show a message encouraging swiping to content
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 16),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.swipe,
-                          color: Colors.white70,
-                          size: 18,
-                        ),
-                        SizedBox(width: 8),
+                        // Timestamps Label
                         Text(
-                          'Swipe to view the story',
+                          'Timestamps',
                           style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            color:
+                                isDarkMode ? Colors.white : AppColors.navyBlue,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  // Build error widget with retry button
-  Widget _buildErrorWidget() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            color: Colors.white70,
-            size: 48,
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              "Unable to load video. The format may not be supported or there might be network issues.",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
+                  // Scrollable Timestamps Section
+                  Expanded(
+                    child: story.timestamps.isNotEmpty
+                        ? ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
+                            itemCount: story.timestamps.length,
+                            itemBuilder: (context, index) {
+                              final timestamp = story.timestamps[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  // Seek to timestamp in video
+                                  if (videoControllerRef.value != null &&
+                                      videoControllerRef
+                                          .value!.value.isInitialized) {
+                                    videoControllerRef.value!.seekTo(
+                                        Duration(seconds: timestamp.timeSec));
+                                    videoControllerRef.value!.play();
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDarkMode
+                                        ? Colors.white.withOpacity(0.05)
+                                        : Colors.grey.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color:
+                                          AppColors.limeGreen.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.limeGreen
+                                              .withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          _formatDuration(Duration(
+                                              seconds: timestamp.timeSec)),
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          timestamp.label,
+                                          style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white
+                                                : AppColors.navyBlue,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.play_circle_outline,
+                                        color: AppColors.limeGreen,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                                  .animate()
+                                  .fadeIn(
+                                      duration: 500.ms,
+                                      delay: (800 + index * 100).ms)
+                                  .slideX(
+                                      begin: 0.3,
+                                      duration: 600.ms,
+                                      curve: Curves.easeOutCubic);
+                            },
+                          )
+                        : Container(
+                            padding: const EdgeInsets.all(20),
+                            child: Center(
+                              child: Text(
+                                'No timestamps available',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              // This will rebuild the widget and retry
-              // Force a rebuild by changing errorMessage to null
-              // This isn't directly possible with the current structure
-              // but the button is here for UI consistency
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.limeGreen,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          )
+              .animate()
+              .slideY(
+                  begin: 1.0,
+                  duration: 1000.ms,
+                  curve: Curves.easeOutCubic,
+                  delay: 600.ms)
+              .fadeIn(duration: 800.ms, delay: 600.ms),
+
+          // Fixed Continue Button with opaque background
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? AppColors.darkSurface.withOpacity(0.95)
+                    : Colors.white.withOpacity(0.95),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Container(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: onContinue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.limeGreen,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'CONTINUE',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            child: const Text('Retry'),
-          ),
+          )
+              .animate()
+              .slideY(
+                  begin: 1.0,
+                  duration: 800.ms,
+                  curve: Curves.easeOutBack,
+                  delay: 1200.ms)
+              .fadeIn(duration: 600.ms, delay: 1200.ms),
         ],
       ),
     );
@@ -1373,442 +485,556 @@ class _VideoPlayerPage extends HookConsumerWidget {
   }
 }
 
-// Complete story page that shows all content at once
-class _CompleteStoryPage extends StatelessWidget {
+// Story Part Screen - Shows thumbnail and story description
+class _StoryPartScreen extends HookConsumerWidget {
   final Story story;
+  final VoidCallback onBack;
+  final VoidCallback onMilestones;
+  final bool hasVideo;
 
-  const _CompleteStoryPage({required this.story});
+  const _StoryPartScreen({
+    required this.story,
+    required this.onBack,
+    required this.onMilestones,
+    required this.hasVideo,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Page indicator
-            // Align(
-            //   alignment: Alignment.centerRight,
-            //   child: Container(
-            //     padding:
-            //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            //     decoration: BoxDecoration(
-            //       color: Colors.white.withOpacity(0.15),
-            //       borderRadius: BorderRadius.circular(20),
-            //     ),
-            //     child: const Text(
-            //       'Story',
-            //       style: TextStyle(
-            //         color: Colors.white,
-            //         fontSize: 12,
-            //         fontWeight: FontWeight.w500,
-            //       ),
-            //     ),
-            //   ),
-            // ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-            const SizedBox(height: 16),
+    // Split story content into paragraphs
+    final storyContent =
+        story.content.isNotEmpty ? story.content : story.description;
+    final paragraphs =
+        storyContent.split('\n').where((p) => p.trim().isNotEmpty).toList();
 
-            // Enhanced Thumbnail with shadow, rounded corners and animations
-            Container(
+    // Current paragraph index
+    final currentParagraphIndex = useState(0);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Thumbnail Image (40% of screen with 1:1 aspect ratio)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1.0, // 1:1 aspect ratio
+                child: Transform.scale(
+                  scale: 1.2, // Zoom the image
+                  child: CachedNetworkImage(
+                    imageUrl: story.imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.limeGreen),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[800],
+                      child: const Icon(Icons.error,
+                          color: Colors.white, size: 48),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ).animate().fadeIn(duration: 800.ms, delay: 200.ms).slideY(
+              begin: -0.3,
+              end: 0,
+              duration: 1000.ms,
+              curve: Curves.easeOutCubic),
+
+          // Back button overlay with white background
+          // Positioned(
+          //   top: MediaQuery.of(context).padding.top + 10,
+          //   left: 16,
+          //   child: GestureDetector(
+          //     onTap: onBack,
+          //     child: Container(
+          //       padding: const EdgeInsets.all(8),
+          //       decoration: BoxDecoration(
+          //         color: Colors.white, // White background
+          //         shape: BoxShape.circle,
+          //         boxShadow: [
+          //           BoxShadow(
+          //             color: Colors.black.withOpacity(0.2),
+          //             blurRadius: 4,
+          //             offset: const Offset(0, 2),
+          //           ),
+          //         ],
+          //       ),
+          //       child: const Icon(
+          //         Icons.arrow_back,
+          //         color: Colors.black, // Black icon on white background
+          //         size: 24,
+          //       ),
+          //     ),
+          //   ),
+          // ).animate().fadeIn(duration: 600.ms, delay: 400.ms).scale(
+          //     begin: const Offset(0.8, 0.8),
+          //     duration: 600.ms,
+          //     curve: Curves.elasticOut),
+
+          // Static Bottom Card (60% of screen)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                color: isDarkMode ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: CachedNetworkImage(
-                  imageUrl: story.imageUrl,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[800],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[800],
-                    height: 200,
-                    child: const Icon(Icons.error, color: Colors.white),
-                  ),
-                ),
-              ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.8, 0.8),
-                  duration: const Duration(milliseconds: 800),
-                  curve: Curves.easeOutBack,
-                )
-                .fadeIn(
-                  duration: const Duration(milliseconds: 600),
-                )
-                .then()
-                .shimmer(
-                  duration: const Duration(milliseconds: 1200),
-                  color: Colors.white.withOpacity(0.3),
-                ),
 
-            // Title with improved typography and animations
-            Padding(
-              padding: const EdgeInsets.only(top: 24, bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      story.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.2,
-                        height: 1.3,
-                      ),
-                    )
-                        .animate()
-                        .slideX(
-                          begin: -0.3,
-                          duration: const Duration(milliseconds: 600),
-                          curve: Curves.easeOutCubic,
-                          delay: const Duration(milliseconds: 200),
-                        )
-                        .fadeIn(
-                          duration: const Duration(milliseconds: 500),
-                          delay: const Duration(milliseconds: 200),
+                  // Fixed Header Section (Title, Year, Read Time, Progress)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Story Title
+                        Text(
+                          story.title,
+                          style: TextStyle(
+                            color:
+                                isDarkMode ? Colors.white : AppColors.navyBlue,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ),
                         ),
+
+                        const SizedBox(height: 12),
+
+                        // Story metadata
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.limeGreen.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '${story.year}',
+                                style: const TextStyle(
+                                  color: AppColors.limeGreen,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${_calculateReadingTime(storyContent)} min read',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const Spacer(),
+                            // Paragraph indicator
+                            Text(
+                              '${currentParagraphIndex.value + 1}/${paragraphs.length}',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Scrollable Story Content Section
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
+                      child: Column(
+                        children: [
+                          // Current Paragraph Content
+                          if (paragraphs.isNotEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? Colors.white.withOpacity(0.05)
+                                    : Colors.grey.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.limeGreen.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                paragraphs[currentParagraphIndex.value],
+                                style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : AppColors.navyBlue,
+                                  fontSize: 16,
+                                  height: 1.6,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 800.ms)
+                                .slideY(
+                                    begin: 0.3,
+                                    duration: 800.ms,
+                                    curve: Curves.easeOutCubic),
+
+                          // Story completed message (only on last slide)
+                          if (currentParagraphIndex.value ==
+                              paragraphs.length - 1) ...[
+                            const SizedBox(height: 20),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.limeGreen.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.limeGreen.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.limeGreen,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Story Complete!',
+                                    style: TextStyle(
+                                      color: AppColors.limeGreen,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Ready for the milestones?',
+                                    style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 400.ms)
+                                .scale(
+                                    begin: const Offset(0.9, 0.9),
+                                    duration: 600.ms,
+                                    curve: Curves.elasticOut),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-
-            // Story metadata with period and timeframe info
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.limeGreen.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.limeGreen.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.history,
-                    color: AppColors.limeGreen,
-                    size: 16,
-                  ).animate().scale(
-                        delay: const Duration(milliseconds: 400),
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.elasticOut,
-                      ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${story.year}',
-                    style: const TextStyle(
-                      color: AppColors.limeGreen,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ).animate().fadeIn(
-                        delay: const Duration(milliseconds: 500),
-                        duration: const Duration(milliseconds: 400),
-                      ),
-                ],
-              ),
-            )
-                .animate()
-                .slideX(
-                  begin: -0.5,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeOutBack,
-                  delay: const Duration(milliseconds: 300),
-                )
-                .fadeIn(
-                  delay: const Duration(milliseconds: 300),
-                ),
-
-            // Reading time estimate with animations
-            Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.timer_outlined,
-                    color: Colors.white70,
-                    size: 16,
-                  ).animate().rotate(
-                        delay: const Duration(milliseconds: 600),
-                        duration: const Duration(milliseconds: 800),
-                      ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_calculateReadingTime(story.content)} min read',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ).animate().fadeIn(
-                        delay: const Duration(milliseconds: 700),
-                        duration: const Duration(milliseconds: 400),
-                      ),
-                ],
-              ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.8, 0.8),
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeOutBack,
-                  delay: const Duration(milliseconds: 500),
-                )
-                .fadeIn(
-                  delay: const Duration(milliseconds: 500),
-                ),
-
-            // Full story content in one section with animations
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                story.content.isNotEmpty ? story.content : story.description,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  height: 1.6,
-                  letterSpacing: 0.3,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            )
-                .animate()
-                .slideY(
-                  begin: 0.3,
-                  duration: const Duration(milliseconds: 800),
+          )
+              .animate()
+              .slideY(
+                  begin: 1.0,
+                  duration: 1000.ms,
                   curve: Curves.easeOutCubic,
-                  delay: const Duration(milliseconds: 600),
-                )
-                .fadeIn(
-                  duration: const Duration(milliseconds: 600),
-                  delay: const Duration(milliseconds: 600),
-                ),
+                  delay: 600.ms)
+              .fadeIn(duration: 800.ms, delay: 600.ms),
 
-            // Engagement metrics with enhanced UI and animations
-            Padding(
-              padding: const EdgeInsets.only(top: 30, bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
-                    width: 1,
+          // Fixed Action Buttons with opaque background
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? AppColors.darkSurface.withOpacity(0.95)
+                    : Colors.white.withOpacity(0.95),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    // Likes with animation
-                    // Column(
-                    //   children: [
-                    //     Icon(
-                    //       Icons.favorite,
-                    //       color: Colors.redAccent.shade200,
-                    //       size: 28,
-                    //     )
-                    //         .animate(
-                    //           onPlay: (controller) =>
-                    //               controller.repeat(reverse: true),
-                    //         )
-                    //         .scaleXY(
-                    //           begin: 1.0,
-                    //           end: 1.1,
-                    //           duration: const Duration(seconds: 1),
-                    //         ),
-                    //     const SizedBox(height: 8),
-                    //     Text(
-                    //       '${story.likes}',
-                    //       style: const TextStyle(
-                    //         color: Colors.white,
-                    //         fontWeight: FontWeight.bold,
-                    //         fontSize: 16,
-                    //       ),
-                    //     ),
-                    //     const Text(
-                    //       'Likes',
-                    //       style: TextStyle(
-                    //         color: Colors.white70,
-                    //         fontSize: 12,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-
-                    // Views with enhanced look
-                    Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.visibility,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ).animate().scale(
-                              delay: const Duration(milliseconds: 800),
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.elasticOut,
-                            ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${story.views}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ).animate().fadeIn(
-                              delay: const Duration(milliseconds: 900),
-                              duration: const Duration(milliseconds: 400),
-                            ),
-                        const Text(
-                          'Views',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ).animate().fadeIn(
-                              delay: const Duration(milliseconds: 1000),
-                              duration: const Duration(milliseconds: 400),
-                            ),
-                      ],
-                    ),
-
-                    // Share button with animation
-                    // Column(
-                    //   children: [
-                    //     Container(
-                    //       padding: const EdgeInsets.all(8),
-                    //       decoration: BoxDecoration(
-                    //         color: AppColors.limeGreen.withOpacity(0.3),
-                    //         shape: BoxShape.circle,
-                    //       ),
-                    //       child: const Icon(
-                    //         Icons.share,
-                    //         color: AppColors.limeGreen,
-                    //         size: 24,
-                    //       ),
-                    //     ),
-                    //     const SizedBox(height: 8),
-                    //     const Text(
-                    //       'Share',
-                    //       style: TextStyle(
-                    //         color: Colors.white,
-                    //         fontWeight: FontWeight.bold,
-                    //         fontSize: 16,
-                    //       ),
-                    //     ),
-                    //     const Text(
-                    //       'Story',
-                    //       style: TextStyle(
-                    //         color: Colors.white70,
-                    //         fontSize: 12,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                  ],
-                ),
+                ],
               ),
-            )
-                .animate()
-                .slideY(
-                  begin: 0.2,
-                  duration: const Duration(milliseconds: 600),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        if (currentParagraphIndex.value > 0) {
+                          // Go to previous paragraph
+                          currentParagraphIndex.value--;
+                        } else {
+                          // Go back to video screen or previous screen
+                          onBack();
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (currentParagraphIndex.value > 0) ...[
+                            const Icon(
+                              Icons.arrow_back,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            currentParagraphIndex.value > 0
+                                ? 'Previous'
+                                : 'Back',
+                            style: TextStyle(
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : AppColors.navyBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          currentParagraphIndex.value < paragraphs.length - 1
+                              ? () {
+                                  currentParagraphIndex.value++;
+                                }
+                              : onMilestones,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.limeGreen,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            currentParagraphIndex.value < paragraphs.length - 1
+                                ? 'Continue'
+                                : 'Milestones',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (currentParagraphIndex.value <
+                              paragraphs.length - 1) ...[
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate()
+              .slideY(
+                  begin: 1.0,
+                  duration: 800.ms,
                   curve: Curves.easeOutBack,
-                  delay: const Duration(milliseconds: 700),
-                )
-                .fadeIn(
-                  delay: const Duration(milliseconds: 700),
-                ),
-
-            // Ready for quiz indicator
-            // Center(
-            //   child: Container(
-            //     margin: const EdgeInsets.only(top: 8, bottom: 8),
-            //     padding:
-            //         const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            //     decoration: BoxDecoration(
-            //       color: AppColors.limeGreen.withOpacity(0.2),
-            //       borderRadius: BorderRadius.circular(16),
-            //       border: Border.all(
-            //         color: AppColors.limeGreen.withOpacity(0.3),
-            //         width: 1,
-            //       ),
-            //     ),
-            //     child: const Row(
-            //       mainAxisSize: MainAxisSize.min,
-            //       children: [
-            //         Icon(
-            //           Icons.quiz,
-            //           color: AppColors.limeGreen,
-            //           size: 20,
-            //         ),
-            //         SizedBox(width: 10),
-            //         Text(
-            //           'Ready for the milestones?',
-            //           style: TextStyle(
-            //             color: AppColors.limeGreen,
-            //             fontSize: 16,
-            //             fontWeight: FontWeight.bold,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-          ],
-        ),
+                  delay: 1200.ms)
+              .fadeIn(duration: 600.ms, delay: 1200.ms),
+        ],
       ),
     );
   }
 
   // Helper method to calculate reading time
   int _calculateReadingTime(String text) {
-    // Average reading speed: 200 words per minute
     final wordCount = text.split(' ').length;
     final minutes = (wordCount / 200).ceil();
-    return minutes > 0 ? minutes : 1; // Minimum 1 minute
+    return minutes > 0 ? minutes : 1;
+  }
+}
+
+// Auto-playing Video Widget
+class _AutoPlayVideoWidget extends HookConsumerWidget {
+  final Story story;
+  final Function(VideoPlayerController?) onControllerReady;
+
+  const _AutoPlayVideoWidget(
+      {required this.story, required this.onControllerReady});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final videoControllerRef = useState<VideoPlayerController?>(null);
+    final chewieControllerRef = useState<ChewieController?>(null);
+    final isBuffering = useState(true);
+    final errorMessage = useState<String?>(null);
+
+    useEffect(() {
+      if (story.mediaUrl.isEmpty) {
+        errorMessage.value = "No video available";
+        isBuffering.value = false;
+        return null;
+      }
+
+      final controller = VideoPlayerController.networkUrl(
+        Uri.parse(story.mediaUrl),
+        httpHeaders: {
+          'User-Agent': Platform.isIOS
+              ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+              : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
+        },
+      );
+
+      videoControllerRef.value = controller;
+
+      controller.initialize().then((_) {
+        if (controller.value.hasError) {
+          errorMessage.value = "Failed to load video";
+          isBuffering.value = false;
+          return;
+        }
+
+        chewieControllerRef.value = ChewieController(
+          videoPlayerController: controller,
+          aspectRatio: controller.value.aspectRatio,
+          autoPlay: true, // Auto-play as requested
+          looping: true,
+          materialProgressColors: ChewieProgressColors(
+            playedColor: AppColors.limeGreen,
+            handleColor: AppColors.limeGreen,
+            backgroundColor: Colors.white24,
+            bufferedColor: Colors.white38,
+          ),
+          allowFullScreen: true,
+          showControls: true,
+          allowPlaybackSpeedChanging: false,
+        );
+        isBuffering.value = false;
+        onControllerReady(controller);
+      }).catchError((error) {
+        errorMessage.value = "Unable to load video";
+        isBuffering.value = false;
+      });
+
+      return () {
+        chewieControllerRef.value?.dispose();
+        videoControllerRef.value?.dispose();
+      };
+    }, [story.mediaUrl]);
+
+    if (errorMessage.value != null) {
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.white70,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                errorMessage.value!,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (isBuffering.value) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
+          ),
+        ),
+      );
+    }
+
+    return chewieControllerRef.value != null
+        ? Chewie(controller: chewieControllerRef.value!)
+        : Container(color: Colors.black);
   }
 }

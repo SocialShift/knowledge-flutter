@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/presentation/navigation/app_layout.dart';
 import 'package:knowledge/presentation/screens/auth/login_screen.dart';
 import 'package:knowledge/presentation/screens/auth/signup_screen.dart';
+import 'package:knowledge/presentation/screens/auth/email_verification_screen.dart';
 import 'package:knowledge/presentation/screens/home/home_screen.dart';
 import 'package:knowledge/presentation/screens/profile/profile_screen.dart';
 import 'package:knowledge/presentation/screens/settings/settings_screen.dart';
@@ -39,6 +40,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.maybeMap(
         authenticated: (_) => true,
         guest: (_) => true,
+        emailVerified: (_) => true,
         orElse: () => false,
       );
 
@@ -60,6 +62,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
           return '/home';
         } else {
+          // Check if user just verified email
+          final isEmailVerified = authState.maybeMap(
+            emailVerified: (_) => true,
+            orElse: () => false,
+          );
+
+          if (isEmailVerified) {
+            return '/onboarding';
+          }
+
           return '/login';
         }
       }
@@ -72,6 +84,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.uri.path == '/home' ||
           state.uri.path == '/profile' ||
           state.uri.path == '/profile/edit' ||
+          state.uri.path == '/settings' ||
+          state.uri.path == '/subscription' ||
+          state.uri.path == '/notifications' ||
           state.uri.path == '/leaderboard' ||
           state.uri.path == '/elearning' ||
           state.uri.path == '/games') {
@@ -80,7 +95,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isAuthRoute = state.uri.path == '/login' ||
           state.uri.path == '/signup' ||
-          state.uri.path == '/forgot-password';
+          state.uri.path == '/forgot-password' ||
+          state.uri.path == '/email-verification';
 
       // For guest users, skip onboarding and redirect directly to home
       if (authState.maybeMap(
@@ -158,6 +174,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           state: state,
           child: const ForgotPasswordScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/email-verification',
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          return buildCupertinoPageTransition(
+            context: context,
+            state: state,
+            child: EmailVerificationScreen(email: email),
+          );
+        },
       ),
       GoRoute(
         path: '/onboarding',

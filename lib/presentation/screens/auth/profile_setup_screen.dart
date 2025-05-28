@@ -92,12 +92,15 @@ class ProfileSetupScreen extends HookConsumerWidget {
     // Get user email from auth state
     final userEmail = authState.maybeMap(
       authenticated: (state) => state.user.email,
+      emailVerified: (state) => state.email,
       orElse: () => '',
     );
 
     // Get username from auth state if available (using username instead of nickname)
     final userUsername = authState.maybeMap(
       authenticated: (state) => state.user.username,
+      emailVerified: (state) => state.email
+          .split('@')[0], // Extract username from email for emailVerified state
       orElse: () => '',
     );
 

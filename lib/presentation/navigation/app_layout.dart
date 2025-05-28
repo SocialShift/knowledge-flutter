@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/presentation/widgets/email_verification_guard.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget child;
@@ -26,7 +27,7 @@ class AppLayout extends StatelessWidget {
     final unselectedIconColor = isDarkMode ? Colors.grey.shade400 : Colors.grey;
 
     return Scaffold(
-      body: child,
+      body: EmailVerificationGuard(child: child),
       extendBody: true,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

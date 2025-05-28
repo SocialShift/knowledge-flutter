@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,14 +7,17 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 
-class SignupScreen extends HookConsumerWidget {
-  const SignupScreen({super.key});
+class EmailVerificationScreen extends HookConsumerWidget {
+  final String email;
+
+  const EmailVerificationScreen({
+    super.key,
+    required this.email,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final emailController = useTextEditingController();
-    final passwordController = useTextEditingController();
-    final confirmPasswordController = useTextEditingController();
+    final otpController = useTextEditingController();
     final authNotifier = ref.watch(authNotifierProvider.notifier);
     final authState = ref.watch(authNotifierProvider);
 
@@ -29,6 +33,18 @@ class SignupScreen extends HookConsumerWidget {
               ),
             );
           });
+        },
+        emailVerificationPending: (state) {
+          if (state.message != null && state.message!.contains('sent')) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message!),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            });
+          }
         },
         orElse: () {},
       );
@@ -55,12 +71,19 @@ class SignupScreen extends HookConsumerWidget {
             });
           }
         },
-        emailVerificationPending: (state) {
+        emailVerified: (state) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              context.go(
-                  '/email-verification?email=${Uri.encodeComponent(state.email)}');
-            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message ?? 'Email verified successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Future.delayed(const Duration(seconds: 2), () {
+              if (context.mounted) {
+                context.go('/onboarding');
+              }
+            });
           });
         },
         orElse: () {},
@@ -104,15 +127,14 @@ class SignupScreen extends HookConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 30),
-                        Image.asset(
-                          'assets/images/logo/logo.png',
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.contain,
+                        Icon(
+                          Icons.mark_email_read_outlined,
+                          size: 80,
+                          color: Colors.white,
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Create Account',
+                          'Verify Your Email',
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -128,7 +150,7 @@ class SignupScreen extends HookConsumerWidget {
                             ),
                         const SizedBox(height: 8),
                         Text(
-                          'Join our community of learners',
+                          'We sent a verification code to\n$email',
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: Colors.white70,
@@ -147,7 +169,7 @@ class SignupScreen extends HookConsumerWidget {
               ],
             ),
           ),
-          // Signup Form - Expanded to fill remaining space
+          // Verification Form - Expanded to fill remaining space
           Expanded(
             child: Container(
               width: double.infinity,
@@ -164,43 +186,40 @@ class SignupScreen extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _buildInfoField(
-                        context,
-                        'Email',
-                        emailController,
-                        Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
+                      Text(
+                        'Enter Verification Code',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Colors.grey.shade800,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ).animate().fadeIn().slideY(
+                            begin: 0.2,
                             delay: const Duration(milliseconds: 300),
                             duration: const Duration(milliseconds: 500),
                           ),
-                      const SizedBox(height: 20),
-                      _buildInfoField(
-                        context,
-                        'Password',
-                        passwordController,
-                        Icons.lock_outline,
-                        isPassword: true,
-                      ).animate().fadeIn().slideX(
-                            begin: -0.2,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please enter the 6-digit code sent to your email',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey.shade600,
+                            ),
+                        textAlign: TextAlign.center,
+                      ).animate().fadeIn().slideY(
+                            begin: 0.2,
                             delay: const Duration(milliseconds: 400),
                             duration: const Duration(milliseconds: 500),
                           ),
-                      const SizedBox(height: 20),
-                      _buildInfoField(
+                      const SizedBox(height: 40),
+                      _buildOTPField(
                         context,
-                        'Confirm Password',
-                        confirmPasswordController,
-                        Icons.lock_outline,
-                        isPassword: true,
+                        otpController,
                       ).animate().fadeIn().slideX(
                             begin: -0.2,
                             delay: const Duration(milliseconds: 500),
                             duration: const Duration(milliseconds: 500),
                           ),
                       const SizedBox(height: 40),
-                      // Signup Button
+                      // Verify Button
                       SizedBox(
                         width: double.infinity,
                         height: 56,
@@ -216,29 +235,25 @@ class SignupScreen extends HookConsumerWidget {
                           onPressed: isLoading
                               ? null
                               : () async {
-                                  if (emailController.text.isEmpty ||
-                                      passwordController.text.isEmpty ||
-                                      confirmPasswordController.text.isEmpty) {
+                                  if (otpController.text.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: Text(
-                                              'Please fill in all fields')),
+                                              'Please enter the verification code')),
                                     );
                                     return;
                                   }
-                                  if (passwordController.text !=
-                                      confirmPasswordController.text) {
+                                  if (otpController.text.length != 6) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                          content:
-                                              Text('Passwords do not match')),
+                                          content: Text(
+                                              'Please enter a valid 6-digit code')),
                                     );
                                     return;
                                   }
-                                  await authNotifier.signup(
-                                    emailController.text.trim(),
-                                    passwordController.text,
-                                    confirmPasswordController.text,
+                                  await authNotifier.verifyEmail(
+                                    email,
+                                    otpController.text.trim(),
                                   );
                                 },
                           child: isLoading
@@ -254,7 +269,7 @@ class SignupScreen extends HookConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Sign Up',
+                                      'Verify Email',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -262,7 +277,7 @@ class SignupScreen extends HookConsumerWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     Icon(
-                                      Icons.arrow_forward,
+                                      Icons.verified,
                                       color: AppColors.navyBlue,
                                     ),
                                   ],
@@ -274,7 +289,30 @@ class SignupScreen extends HookConsumerWidget {
                             duration: const Duration(milliseconds: 500),
                           ),
                       const SizedBox(height: 20),
-                      // Login Link
+                      // Resend Code Link
+                      Center(
+                        child: TextButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  await authNotifier
+                                      .resendVerificationEmail(email);
+                                },
+                          child: Text(
+                            'Didn\'t receive the code? Resend',
+                            style: TextStyle(
+                              color: AppColors.navyBlue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ).animate().fadeIn().slideY(
+                            begin: 0.2,
+                            delay: const Duration(milliseconds: 700),
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                      const SizedBox(height: 20),
+                      // Back to Login Link
                       Center(
                         child: TextButton(
                           onPressed: () => context.go('/login'),
@@ -285,8 +323,7 @@ class SignupScreen extends HookConsumerWidget {
                                 fontSize: 15,
                               ),
                               children: [
-                                const TextSpan(
-                                    text: 'Already have an account? '),
+                                const TextSpan(text: 'Back to '),
                                 TextSpan(
                                   text: 'Login',
                                   style: TextStyle(
@@ -300,47 +337,9 @@ class SignupScreen extends HookConsumerWidget {
                         ),
                       ).animate().fadeIn().slideY(
                             begin: 0.2,
-                            delay: const Duration(milliseconds: 700),
+                            delay: const Duration(milliseconds: 800),
                             duration: const Duration(milliseconds: 500),
                           ),
-                      const SizedBox(height: 16),
-                      // Skip Button
-                      // Center(
-                      //   child: TextButton(
-                      //     onPressed: () => ref
-                      //         .read(authNotifierProvider.notifier)
-                      //         .loginAsGuest(),
-                      //     child: Text(
-                      //       'Skip for now',
-                      //       style: TextStyle(
-                      //         color: Colors.grey.shade500,
-                      //         fontSize: 14,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ).animate().fadeIn().slideY(
-                      //       begin: 0.2,
-                      //       delay: const Duration(milliseconds: 800),
-                      //       duration: const Duration(milliseconds: 500),
-                      //     ),
-                      // const SizedBox(height: 20),
-                      // // Terms and Privacy
-                      // Padding(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      //   child: Text(
-                      //     'By signing up, you agree to our Terms of Service and Privacy Policy',
-                      //     style: TextStyle(
-                      //       color: Colors.grey.shade600,
-                      //       fontSize: 12,
-                      //     ),
-                      //     textAlign: TextAlign.center,
-                      //   ),
-                      // ).animate().fadeIn().slideY(
-                      //       begin: 0.2,
-                      //       delay: const Duration(milliseconds: 900),
-                      //       duration: const Duration(milliseconds: 500),
-                      //     ),
-                      // const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -352,21 +351,17 @@ class SignupScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildInfoField(
+  Widget _buildOTPField(
     BuildContext context,
-    String label,
     TextEditingController controller,
-    IconData icon, {
-    bool isPassword = false,
-    TextInputType? keyboardType,
-  }) {
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 8),
           child: Text(
-            label,
+            'Verification Code',
             style: TextStyle(
               color: Colors.grey.shade700,
               fontWeight: FontWeight.w500,
@@ -387,23 +382,32 @@ class SignupScreen extends HookConsumerWidget {
           ),
           child: TextFormField(
             controller: controller,
-            obscureText: isPassword,
-            keyboardType: keyboardType,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            maxLength: 6,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             style: TextStyle(
               color: Colors.grey.shade800,
-              fontSize: 16,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 8,
             ),
             decoration: InputDecoration(
-              hintText: 'Enter your $label',
+              hintText: '000000',
               hintStyle: TextStyle(
                 color: Colors.grey.shade400,
-                fontSize: 14,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 8,
               ),
               prefixIcon: Icon(
-                icon,
+                Icons.security,
                 color: AppColors.navyBlue,
               ),
               border: InputBorder.none,
+              counterText: '',
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,

@@ -32,6 +32,14 @@ class LoginScreen extends HookConsumerWidget {
             );
           });
         },
+        emailVerificationPending: (state) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.go(
+                  '/email-verification?email=${Uri.encodeComponent(state.email)}');
+            }
+          });
+        },
         orElse: () {},
       );
       return null;

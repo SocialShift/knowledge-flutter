@@ -15,6 +15,14 @@ class AuthState with _$AuthState {
   const factory AuthState.unauthenticated({
     String? message,
   }) = _Unauthenticated;
+  const factory AuthState.emailVerificationPending({
+    required String email,
+    String? message,
+  }) = _EmailVerificationPending;
+  const factory AuthState.emailVerified({
+    required String email,
+    String? message,
+  }) = _EmailVerified;
   const factory AuthState.error(String message) = _Error;
   const factory AuthState.guest() = _Guest;
 }

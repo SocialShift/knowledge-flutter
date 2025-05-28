@@ -24,27 +24,27 @@ class SubscriptionScreen extends HookConsumerWidget {
           ),
 
           // Close button positioned at top with SafeArea
-          Positioned(
-            top: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child:
-                        const Icon(Icons.close, color: Colors.white, size: 28),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // Positioned(
+          //   top: 0,
+          //   right: 0,
+          //   child: SafeArea(
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(16),
+          //       child: GestureDetector(
+          //         onTap: () => Navigator.of(context).pop(),
+          //         child: Container(
+          //           decoration: BoxDecoration(
+          //             color: Colors.black.withOpacity(0.3),
+          //             borderRadius: BorderRadius.circular(20),
+          //           ),
+          //           padding: const EdgeInsets.all(8),
+          //           child:
+          //               const Icon(Icons.close, color: Colors.white, size: 28),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
           // Main content with SafeArea - scrollable to prevent overflow
           SafeArea(
@@ -104,7 +104,7 @@ class SubscriptionScreen extends HookConsumerWidget {
                         curve: Curves.elasticOut,
                       ),
 
-                  const SizedBox(height: 32),
+                  // const SizedBox(height: 32),
 
                   // Enhanced main heading with gradient text effect
                   ShaderMask(
@@ -149,29 +149,29 @@ class SubscriptionScreen extends HookConsumerWidget {
                   const SizedBox(height: 12),
 
                   // Subtitle (smaller)
-                  Text(
-                    'learners who are 4.2x more\nlikely to complete their learning journey',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
-                      height: 1.3,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.2),
-                          offset: const Offset(0, 1),
-                          blurRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn().slideY(
-                        begin: 0.2,
-                        delay: const Duration(milliseconds: 300),
-                        duration: const Duration(milliseconds: 600),
-                        curve: Curves.easeOutCubic,
-                      ),
+                  // Text(
+                  //   'learners who are 4.2x more\nlikely to complete their learning journey',
+                  //   textAlign: TextAlign.center,
+                  //   style: TextStyle(
+                  //     color: Colors.white.withOpacity(0.8),
+                  //     fontSize: 14,
+                  //     height: 1.3,
+                  //     shadows: [
+                  //       Shadow(
+                  //         color: Colors.black.withOpacity(0.2),
+                  //         offset: const Offset(0, 1),
+                  //         blurRadius: 2,
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ).animate().fadeIn().slideY(
+                  //       begin: 0.2,
+                  //       delay: const Duration(milliseconds: 300),
+                  //       duration: const Duration(milliseconds: 600),
+                  //       curve: Curves.easeOutCubic,
+                  //     ),
 
-                  const SizedBox(height: 40),
+                  // const SizedBox(height: 40),
 
                   // Enhanced feature cards with premium styling
                   _buildEnhancedFeatureCard(
@@ -215,7 +215,7 @@ class SubscriptionScreen extends HookConsumerWidget {
                     delay: 700,
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
                   // Enhanced pricing section with premium styling
                   // Container(
@@ -424,7 +424,7 @@ class SubscriptionScreen extends HookConsumerWidget {
                         curve: Curves.elasticOut,
                       ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 5),
 
                   // No Thanks Button
                   TextButton(
@@ -441,6 +441,8 @@ class SubscriptionScreen extends HookConsumerWidget {
                         delay: const Duration(milliseconds: 1000),
                         duration: const Duration(milliseconds: 400),
                       ),
+
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

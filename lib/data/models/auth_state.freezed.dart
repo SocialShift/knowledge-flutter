@@ -24,6 +24,9 @@ mixin _$AuthState {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) =>
@@ -35,6 +38,8 @@ mixin _$AuthState {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) =>
@@ -46,6 +51,8 @@ mixin _$AuthState {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -57,6 +64,9 @@ mixin _$AuthState {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) =>
@@ -67,6 +77,9 @@ mixin _$AuthState {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) =>
@@ -77,6 +90,8 @@ mixin _$AuthState {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -151,6 +166,9 @@ class _$InitialImpl implements _Initial {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -165,6 +183,8 @@ class _$InitialImpl implements _Initial {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -179,6 +199,8 @@ class _$InitialImpl implements _Initial {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -196,6 +218,9 @@ class _$InitialImpl implements _Initial {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -209,6 +234,9 @@ class _$InitialImpl implements _Initial {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -222,6 +250,8 @@ class _$InitialImpl implements _Initial {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -284,6 +314,9 @@ class _$LoadingImpl implements _Loading {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -298,6 +331,8 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -312,6 +347,8 @@ class _$LoadingImpl implements _Loading {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -329,6 +366,9 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -342,6 +382,9 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -355,6 +398,8 @@ class _$LoadingImpl implements _Loading {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -476,6 +521,9 @@ class _$AuthenticatedImpl implements _Authenticated {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -490,6 +538,8 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -504,6 +554,8 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -521,6 +573,9 @@ class _$AuthenticatedImpl implements _Authenticated {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -534,6 +589,9 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -547,6 +605,8 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -650,6 +710,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -664,6 +727,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -678,6 +743,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -695,6 +762,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -708,6 +778,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -721,6 +794,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -742,6 +817,397 @@ abstract class _Unauthenticated implements AuthState {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UnauthenticatedImplCopyWith<_$UnauthenticatedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$EmailVerificationPendingImplCopyWith<$Res> {
+  factory _$$EmailVerificationPendingImplCopyWith(
+          _$EmailVerificationPendingImpl value,
+          $Res Function(_$EmailVerificationPendingImpl) then) =
+      __$$EmailVerificationPendingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String email, String? message});
+}
+
+/// @nodoc
+class __$$EmailVerificationPendingImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$EmailVerificationPendingImpl>
+    implements _$$EmailVerificationPendingImplCopyWith<$Res> {
+  __$$EmailVerificationPendingImplCopyWithImpl(
+      _$EmailVerificationPendingImpl _value,
+      $Res Function(_$EmailVerificationPendingImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? email = null,
+    Object? message = freezed,
+  }) {
+    return _then(_$EmailVerificationPendingImpl(
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
+  const _$EmailVerificationPendingImpl({required this.email, this.message});
+
+  @override
+  final String email;
+  @override
+  final String? message;
+
+  @override
+  String toString() {
+    return 'AuthState.emailVerificationPending(email: $email, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$EmailVerificationPendingImpl &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, email, message);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$EmailVerificationPendingImplCopyWith<_$EmailVerificationPendingImpl>
+      get copyWith => __$$EmailVerificationPendingImplCopyWithImpl<
+          _$EmailVerificationPendingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
+    required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String message) error,
+    required TResult Function() guest,
+  }) {
+    return emailVerificationPending(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String message)? error,
+    TResult? Function()? guest,
+  }) {
+    return emailVerificationPending?.call(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String message)? error,
+    TResult Function()? guest,
+    required TResult orElse(),
+  }) {
+    if (emailVerificationPending != null) {
+      return emailVerificationPending(email, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_Authenticated value) authenticated,
+    required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_Error value) error,
+    required TResult Function(_Guest value) guest,
+  }) {
+    return emailVerificationPending(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_Authenticated value)? authenticated,
+    TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_Error value)? error,
+    TResult? Function(_Guest value)? guest,
+  }) {
+    return emailVerificationPending?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_Authenticated value)? authenticated,
+    TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_Error value)? error,
+    TResult Function(_Guest value)? guest,
+    required TResult orElse(),
+  }) {
+    if (emailVerificationPending != null) {
+      return emailVerificationPending(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _EmailVerificationPending implements AuthState {
+  const factory _EmailVerificationPending(
+      {required final String email,
+      final String? message}) = _$EmailVerificationPendingImpl;
+
+  String get email;
+  String? get message;
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$EmailVerificationPendingImplCopyWith<_$EmailVerificationPendingImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$EmailVerifiedImplCopyWith<$Res> {
+  factory _$$EmailVerifiedImplCopyWith(
+          _$EmailVerifiedImpl value, $Res Function(_$EmailVerifiedImpl) then) =
+      __$$EmailVerifiedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String email, String? message});
+}
+
+/// @nodoc
+class __$$EmailVerifiedImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$EmailVerifiedImpl>
+    implements _$$EmailVerifiedImplCopyWith<$Res> {
+  __$$EmailVerifiedImplCopyWithImpl(
+      _$EmailVerifiedImpl _value, $Res Function(_$EmailVerifiedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? email = null,
+    Object? message = freezed,
+  }) {
+    return _then(_$EmailVerifiedImpl(
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$EmailVerifiedImpl implements _EmailVerified {
+  const _$EmailVerifiedImpl({required this.email, this.message});
+
+  @override
+  final String email;
+  @override
+  final String? message;
+
+  @override
+  String toString() {
+    return 'AuthState.emailVerified(email: $email, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$EmailVerifiedImpl &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, email, message);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$EmailVerifiedImplCopyWith<_$EmailVerifiedImpl> get copyWith =>
+      __$$EmailVerifiedImplCopyWithImpl<_$EmailVerifiedImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
+    required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String message) error,
+    required TResult Function() guest,
+  }) {
+    return emailVerified(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String message)? error,
+    TResult? Function()? guest,
+  }) {
+    return emailVerified?.call(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String message)? error,
+    TResult Function()? guest,
+    required TResult orElse(),
+  }) {
+    if (emailVerified != null) {
+      return emailVerified(email, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_Authenticated value) authenticated,
+    required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_Error value) error,
+    required TResult Function(_Guest value) guest,
+  }) {
+    return emailVerified(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_Authenticated value)? authenticated,
+    TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_Error value)? error,
+    TResult? Function(_Guest value)? guest,
+  }) {
+    return emailVerified?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_Authenticated value)? authenticated,
+    TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_Error value)? error,
+    TResult Function(_Guest value)? guest,
+    required TResult orElse(),
+  }) {
+    if (emailVerified != null) {
+      return emailVerified(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _EmailVerified implements AuthState {
+  const factory _EmailVerified(
+      {required final String email,
+      final String? message}) = _$EmailVerifiedImpl;
+
+  String get email;
+  String? get message;
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$EmailVerifiedImplCopyWith<_$EmailVerifiedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -819,6 +1285,9 @@ class _$ErrorImpl implements _Error {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -833,6 +1302,8 @@ class _$ErrorImpl implements _Error {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -847,6 +1318,8 @@ class _$ErrorImpl implements _Error {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -864,6 +1337,9 @@ class _$ErrorImpl implements _Error {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -877,6 +1353,9 @@ class _$ErrorImpl implements _Error {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -890,6 +1369,8 @@ class _$ErrorImpl implements _Error {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -960,6 +1441,9 @@ class _$GuestImpl implements _Guest {
             User user, String? message, bool hasCompletedProfile)
         authenticated,
     required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -974,6 +1458,8 @@ class _$GuestImpl implements _Guest {
     TResult? Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -988,6 +1474,8 @@ class _$GuestImpl implements _Guest {
     TResult Function(User user, String? message, bool hasCompletedProfile)?
         authenticated,
     TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -1005,6 +1493,9 @@ class _$GuestImpl implements _Guest {
     required TResult Function(_Loading value) loading,
     required TResult Function(_Authenticated value) authenticated,
     required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -1018,6 +1509,9 @@ class _$GuestImpl implements _Guest {
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Authenticated value)? authenticated,
     TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -1031,6 +1525,8 @@ class _$GuestImpl implements _Guest {
     TResult Function(_Loading value)? loading,
     TResult Function(_Authenticated value)? authenticated,
     TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),

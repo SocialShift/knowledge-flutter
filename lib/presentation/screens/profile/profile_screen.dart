@@ -126,13 +126,13 @@ class ProfileScreen extends HookConsumerWidget {
         isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
 
     // Hook to check if we need to show feedback dialog on first visit
-    useEffect(() {
-      // Check on app launch if feedback should be shown
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showFeedbackDialog(context, ref, forceShow: false);
-      });
-      return null;
-    }, []);
+    // useEffect(() {
+    //   // Check on app launch if feedback should be shown
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     _showFeedbackDialog(context, ref, forceShow: false);
+    //   });
+    //   return null;
+    // }, []);
 
     return Scaffold(
       backgroundColor: backgroundColor,

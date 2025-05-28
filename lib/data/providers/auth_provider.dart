@@ -45,6 +45,19 @@ class AuthNotifier extends _$AuthNotifier {
       final user =
           await ref.read(authRepositoryProvider).login(email, password);
 
+      // Check if email is verified
+      if (!user.isEmailVerified) {
+        // Show loading state for a moment
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        state = AuthState.emailVerificationPending(
+          email: email,
+          message:
+              'Please verify your email to continue. Check your inbox for verification code.',
+        );
+        return;
+      }
+
       // Check if profile is setup
       final hasProfile =
           await ref.read(authRepositoryProvider).hasCompletedProfileSetup();
@@ -102,8 +115,10 @@ class AuthNotifier extends _$AuthNotifier {
       // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
 
-      state = const AuthState.unauthenticated(
-        message: 'Account created successfully! Please login to continue.',
+      state = AuthState.emailVerificationPending(
+        email: email,
+        message:
+            'Account created successfully! Please check your email for verification code.',
       );
     } on DioException catch (e) {
       String errorMessage;
@@ -118,6 +133,96 @@ class AuthNotifier extends _$AuthNotifier {
         errorMessage = e.response?.data['detail'] ??
             e.response?.data['message'] ??
             'Registration failed. Please try again.';
+      } else {
+        errorMessage = 'An error occurred. Please try again.';
+      }
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(errorMessage);
+    } catch (e) {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(e.toString());
+    }
+  }
+
+  Future<void> verifyEmail(String email, String otp) async {
+    if (state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    state = const AuthState.loading();
+
+    try {
+      await ref.read(authRepositoryProvider).verifyEmail(email, otp);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = AuthState.emailVerified(
+        email: email,
+        message: 'Email verified successfully! Setting up your account...',
+      );
+    } on DioException catch (e) {
+      String errorMessage;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage =
+            'Connection timeout. Please check your internet and try again.';
+      } else if (e.response?.statusCode == 400) {
+        errorMessage = 'Invalid verification code. Please try again.';
+      } else if (e.response?.data != null) {
+        errorMessage = e.response?.data['detail'] ??
+            e.response?.data['message'] ??
+            'Email verification failed. Please try again.';
+      } else {
+        errorMessage = 'An error occurred. Please try again.';
+      }
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(errorMessage);
+    } catch (e) {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(e.toString());
+    }
+  }
+
+  Future<void> resendVerificationEmail(String email) async {
+    if (state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    state = const AuthState.loading();
+
+    try {
+      await ref.read(authRepositoryProvider).resendVerificationEmail(email);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = AuthState.emailVerificationPending(
+        email: email,
+        message: 'Verification email sent! Please check your inbox.',
+      );
+    } on DioException catch (e) {
+      String errorMessage;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage =
+            'Connection timeout. Please check your internet and try again.';
+      } else if (e.response?.data != null) {
+        errorMessage = e.response?.data['detail'] ??
+            e.response?.data['message'] ??
+            'Failed to resend verification email. Please try again.';
       } else {
         errorMessage = 'An error occurred. Please try again.';
       }
@@ -193,6 +298,34 @@ class AuthNotifier extends _$AuthNotifier {
       orElse: () => false,
     )) {
       await checkSession();
+    }
+  }
+
+  // Check if current user's email is verified and redirect if not
+  Future<void> checkAndHandleEmailVerification() async {
+    // Only check if user is authenticated
+    if (!state.maybeMap(
+      authenticated: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    try {
+      final isVerified =
+          await ref.read(authRepositoryProvider).checkUserVerificationStatus();
+
+      if (!isVerified) {
+        // Get user email for verification
+        final email =
+            await ref.read(authRepositoryProvider).getCurrentUserEmail();
+
+        // For existing users, call resend verification API
+        await resendVerificationEmail(email);
+      }
+    } catch (e) {
+      print('Error checking email verification: $e');
+      // Don't change state on error, just log it
     }
   }
 
