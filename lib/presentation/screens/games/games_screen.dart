@@ -307,21 +307,21 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.limeGreen.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.limeGreen.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.psychology,
-                            color: AppColors.limeGreen,
-                            size: 20,
-                          ),
-                        ),
+                        // Container(
+                        //   padding: const EdgeInsets.all(10),
+                        //   decoration: BoxDecoration(
+                        //     color: AppColors.limeGreen.withOpacity(0.2),
+                        //     borderRadius: BorderRadius.circular(12),
+                        //     border: Border.all(
+                        //       color: AppColors.limeGreen.withOpacity(0.3),
+                        //     ),
+                        //   ),
+                        //   // child: Icon(
+                        //   //   Icons.psychology,
+                        //   //   color: AppColors.limeGreen,
+                        //   //   size: 20,
+                        //   // ),
+                        // ),
                         const SizedBox(width: 12),
                         Text(
                           "Educational Games",
@@ -400,15 +400,15 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withOpacity(0.2),
+                      color: AppColors.navyBlue,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFFFFD700).withOpacity(0.3),
+                        color: AppColors.navyBlue,
                       ),
                     ),
                     child: Icon(
                       Icons.emoji_events_outlined,
-                      color: const Color(0xFFFFD700),
+                      color: AppColors.offWhite,
                       size: 20,
                     ),
                   ),
@@ -423,28 +423,28 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFF10B981).withOpacity(0.3),
-                      ),
-                    ),
-                    child: Text(
-                      "${(completionPercentage * 100).toInt()}% Complete",
-                      style: TextStyle(
-                        color: const Color(0xFF10B981),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
+                  // Container(
+                  //   padding: const EdgeInsets.symmetric(
+                  //     horizontal: 12,
+                  //     vertical: 6,
+                  //   ),
+                  //   decoration: BoxDecoration(
+                  //     color: const Color(0xFF10B981).withOpacity(0.2),
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(
+                  //       color: const Color(0xFF10B981).withOpacity(0.3),
+                  //     ),
+                  //   ),
+                  //   child: Text(
+                  //     "${(completionPercentage * 100).toInt()}% Complete",
+                  //     style: TextStyle(
+                  //       color: const Color(0xFF10B981),
+                  //       fontSize: 12,
+                  //       fontWeight: FontWeight.w700,
+                  //       letterSpacing: 0.3,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -616,7 +616,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                         child: IconButton(
                           icon: Icon(
                             Icons.lightbulb_outline,
-                            color: const Color(0xFFFFD700),
+                            color: AppColors.navyBlue,
                             size: 20,
                           ),
                           onPressed: () {
@@ -1065,9 +1065,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                 child: Text(
                   "${(progress * 100).toInt()}%",
                   style: TextStyle(
-                    color: isCompleted
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFFBBF24),
+                    color: AppColors.navyBlue,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),

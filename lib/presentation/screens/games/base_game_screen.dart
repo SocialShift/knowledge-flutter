@@ -37,6 +37,13 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
   late AnimationController _progressAnimationController;
   late AnimationController _feedbackAnimationController;
 
+  // Add overlay-specific animation controllers
+  late AnimationController _overlayAnimationController;
+  late AnimationController _popupAnimationController;
+
+  // Overlay entry for the feedback popup
+  OverlayEntry? _feedbackOverlay;
+
   // Encouraging messages
   final List<String> _encouragingMessages = [
     "Great job! Keep it up! 🎉",
@@ -67,6 +74,16 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
       vsync: this,
     );
 
+    // Initialize overlay animation controllers
+    _overlayAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _popupAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
     // Load questions when the screen is first shown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadQuestions();
@@ -78,6 +95,13 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
     _scoreAnimationController.dispose();
     _progressAnimationController.dispose();
     _feedbackAnimationController.dispose();
+    _overlayAnimationController.dispose();
+    _popupAnimationController.dispose();
+
+    // Remove overlay if it exists
+    _feedbackOverlay?.remove();
+    _feedbackOverlay = null;
+
     super.dispose();
   }
 
@@ -127,8 +151,8 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
       _showFeedback = true;
     });
 
-    // Trigger feedback animation immediately
-    _feedbackAnimationController.forward();
+    // Show animated feedback popup overlay
+    _showFeedbackPopup();
 
     // Trigger score animation if correct
     if (isCorrect) {
@@ -151,11 +175,232 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
     });
   }
 
+  // New method to show feedback popup overlay
+  void _showFeedbackPopup() {
+    // Remove any existing overlay
+    _feedbackOverlay?.remove();
+
+    _feedbackOverlay = OverlayEntry(
+      builder: (context) => _buildFeedbackOverlay(),
+    );
+
+    Overlay.of(context).insert(_feedbackOverlay!);
+
+    // Start animations
+    _overlayAnimationController.forward();
+    _popupAnimationController.forward();
+  }
+
+  // Build the feedback overlay widget
+  Widget _buildFeedbackOverlay() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedBuilder(
+      animation: Listenable.merge(
+          [_overlayAnimationController, _popupAnimationController]),
+      builder: (context, child) {
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: Colors.black
+                .withOpacity(0.6 * _overlayAnimationController.value),
+            child: Center(
+              child: Transform.scale(
+                scale: 0.8 + (0.2 * _popupAnimationController.value),
+                child: Opacity(
+                  opacity: _popupAnimationController.value,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: _isCorrect!
+                            ? [
+                                Colors.green.withOpacity(0.95),
+                                Colors.green.shade600.withOpacity(0.95),
+                              ]
+                            : [
+                                Colors.red.withOpacity(0.95),
+                                Colors.red.shade600.withOpacity(0.95),
+                              ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Icon with animation
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _isCorrect! ? Icons.check_circle : Icons.cancel,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        )
+                            .animate(delay: Duration(milliseconds: 200))
+                            .scale(duration: const Duration(milliseconds: 300))
+                            .then()
+                            .shake(duration: const Duration(milliseconds: 200)),
+
+                        const SizedBox(height: 20),
+
+                        // Main feedback text
+                        Text(
+                          _isCorrect! ? 'Correct! 🎉' : 'Oops! 😅',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                            .animate(delay: Duration(milliseconds: 300))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+
+                        const SizedBox(height: 12),
+
+                        // Subtitle
+                        Text(
+                          _isCorrect!
+                              ? 'Well done! You got it right!'
+                              : 'Don\'t worry, keep trying!',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                            .animate(delay: Duration(milliseconds: 400))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+
+                        // Show correct answer if wrong
+                        if (!_isCorrect! && _correctOption != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Correct answer: ${_correctOption!.text}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                              .animate(delay: Duration(milliseconds: 500))
+                              .fadeIn(
+                                  duration: const Duration(milliseconds: 300))
+                              .slideY(begin: 0.3, end: 0),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // Continue button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => _hideFeedbackAndContinue(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor:
+                                  _isCorrect! ? Colors.green : Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.arrow_forward_rounded, size: 20),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Continue',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                            .animate(delay: Duration(milliseconds: 600))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Hide feedback popup and continue to next question
+  void _hideFeedbackAndContinue() async {
+    // Animate out
+    await _popupAnimationController.reverse();
+    await _overlayAnimationController.reverse();
+
+    // Remove overlay
+    _feedbackOverlay?.remove();
+    _feedbackOverlay = null;
+
+    // Reset state and continue
+    _goToNextQuestion();
+  }
+
   void _goToNextQuestion() {
     final gameState = ref.read(gameStateNotifierProvider);
 
     // Reset animations
     _feedbackAnimationController.reset();
+    _overlayAnimationController.reset();
+    _popupAnimationController.reset();
 
     setState(() {
       _showFeedback = false;
@@ -609,128 +854,7 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
 
                             const SizedBox(height: 20),
 
-                            // Enhanced feedback section
-                            if (_showFeedback)
-                              AnimatedBuilder(
-                                animation: _feedbackAnimationController,
-                                builder: (context, child) {
-                                  return Transform.scale(
-                                    scale: 0.9 +
-                                        (_feedbackAnimationController.value *
-                                            0.1),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: _isCorrect!
-                                              ? [
-                                                  Colors.green.withOpacity(0.1),
-                                                  Colors.green
-                                                      .withOpacity(0.05),
-                                                ]
-                                              : [
-                                                  Colors.red.withOpacity(0.1),
-                                                  Colors.red.withOpacity(0.05),
-                                                ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: _isCorrect!
-                                              ? Colors.green
-                                              : Colors.red,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(6),
-                                                decoration: BoxDecoration(
-                                                  color: (_isCorrect!
-                                                          ? Colors.green
-                                                          : Colors.red)
-                                                      .withOpacity(0.1),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Icon(
-                                                  _isCorrect!
-                                                      ? Icons.check
-                                                      : Icons.close,
-                                                  color: _isCorrect!
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  size: 18,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  _isCorrect!
-                                                      ? 'Correct! Well done! 🎉'
-                                                      : 'Not quite right 😅',
-                                                  style: TextStyle(
-                                                    color: _isCorrect!
-                                                        ? Colors.green
-                                                        : Colors.red,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (!_isCorrect! &&
-                                              _correctOption != null) ...[
-                                            const SizedBox(height: 12),
-                                            Container(
-                                              padding: const EdgeInsets.all(12),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green
-                                                    .withOpacity(0.05),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                  color: Colors.green
-                                                      .withOpacity(0.2),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.lightbulb_outline,
-                                                    color: Colors.green,
-                                                    size: 16,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      'Correct answer: ${_correctOption!.text}',
-                                                      style: TextStyle(
-                                                        color: Colors.green,
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                            // Enhanced feedback section - REMOVED - Now shown as popup overlay
 
                             const SizedBox(height: 24),
                           ],
@@ -759,17 +883,12 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                   width: double.infinity,
                   height: 56, // Increased height to prevent text cutoff
                   child: ElevatedButton(
-                    // Disable button when no option selected
-                    onPressed: _selectedOptionId == null
+                    // Disable button when no option selected or feedback is showing
+                    onPressed: _selectedOptionId == null || _showFeedback
                         ? null
                         : () {
-                            if (!_showFeedback) {
-                              // Submit the answer
-                              _handleOptionSelected(_selectedOptionId!);
-                            } else {
-                              // Move to next question
-                              _goToNextQuestion();
-                            }
+                            // Submit the answer
+                            _handleOptionSelected(_selectedOptionId!);
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.limeGreen,
@@ -780,7 +899,8 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                       disabledForegroundColor: isDarkMode
                           ? Colors.grey.shade500
                           : Colors.black.withOpacity(0.5),
-                      elevation: _selectedOptionId != null ? 4 : 0,
+                      elevation:
+                          _selectedOptionId != null && !_showFeedback ? 4 : 0,
                       shadowColor: AppColors.limeGreen.withOpacity(0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -790,14 +910,12 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          !_showFeedback
-                              ? Icons.send_rounded
-                              : Icons.arrow_forward_rounded,
+                          Icons.send_rounded,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          !_showFeedback ? 'Submit Answer' : 'Next Question',
+                          'Submit Answer',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -807,7 +925,10 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                       ],
                     ),
                   )
-                      .animate(target: _selectedOptionId != null ? 1 : 0)
+                      .animate(
+                          target: _selectedOptionId != null && !_showFeedback
+                              ? 1
+                              : 0)
                       .shimmer(duration: const Duration(milliseconds: 1000)),
                 ),
               ),

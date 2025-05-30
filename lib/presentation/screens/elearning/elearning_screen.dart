@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/presentation/widgets/search_bar_widget.dart';
 import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
+import 'package:knowledge/presentation/widgets/butterfly_loading_widget.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/repositories/notification_repository.dart';
 
@@ -122,14 +123,7 @@ class ElearningScreen extends HookConsumerWidget {
                       ),
                       child: paginatedTimelines.items.isEmpty &&
                               paginatedTimelines.isLoading
-                          ? Center(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 40),
-                                child:
-                                    _buildLoadingGrid(isDarkMode, shimmerColor),
-                              ),
-                            )
+                          ? _buildButterflyLoading(context, isDarkMode)
                           : paginatedTimelines.items.isEmpty &&
                                   paginatedTimelines.error != null
                               ? Center(
@@ -240,130 +234,306 @@ class ElearningScreen extends HookConsumerWidget {
     );
   }
 
-  // Build a grid of skeleton loading items
-  Widget _buildLoadingGrid(bool isDarkMode, Color shimmerColor) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.65,
-      ),
-      itemCount: 6, // Show 6 skeleton items
-      itemBuilder: (context, index) {
-        return _buildSkeletonCard(index, isDarkMode, shimmerColor);
-      },
-    );
-  }
-
-  // Build a skeleton card with shimmer effect
-  Widget _buildSkeletonCard(int index, bool isDarkMode, Color shimmerColor) {
-    // Add staggered animation based on index
-    final delay = Duration(milliseconds: 50 * index);
-    final containerColor = isDarkMode ? AppColors.darkSurface : Colors.white;
-    final borderColor =
-        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
-
+  // Build butterfly loading with cool animations
+  Widget _buildButterflyLoading(BuildContext context, bool isDarkMode) {
     return Container(
-      decoration: BoxDecoration(
-        color: containerColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      width: double.infinity,
+      height: double.infinity,
+      child: Stack(
         children: [
-          // Image placeholder
-          Container(
-            height: 140,
-            decoration: BoxDecoration(
-              color: shimmerColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+          // Animated background gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.5,
+                  colors: [
+                    AppColors.limeGreen.withOpacity(0.03),
+                    Colors.transparent,
+                    AppColors.limeGreen.withOpacity(0.01),
+                  ],
+                  stops: const [0.0, 0.6, 1.0],
+                ),
               ),
-            ),
+            )
+                .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true))
+                .scale(
+                  begin: const Offset(0.8, 0.8),
+                  end: const Offset(1.2, 1.2),
+                  duration: const Duration(milliseconds: 4000),
+                  curve: Curves.easeInOut,
+                ),
           ),
 
-          // Content placeholders
-          Padding(
-            padding: const EdgeInsets.all(12),
+          // Enhanced floating particles
+          Positioned.fill(
+            child: _buildEnhancedFloatingParticles(isDarkMode),
+          ),
+
+          // Orbiting elements around butterfly
+          Positioned.fill(
+            child: _buildOrbitingElements(isDarkMode),
+          ),
+
+          // Main loading content
+          Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Year pill
-                Container(
-                  height: 20,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(height: 12),
+                // Clean butterfly without background shadow
+                const ButterflyLoadingWidget(
+                  size: 140,
+                  showBackground: false,
+                  showDots: false,
+                )
+                    .animate(onPlay: (controller) => controller.repeat())
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1.1, 1.1),
+                      duration: const Duration(milliseconds: 2500),
+                      curve: Curves.easeInOut,
+                    )
+                    .then()
+                    .scale(
+                      begin: const Offset(1.1, 1.1),
+                      end: const Offset(0.9, 0.9),
+                      duration: const Duration(milliseconds: 2500),
+                      curve: Curves.easeInOut,
+                    )
+                    .rotate(
+                      begin: -0.05,
+                      end: 0.05,
+                      duration: const Duration(milliseconds: 3000),
+                      curve: Curves.easeInOut,
+                    )
+                    .then()
+                    .rotate(
+                      begin: 0.05,
+                      end: -0.05,
+                      duration: const Duration(milliseconds: 3000),
+                      curve: Curves.easeInOut,
+                    ),
 
-                // Title
-                Container(
-                  height: 16,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 50),
 
-                // Subtitle
+                // Enhanced loading text with shimmer effect
                 Container(
-                  height: 14,
-                  width: 100,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(4),
+                    color: isDarkMode
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.grey.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.limeGreen.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                  child: Text(
+                    'Discovering Timelines...',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white70 : Colors.black54,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                )
+                    .animate(onPlay: (controller) => controller.repeat())
+                    .shimmer(
+                      duration: const Duration(milliseconds: 2000),
+                      color: AppColors.limeGreen.withOpacity(0.3),
+                    )
+                    .fadeIn(duration: const Duration(milliseconds: 1000))
+                    .then(delay: const Duration(milliseconds: 500))
+                    .fadeOut(duration: const Duration(milliseconds: 1000))
+                    .then(delay: const Duration(milliseconds: 500)),
 
-                // Description lines
-                Container(
-                  height: 12,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(4),
+                const SizedBox(height: 20),
+
+                // Enhanced subtitle with wave effect
+                Text(
+                  'Unveiling the stories of yesterday',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white54 : Colors.black38,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    letterSpacing: 0.5,
                   ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  height: 12,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: const Duration(milliseconds: 1500))
+                    .slideY(
+                      begin: 0.5,
+                      duration: const Duration(milliseconds: 1000),
+                      curve: Curves.elasticOut,
+                    ),
+
+                const SizedBox(height: 40),
+
+                // Enhanced loading dots with pulse effect
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return Container(
+                      width: 10,
+                      height: 10,
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.limeGreen.withOpacity(0.8),
+                            AppColors.limeGreen.withOpacity(0.4),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.limeGreen.withOpacity(0.5),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .scale(
+                          begin: const Offset(0.3, 0.3),
+                          end: const Offset(1.5, 1.5),
+                          delay: Duration(milliseconds: index * 150),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.elasticOut,
+                        )
+                        .then()
+                        .scale(
+                          begin: const Offset(1.5, 1.5),
+                          end: const Offset(0.3, 0.3),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeInCubic,
+                        )
+                        .fadeIn(
+                          delay: Duration(milliseconds: index * 150),
+                          duration: const Duration(milliseconds: 400),
+                        )
+                        .then()
+                        .fadeOut(duration: const Duration(milliseconds: 400));
+                  }),
                 ),
               ],
             ),
           ),
         ],
       ),
-    )
-        .animate(delay: delay)
-        .fadeIn(duration: const Duration(milliseconds: 500))
-        .shimmer(
-          duration: const Duration(milliseconds: 1200),
-          delay: delay + const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
+    );
+  }
+
+  // Build enhanced floating particles with various sizes and speeds
+  Widget _buildEnhancedFloatingParticles(bool isDarkMode) {
+    return Stack(
+      children: List.generate(12, (index) {
+        final double left = (index * 60.0) % 350;
+        final double top = (index * 90.0) % 500;
+        final double size = 3.0 + (index % 3) * 2.0; // Varying sizes
+        final bool isLarge = index % 4 == 0;
+
+        return Positioned(
+          left: left,
+          top: top,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.limeGreen.withOpacity(isLarge ? 0.6 : 0.4),
+                  AppColors.limeGreen.withOpacity(isLarge ? 0.2 : 0.1),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.limeGreen.withOpacity(0.3),
+                  blurRadius: isLarge ? 6 : 3,
+                ),
+              ],
+            ),
+          )
+              .animate(onPlay: (controller) => controller.repeat())
+              .moveY(
+                begin: 0,
+                end: isLarge ? -150 : -80,
+                delay: Duration(milliseconds: index * 400),
+                duration: Duration(milliseconds: isLarge ? 4000 : 2500),
+                curve: Curves.easeInOut,
+              )
+              .fadeIn(
+                delay: Duration(milliseconds: index * 400),
+                duration: const Duration(milliseconds: 1500),
+              )
+              .then()
+              .fadeOut(duration: const Duration(milliseconds: 1500))
+              .scale(
+                begin: const Offset(0.0, 0.0),
+                end: const Offset(1.0, 1.0),
+                delay: Duration(milliseconds: index * 400),
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.elasticOut,
+              ),
         );
+      }),
+    );
+  }
+
+  // Build orbiting elements around the butterfly
+  Widget _buildOrbitingElements(bool isDarkMode) {
+    return Stack(
+      children: List.generate(6, (index) {
+        final double angle =
+            (index * 60.0) * (3.14159 / 180); // Convert to radians
+        final double radius = 100.0 + (index % 2) * 20.0;
+
+        return Positioned.fill(
+          child: Transform.rotate(
+            angle: angle,
+            child: Align(
+              alignment: Alignment.center,
+              child: Transform.translate(
+                offset: Offset(0, -radius),
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.limeGreen.withOpacity(0.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.limeGreen.withOpacity(0.3),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
+              .animate(onPlay: (controller) => controller.repeat())
+              .rotate(
+                begin: 0,
+                end: 1,
+                delay: Duration(milliseconds: index * 300),
+                duration: const Duration(milliseconds: 8000),
+              )
+              .fadeIn(
+                delay: Duration(milliseconds: 2000 + index * 300),
+                duration: const Duration(milliseconds: 1000),
+              ),
+        );
+      }),
+    );
   }
 }
 

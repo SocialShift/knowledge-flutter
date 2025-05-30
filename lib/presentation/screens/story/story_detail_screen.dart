@@ -513,7 +513,7 @@ class _StoryPartScreen extends HookConsumerWidget {
     final currentParagraphIndex = useState(0);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isDarkMode ? Colors.black : AppColors.offWhite,
       body: Stack(
         children: [
           // Thumbnail Image (40% of screen with 1:1 aspect ratio)
@@ -548,11 +548,22 @@ class _StoryPartScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-          ).animate().fadeIn(duration: 800.ms, delay: 200.ms).slideY(
-              begin: -0.3,
-              end: 0,
-              duration: 1000.ms,
-              curve: Curves.easeOutCubic),
+          )
+              .animate()
+              .fadeIn(duration: 800.ms, delay: 1800.ms)
+              .scale(
+                begin: const Offset(0.6, 0.6),
+                end: const Offset(1.0, 1.0),
+                duration: 1500.ms,
+                curve: Curves.elasticOut,
+                delay: 1800.ms,
+              )
+              .then()
+              .shimmer(
+                duration: 2000.ms,
+                color: Colors.white.withOpacity(0.2),
+                delay: 800.ms,
+              ),
 
           // Back button overlay with white background
           // Positioned(
@@ -617,7 +628,11 @@ class _StoryPartScreen extends HookConsumerWidget {
                       color: Colors.grey.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
-                  ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 2200.ms).scale(
+                        begin: const Offset(0.3, 1.0),
+                        duration: 800.ms,
+                        curve: Curves.elasticOut,
+                      ),
 
                   // Fixed Header Section (Title, Year, Read Time, Progress)
                   Container(
@@ -635,7 +650,20 @@ class _StoryPartScreen extends HookConsumerWidget {
                             fontWeight: FontWeight.bold,
                             height: 1.2,
                           ),
-                        ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 800.ms, delay: 2400.ms)
+                            .slideX(
+                              begin: -0.4,
+                              duration: 1000.ms,
+                              curve: Curves.easeOutCubic,
+                            )
+                            .then()
+                            .shimmer(
+                              duration: 1500.ms,
+                              color: AppColors.limeGreen.withOpacity(0.4),
+                              delay: 500.ms,
+                            ),
 
                         const SizedBox(height: 12),
 
@@ -657,7 +685,14 @@ class _StoryPartScreen extends HookConsumerWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 2600.ms)
+                                .scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  duration: 600.ms,
+                                  curve: Curves.elasticOut,
+                                ),
                             const SizedBox(width: 12),
                             Text(
                               '${_calculateReadingTime(storyContent)} min read',
@@ -665,7 +700,14 @@ class _StoryPartScreen extends HookConsumerWidget {
                                 color: Colors.grey,
                                 fontSize: 14,
                               ),
-                            ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 2700.ms)
+                                .slideX(
+                                  begin: -0.3,
+                                  duration: 600.ms,
+                                  curve: Curves.easeOutCubic,
+                                ),
                             const Spacer(),
                             // Paragraph indicator
                             Text(
@@ -675,7 +717,14 @@ class _StoryPartScreen extends HookConsumerWidget {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
-                            ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 2800.ms)
+                                .slideX(
+                                  begin: 0.3,
+                                  duration: 600.ms,
+                                  curve: Curves.easeOutCubic,
+                                ),
                           ],
                         ),
                       ],
@@ -716,11 +765,18 @@ class _StoryPartScreen extends HookConsumerWidget {
                               ),
                             )
                                 .animate()
-                                .fadeIn(duration: 600.ms, delay: 800.ms)
+                                .fadeIn(duration: 800.ms, delay: 2900.ms)
                                 .slideY(
-                                    begin: 0.3,
-                                    duration: 800.ms,
-                                    curve: Curves.easeOutCubic),
+                                  begin: 0.5,
+                                  duration: 1000.ms,
+                                  curve: Curves.easeOutCubic,
+                                )
+                                .then()
+                                .shimmer(
+                                  duration: 2000.ms,
+                                  color: AppColors.limeGreen.withOpacity(0.1),
+                                  delay: 1000.ms,
+                                ),
 
                           // Story completed message (only on last slide)
                           if (currentParagraphIndex.value ==
@@ -744,7 +800,16 @@ class _StoryPartScreen extends HookConsumerWidget {
                                     Icons.check_circle,
                                     color: AppColors.limeGreen,
                                     size: 32,
-                                  ),
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 600.ms, delay: 1500.ms)
+                                      .scale(
+                                        begin: const Offset(0.5, 0.5),
+                                        duration: 800.ms,
+                                        curve: Curves.elasticOut,
+                                      )
+                                      .then()
+                                      .shake(duration: 500.ms, hz: 3),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Story Complete!',
@@ -753,7 +818,14 @@ class _StoryPartScreen extends HookConsumerWidget {
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                  ),
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 600.ms, delay: 1700.ms)
+                                      .slideY(
+                                        begin: 0.3,
+                                        duration: 600.ms,
+                                        curve: Curves.easeOutBack,
+                                      ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Ready for the milestones?',
@@ -763,16 +835,29 @@ class _StoryPartScreen extends HookConsumerWidget {
                                           : Colors.black54,
                                       fontSize: 14,
                                     ),
-                                  ),
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 600.ms, delay: 1800.ms)
+                                      .slideY(
+                                        begin: 0.3,
+                                        duration: 600.ms,
+                                        curve: Curves.easeOutBack,
+                                      ),
                                 ],
                               ),
                             )
                                 .animate()
-                                .fadeIn(duration: 600.ms, delay: 400.ms)
+                                .fadeIn(duration: 800.ms, delay: 1400.ms)
                                 .scale(
-                                    begin: const Offset(0.9, 0.9),
-                                    duration: 600.ms,
-                                    curve: Curves.elasticOut),
+                                  begin: const Offset(0.8, 0.8),
+                                  duration: 1000.ms,
+                                  curve: Curves.elasticOut,
+                                )
+                                .then()
+                                .shimmer(
+                                  duration: 2000.ms,
+                                  color: AppColors.limeGreen.withOpacity(0.3),
+                                ),
                           ],
                         ],
                       ),
@@ -785,10 +870,10 @@ class _StoryPartScreen extends HookConsumerWidget {
               .animate()
               .slideY(
                   begin: 1.0,
-                  duration: 1000.ms,
+                  duration: 1200.ms,
                   curve: Curves.easeOutCubic,
-                  delay: 600.ms)
-              .fadeIn(duration: 800.ms, delay: 600.ms),
+                  delay: 500.ms)
+              .fadeIn(duration: 800.ms, delay: 500.ms),
 
           // Fixed Action Buttons with opaque background
           Positioned(
@@ -859,7 +944,11 @@ class _StoryPartScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
-                  ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 3200.ms).slideX(
+                        begin: -0.5,
+                        duration: 800.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
@@ -902,7 +991,20 @@ class _StoryPartScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 3300.ms)
+                      .slideX(
+                        begin: 0.5,
+                        duration: 800.ms,
+                        curve: Curves.easeOutBack,
+                      )
+                      .then()
+                      .shimmer(
+                        duration: 2000.ms,
+                        color: Colors.white.withOpacity(0.4),
+                        delay: 1000.ms,
+                      ),
                 ],
               ),
             ),
@@ -910,10 +1012,10 @@ class _StoryPartScreen extends HookConsumerWidget {
               .animate()
               .slideY(
                   begin: 1.0,
-                  duration: 800.ms,
+                  duration: 1000.ms,
                   curve: Curves.easeOutBack,
-                  delay: 1200.ms)
-              .fadeIn(duration: 600.ms, delay: 1200.ms),
+                  delay: 3000.ms)
+              .fadeIn(duration: 800.ms, delay: 3000.ms),
         ],
       ),
     );

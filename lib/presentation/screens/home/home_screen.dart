@@ -16,6 +16,7 @@ import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 // import 'package:knowledge/data/providers/filter_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/butterfly_loading_widget.dart';
+import 'package:knowledge/presentation/widgets/streak_sliding_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // Create cached versions of providers with keepAlive set to true
@@ -624,151 +625,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       ),
                                 ),
 
-                                // Streak display (non-clickable)
-                                Consumer(
-                                  builder: (context, ref, child) {
-                                    // Watch the user profile to get streak data
-                                    final profileAsync =
-                                        ref.watch(cachedProfileProvider);
-
-                                    return profileAsync.when(
-                                      data: (profile) {
-                                        final currentStreak =
-                                            profile.currentLoginStreak ?? 0;
-
-                                        return Container(
-                                          height: 40,
-                                          margin:
-                                              const EdgeInsets.only(right: 12),
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              // Circular background
-                                              Container(
-                                                height: 40,
-                                                width: 40,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: isDarkMode
-                                                      ? Colors.white
-                                                          .withOpacity(0.1)
-                                                      : Colors.white
-                                                          .withOpacity(0.2),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 4,
-                                                      offset:
-                                                          const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Scroll image
-                                              SvgPicture.asset(
-                                                'assets/icons/scroll.svg',
-                                                height: 24,
-                                                width: 24,
-                                                fit: BoxFit.contain,
-                                                colorFilter:
-                                                    const ColorFilter.mode(
-                                                  Colors.white,
-                                                  BlendMode.srcIn,
-                                                ),
-                                              ),
-                                              // Streak text
-                                              Positioned(
-                                                top: 13,
-                                                child: Center(
-                                                  child: Text(
-                                                    '$currentStreak',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ).animate().fadeIn(
-                                              delay: const Duration(
-                                                  milliseconds: 300),
-                                            );
-                                      },
-                                      loading: () => Container(
-                                        height: 40,
-                                        width: 60,
-                                        margin:
-                                            const EdgeInsets.only(right: 12),
-                                        decoration: BoxDecoration(
-                                          color: isDarkMode
-                                              ? Colors.white.withOpacity(0.05)
-                                              : Colors.white.withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                      ),
-                                      error: (_, __) => Container(
-                                        height: 40,
-                                        margin:
-                                            const EdgeInsets.only(right: 12),
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            // Circular background
-                                            Container(
-                                              height: 40,
-                                              width: 40,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: isDarkMode
-                                                    ? Colors.white
-                                                        .withOpacity(0.1)
-                                                    : Colors.white
-                                                        .withOpacity(0.2),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.1),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            // Scroll image
-                                            SvgPicture.asset(
-                                              'assets/icons/scroll.svg',
-                                              height: 24,
-                                              width: 24,
-                                              fit: BoxFit.contain,
-                                              colorFilter:
-                                                  const ColorFilter.mode(
-                                                Colors.white,
-                                                BlendMode.srcIn,
-                                              ),
-                                            ),
-                                            // Streak text
-                                            const Center(
-                                              child: Text(
-                                                '0',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                // Streak display (clickable sliding widget)
+                                const StreakSlidingWidget(),
 
                                 // Lightbulb icon
                                 GestureDetector(

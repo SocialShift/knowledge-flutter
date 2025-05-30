@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/quiz_provider.dart';
 import 'package:knowledge/data/repositories/quiz_repository.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
+import 'package:knowledge/data/models/quiz.dart';
 // import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -35,6 +36,7 @@ class QuizScreen extends HookConsumerWidget {
     final selectedOptionId = useState<String?>(null);
     final hasSubmitted = useState(false);
     final isCorrect = useState(false);
+    final correctOption = useState<Option?>(null);
 
     // Track user answers for all questions
     final userAnswers = useState<Map<String, String>>({});
@@ -47,28 +49,14 @@ class QuizScreen extends HookConsumerWidget {
     final showMilestonesIntro = useState(true);
     final introAnimationCompleted = useState(false);
 
+    // Add overlay state for feedback popup
+    final feedbackOverlay = useState<OverlayEntry?>(null);
+
     // Fetch quiz data
     final quizAsync = ref.watch(quizNotifierProvider(storyId));
 
     // Fetch story data to get the title
     final storyAsync = ref.watch(storyDetailProvider(storyId));
-
-    // Auto-hide intro animation after delay
-    useEffect(() {
-      if (showMilestonesIntro.value) {
-        Future.delayed(const Duration(milliseconds: 3500), () {
-          if (context.mounted) {
-            showMilestonesIntro.value = false;
-            Future.delayed(const Duration(milliseconds: 800), () {
-              if (context.mounted) {
-                introAnimationCompleted.value = true;
-              }
-            });
-          }
-        });
-      }
-      return null;
-    }, []);
 
     // Function to submit all answers when quiz is completed
     Future<void> submitQuizAnswers(
@@ -115,6 +103,64 @@ class QuizScreen extends HookConsumerWidget {
       }
     }
 
+    // Auto-hide intro animation after delay
+    useEffect(() {
+      if (showMilestonesIntro.value) {
+        Future.delayed(const Duration(milliseconds: 3500), () {
+          if (context.mounted) {
+            showMilestonesIntro.value = false;
+            Future.delayed(const Duration(milliseconds: 800), () {
+              if (context.mounted) {
+                introAnimationCompleted.value = true;
+              }
+            });
+          }
+        });
+      }
+      return null;
+    }, []);
+
+    // Cleanup overlay on dispose
+    useEffect(() {
+      return () {
+        feedbackOverlay.value?.remove();
+        feedbackOverlay.value = null;
+      };
+    }, []);
+
+    // Function to show animated feedback popup
+    void showFeedbackPopup(bool isAnswerCorrect, Option? correctOpt) {
+      // Remove any existing overlay
+      feedbackOverlay.value?.remove();
+
+      feedbackOverlay.value = OverlayEntry(
+        builder: (context) => _QuizFeedbackOverlay(
+          isCorrect: isAnswerCorrect,
+          correctOption: correctOpt,
+          onContinue: () {
+            // Hide overlay
+            feedbackOverlay.value?.remove();
+            feedbackOverlay.value = null;
+
+            // Continue to next question or finish quiz
+            final quiz = quizAsync.value;
+            if (quiz != null) {
+              if (currentQuestionIndex.value < quiz.questions.length - 1) {
+                currentQuestionIndex.value++;
+                selectedOptionId.value = null;
+                hasSubmitted.value = false;
+              } else {
+                // Quiz completed - submit all answers
+                submitQuizAnswers(quiz.id, userAnswers.value);
+              }
+            }
+          },
+        ),
+      );
+
+      Overlay.of(context).insert(feedbackOverlay.value!);
+    }
+
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Stack(
@@ -145,11 +191,6 @@ class QuizScreen extends HookConsumerWidget {
                 final currentQuestion =
                     quiz.questions[currentQuestionIndex.value];
                 final totalQuestions = quiz.questions.length;
-
-                // Find the correct option
-                final correctOption = currentQuestion.options.firstWhere(
-                    (option) => option.isCorrect,
-                    orElse: () => currentQuestion.options.first);
 
                 return SafeArea(
                   child: Column(
@@ -457,33 +498,6 @@ class QuizScreen extends HookConsumerWidget {
                         ),
                       ),
 
-                      // Explanation text (shown after submission)
-                      if (hasSubmitted.value)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            isCorrect.value
-                                ? 'Correct! Well done.'
-                                : 'Incorrect. The correct answer is: ${correctOption.text}',
-                            style: TextStyle(
-                              color:
-                                  isCorrect.value ? Colors.green : Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                            .animate()
-                            .fadeIn(
-                              duration: const Duration(milliseconds: 500),
-                            )
-                            .slideY(
-                              begin: 0.2,
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeOutBack,
-                            ),
-
                       // Bottom button area
                       Padding(
                         padding: const EdgeInsets.all(24),
@@ -506,41 +520,42 @@ class QuizScreen extends HookConsumerWidget {
                               ),
                               child: ElevatedButton(
                                 onPressed: selectedOptionId.value == null ||
-                                        isSubmittingQuiz.value
+                                        isSubmittingQuiz.value ||
+                                        hasSubmitted.value
                                     ? null
                                     : () {
-                                        if (!hasSubmitted.value) {
-                                          // Submit answer
-                                          final selectedOption = currentQuestion
-                                              .options
-                                              .firstWhere(
-                                            (option) =>
-                                                option.id ==
-                                                selectedOptionId.value,
-                                          );
-                                          isCorrect.value =
-                                              selectedOption.isCorrect;
-                                          hasSubmitted.value = true;
+                                        // Submit answer and show popup
+                                        final selectedOption =
+                                            currentQuestion.options.firstWhere(
+                                          (option) =>
+                                              option.id ==
+                                              selectedOptionId.value,
+                                        );
 
-                                          // Store the answer
-                                          userAnswers.value = {
-                                            ...userAnswers.value,
-                                            currentQuestion.id:
-                                                selectedOptionId.value!,
-                                          };
-                                        } else {
-                                          // Move to next question
-                                          if (currentQuestionIndex.value <
-                                              totalQuestions - 1) {
-                                            currentQuestionIndex.value++;
-                                            selectedOptionId.value = null;
-                                            hasSubmitted.value = false;
-                                          } else {
-                                            // Quiz completed - submit all answers
-                                            submitQuizAnswers(
-                                                quiz.id, userAnswers.value);
-                                          }
-                                        }
+                                        final correctOpt =
+                                            currentQuestion.options.firstWhere(
+                                          (option) => option.isCorrect,
+                                          orElse: () =>
+                                              currentQuestion.options.first,
+                                        );
+
+                                        // Update state
+                                        isCorrect.value =
+                                            selectedOption.isCorrect;
+                                        correctOption.value = correctOpt;
+                                        hasSubmitted.value = true;
+
+                                        // Store the answer
+                                        userAnswers.value = {
+                                          ...userAnswers.value,
+                                          currentQuestion.id:
+                                              selectedOptionId.value!,
+                                        };
+
+                                        // Show animated feedback popup
+                                        showFeedbackPopup(
+                                            selectedOption.isCorrect,
+                                            correctOpt);
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.limeGreen,
@@ -570,12 +585,7 @@ class QuizScreen extends HookConsumerWidget {
                                         ),
                                       )
                                     : Text(
-                                        !hasSubmitted.value
-                                            ? 'Submit'
-                                            : (currentQuestionIndex.value <
-                                                    totalQuestions - 1
-                                                ? 'Next'
-                                                : 'Finish'),
+                                        'Submit Answer',
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -1072,6 +1082,219 @@ class _FloatingSparkles extends HookWidget {
                   .rotate(duration: const Duration(milliseconds: 1800)),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+// Quiz Feedback Overlay Widget - Animated popup for quiz answer feedback
+class _QuizFeedbackOverlay extends HookWidget {
+  final bool isCorrect;
+  final Option? correctOption;
+  final VoidCallback onContinue;
+
+  const _QuizFeedbackOverlay({
+    required this.isCorrect,
+    required this.correctOption,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final overlayController = useAnimationController(
+      duration: const Duration(milliseconds: 300),
+    );
+    final popupController = useAnimationController(
+      duration: const Duration(milliseconds: 500),
+    );
+
+    useEffect(() {
+      overlayController.forward();
+      popupController.forward();
+      return null;
+    }, []);
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([overlayController, popupController]),
+      builder: (context, child) {
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: Colors.black.withOpacity(0.6 * overlayController.value),
+            child: Center(
+              child: Transform.scale(
+                scale: 0.8 + (0.2 * popupController.value),
+                child: Opacity(
+                  opacity: popupController.value,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isCorrect
+                            ? [
+                                Colors.green.withOpacity(0.95),
+                                Colors.green.shade600.withOpacity(0.95),
+                              ]
+                            : [
+                                Colors.red.withOpacity(0.95),
+                                Colors.red.shade600.withOpacity(0.95),
+                              ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Icon with animation
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCorrect ? Icons.check_circle : Icons.cancel,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        )
+                            .animate(delay: Duration(milliseconds: 200))
+                            .scale(duration: const Duration(milliseconds: 300))
+                            .then()
+                            .shake(duration: const Duration(milliseconds: 200)),
+
+                        const SizedBox(height: 20),
+
+                        // Main feedback text
+                        Text(
+                          isCorrect ? 'Correct! 🎉' : 'Oops! 😅',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                            .animate(delay: Duration(milliseconds: 300))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+
+                        const SizedBox(height: 12),
+
+                        // Subtitle
+                        Text(
+                          isCorrect
+                              ? 'Well done! You got it right!'
+                              : 'Don\'t worry, keep trying!',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                            .animate(delay: Duration(milliseconds: 400))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+
+                        // Show correct answer if wrong
+                        if (!isCorrect && correctOption != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Correct answer: ${correctOption!.text}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                              .animate(delay: Duration(milliseconds: 500))
+                              .fadeIn(
+                                  duration: const Duration(milliseconds: 300))
+                              .slideY(begin: 0.3, end: 0),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // Continue button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: onContinue,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor:
+                                  isCorrect ? Colors.green : Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.arrow_forward_rounded, size: 20),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Continue',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                            .animate(delay: Duration(milliseconds: 600))
+                            .fadeIn(duration: const Duration(milliseconds: 300))
+                            .slideY(begin: 0.3, end: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
