@@ -224,15 +224,15 @@ class _VideoPartScreen extends HookConsumerWidget {
               child: Column(
                 children: [
                   // Handle bar
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                  // Container(
+                  //   width: 40,
+                  //   height: 4,
+                  //   margin: const EdgeInsets.only(top: 12),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.grey.withOpacity(0.3),
+                  //     borderRadius: BorderRadius.circular(2),
+                  //   ),
+                  // ),
 
                   // Fixed Header Section (Title, Views, Year)
                   Container(
@@ -620,19 +620,19 @@ class _StoryPartScreen extends HookConsumerWidget {
               child: Column(
                 children: [
                   // Handle bar
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 2200.ms).scale(
-                        begin: const Offset(0.3, 1.0),
-                        duration: 800.ms,
-                        curve: Curves.elasticOut,
-                      ),
+                  // Container(
+                  //   width: 40,
+                  //   height: 4,
+                  //   margin: const EdgeInsets.only(top: 12),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.grey.withOpacity(0.3),
+                  //     borderRadius: BorderRadius.circular(2),
+                  //   ),
+                  // ).animate().fadeIn(duration: 600.ms, delay: 2200.ms).scale(
+                  //       begin: const Offset(0.3, 1.0),
+                  //       duration: 800.ms,
+                  //       curve: Curves.elasticOut,
+                  //     ),
 
                   // Fixed Header Section (Title, Year, Read Time, Progress)
                   Container(
@@ -680,7 +680,7 @@ class _StoryPartScreen extends HookConsumerWidget {
                               child: Text(
                                 '${story.year}',
                                 style: const TextStyle(
-                                  color: AppColors.limeGreen,
+                                  color: AppColors.navyBlue,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
