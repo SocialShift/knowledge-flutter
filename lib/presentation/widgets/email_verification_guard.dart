@@ -35,18 +35,23 @@ class _EmailVerificationGuardState
 
     final authState = ref.read(authNotifierProvider);
 
-    // Only check if user is authenticated
-    if (authState.maybeMap(
-      authenticated: (_) => true,
-      orElse: () => false,
-    )) {
-      final authNotifier = ref.read(authNotifierProvider.notifier);
-      await authNotifier.checkAndHandleEmailVerification();
+    // Only check if user is authenticated AND their User object shows they are not verified
+    authState.maybeMap(
+      authenticated: (authenticatedState) {
+        // Check the User object's isEmailVerified field directly
+        if (!authenticatedState.user.isEmailVerified) {
+          // Only then make the API call to double-check verification status
+          final authNotifier = ref.read(authNotifierProvider.notifier);
+          authNotifier.checkAndHandleEmailVerification();
+        }
+        // If user is verified according to their User object, don't do anything
+      },
+      orElse: () {},
+    );
 
-      setState(() {
-        _hasCheckedVerification = true;
-      });
-    }
+    setState(() {
+      _hasCheckedVerification = true;
+    });
   }
 
   @override
@@ -55,8 +60,10 @@ class _EmailVerificationGuardState
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next != null) {
         next.maybeMap(
-          authenticated: (_) {
-            if (!_hasCheckedVerification) {
+          authenticated: (authenticatedState) {
+            // Only check if user is not verified and we haven't checked yet
+            if (!_hasCheckedVerification &&
+                !authenticatedState.user.isEmailVerified) {
               _checkEmailVerification();
             }
           },

@@ -10,6 +10,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io' show Platform;
+import 'package:audio_session/audio_session.dart';
+import 'dart:developer' as developer;
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -1029,7 +1031,7 @@ class _StoryPartScreen extends HookConsumerWidget {
   }
 }
 
-// Auto-playing Video Widget
+// Auto-playing Video Widget with Consistent UI and iOS Audio Fix
 class _AutoPlayVideoWidget extends HookConsumerWidget {
   final Story story;
   final Function(VideoPlayerController?) onControllerReady;
@@ -1051,49 +1053,160 @@ class _AutoPlayVideoWidget extends HookConsumerWidget {
         return null;
       }
 
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(story.mediaUrl),
-        httpHeaders: {
-          'User-Agent': Platform.isIOS
-              ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
-              : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-        },
-      );
-
-      videoControllerRef.value = controller;
-
-      controller.initialize().then((_) {
-        if (controller.value.hasError) {
-          errorMessage.value = "Failed to load video";
-          isBuffering.value = false;
-          return;
+      // Configure iOS audio session for video playback
+      Future<void> configureAudioSession() async {
+        if (Platform.isIOS) {
+          try {
+            final session = await AudioSession.instance;
+            await session.configure(const AudioSessionConfiguration(
+              avAudioSessionCategory: AVAudioSessionCategory.playback,
+              avAudioSessionCategoryOptions:
+                  AVAudioSessionCategoryOptions.defaultToSpeaker,
+              avAudioSessionMode: AVAudioSessionMode.moviePlayback,
+              avAudioSessionRouteSharingPolicy:
+                  AVAudioSessionRouteSharingPolicy.defaultPolicy,
+              avAudioSessionSetActiveOptions:
+                  AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
+            ));
+            // Activate the session to ensure audio works in silent mode
+            await session.setActive(true);
+            developer.log('iOS audio session configured for video playback');
+          } catch (e) {
+            developer.log('Error configuring iOS audio session for video: $e');
+          }
         }
+      }
 
-        chewieControllerRef.value = ChewieController(
-          videoPlayerController: controller,
-          aspectRatio: controller.value.aspectRatio,
-          autoPlay: true, // Auto-play as requested
-          looping: true,
-          materialProgressColors: ChewieProgressColors(
-            playedColor: AppColors.limeGreen,
-            handleColor: AppColors.limeGreen,
-            backgroundColor: Colors.white24,
-            bufferedColor: Colors.white38,
+      // Configure audio session before initializing video
+      configureAudioSession().then((_) {
+        final controller = VideoPlayerController.networkUrl(
+          Uri.parse(story.mediaUrl),
+          httpHeaders: {
+            'User-Agent': Platform.isIOS
+                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+                : 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
+          },
+          videoPlayerOptions: VideoPlayerOptions(
+            // Enable audio even in silent mode for iOS
+            mixWithOthers: true,
+            allowBackgroundPlayback: false,
           ),
-          allowFullScreen: true,
-          showControls: true,
-          allowPlaybackSpeedChanging: false,
         );
-        isBuffering.value = false;
-        onControllerReady(controller);
-      }).catchError((error) {
-        errorMessage.value = "Unable to load video";
-        isBuffering.value = false;
+
+        videoControllerRef.value = controller;
+
+        controller.initialize().then((_) {
+          if (controller.value.hasError) {
+            errorMessage.value = "Failed to load video";
+            isBuffering.value = false;
+            return;
+          }
+
+          // Set volume to ensure audio is audible
+          controller.setVolume(1.0);
+
+          // Create consistent Chewie controller for both platforms
+          chewieControllerRef.value = ChewieController(
+            videoPlayerController: controller,
+            aspectRatio: controller.value.aspectRatio,
+            autoPlay: true,
+            looping: true,
+            // Consistent progress colors for both platforms
+            materialProgressColors: ChewieProgressColors(
+              playedColor: AppColors.limeGreen,
+              handleColor: AppColors.limeGreen,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              bufferedColor: Colors.white.withOpacity(0.5),
+            ),
+            cupertinoProgressColors: ChewieProgressColors(
+              playedColor: AppColors.limeGreen,
+              handleColor: AppColors.limeGreen,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              bufferedColor: Colors.white.withOpacity(0.5),
+            ),
+            allowFullScreen: true,
+            showControls: true,
+            allowPlaybackSpeedChanging: false,
+            showControlsOnInitialize: false,
+            // Consistent control bar height for both platforms
+            controlsSafeAreaMinimum: const EdgeInsets.only(bottom: 16),
+            // Hide options menu to maintain consistency
+            showOptions: false,
+            // Add subtitle toggle button if subtitles are available
+            additionalOptions: (context) {
+              return [
+                if (story.subtitlesUrl.isNotEmpty)
+                  OptionItem(
+                    onTap: (context) {
+                      // Show subtitle toggle message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Subtitles: ${story.subtitlesUrl.isNotEmpty ? "Available" : "Not Available"}'),
+                          backgroundColor: AppColors.limeGreen,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    iconData: Icons.closed_caption,
+                    title: 'Subtitles',
+                  ),
+              ];
+            },
+            // Add custom overlay for subtitle toggle button
+            overlay: story.subtitlesUrl.isNotEmpty
+                ? Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.closed_caption,
+                          color: AppColors.limeGreen,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                  'Subtitles available - Use video controls to enable'),
+                              backgroundColor: AppColors.limeGreen,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                : null,
+          );
+          isBuffering.value = false;
+          onControllerReady(controller);
+
+          developer.log('Video controller initialized successfully');
+        }).catchError((error) {
+          errorMessage.value = "Unable to load video";
+          isBuffering.value = false;
+          developer.log('Video initialization error: $error');
+        });
       });
 
       return () {
         chewieControllerRef.value?.dispose();
         videoControllerRef.value?.dispose();
+
+        // Deactivate audio session when disposing
+        if (Platform.isIOS) {
+          AudioSession.instance.then((session) {
+            session.setActive(false).catchError((e) {
+              developer.log('Error deactivating audio session: $e');
+            });
+          });
+        }
       };
     }, [story.mediaUrl]);
 

@@ -315,14 +315,21 @@ class AuthNotifier extends _$AuthNotifier {
       final isVerified =
           await ref.read(authRepositoryProvider).checkUserVerificationStatus();
 
+      // Only take action if user is NOT verified
       if (!isVerified) {
         // Get user email for verification
         final email =
             await ref.read(authRepositoryProvider).getCurrentUserEmail();
 
-        // For existing users, call resend verification API
-        await resendVerificationEmail(email);
+        // Set state to email verification pending WITHOUT sending resend email
+        // The user can manually resend if needed from the verification screen
+        state = AuthState.emailVerificationPending(
+          email: email,
+          message:
+              'Please verify your email to continue. Check your inbox for verification code.',
+        );
       }
+      // If user IS verified, do nothing - keep current authenticated state
     } catch (e) {
       print('Error checking email verification: $e');
       // Don't change state on error, just log it

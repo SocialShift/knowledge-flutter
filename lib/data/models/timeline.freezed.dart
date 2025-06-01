@@ -607,6 +607,7 @@ mixin _$Story {
   List<Timestamp> get timestamps => throw _privateConstructorUsedError;
   int get likes => throw _privateConstructorUsedError;
   int get views => throw _privateConstructorUsedError;
+  String get subtitlesUrl => throw _privateConstructorUsedError;
   String? get timelineId => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
   String? get storyDate => throw _privateConstructorUsedError;
@@ -638,6 +639,7 @@ abstract class $StoryCopyWith<$Res> {
       List<Timestamp> timestamps,
       int likes,
       int views,
+      String subtitlesUrl,
       String? timelineId,
       String? createdAt,
       String? storyDate});
@@ -670,6 +672,7 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
     Object? timestamps = null,
     Object? likes = null,
     Object? views = null,
+    Object? subtitlesUrl = null,
     Object? timelineId = freezed,
     Object? createdAt = freezed,
     Object? storyDate = freezed,
@@ -723,6 +726,10 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
           ? _value.views
           : views // ignore: cast_nullable_to_non_nullable
               as int,
+      subtitlesUrl: null == subtitlesUrl
+          ? _value.subtitlesUrl
+          : subtitlesUrl // ignore: cast_nullable_to_non_nullable
+              as String,
       timelineId: freezed == timelineId
           ? _value.timelineId
           : timelineId // ignore: cast_nullable_to_non_nullable
@@ -759,6 +766,7 @@ abstract class _$$StoryImplCopyWith<$Res> implements $StoryCopyWith<$Res> {
       List<Timestamp> timestamps,
       int likes,
       int views,
+      String subtitlesUrl,
       String? timelineId,
       String? createdAt,
       String? storyDate});
@@ -789,6 +797,7 @@ class __$$StoryImplCopyWithImpl<$Res>
     Object? timestamps = null,
     Object? likes = null,
     Object? views = null,
+    Object? subtitlesUrl = null,
     Object? timelineId = freezed,
     Object? createdAt = freezed,
     Object? storyDate = freezed,
@@ -842,6 +851,10 @@ class __$$StoryImplCopyWithImpl<$Res>
           ? _value.views
           : views // ignore: cast_nullable_to_non_nullable
               as int,
+      subtitlesUrl: null == subtitlesUrl
+          ? _value.subtitlesUrl
+          : subtitlesUrl // ignore: cast_nullable_to_non_nullable
+              as String,
       timelineId: freezed == timelineId
           ? _value.timelineId
           : timelineId // ignore: cast_nullable_to_non_nullable
@@ -874,6 +887,7 @@ class _$StoryImpl implements _Story {
       final List<Timestamp> timestamps = const [],
       this.likes = 0,
       this.views = 0,
+      this.subtitlesUrl = '',
       this.timelineId,
       this.createdAt,
       this.storyDate})
@@ -920,6 +934,9 @@ class _$StoryImpl implements _Story {
   @JsonKey()
   final int views;
   @override
+  @JsonKey()
+  final String subtitlesUrl;
+  @override
   final String? timelineId;
   @override
   final String? createdAt;
@@ -928,7 +945,7 @@ class _$StoryImpl implements _Story {
 
   @override
   String toString() {
-    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps, likes: $likes, views: $views, timelineId: $timelineId, createdAt: $createdAt, storyDate: $storyDate)';
+    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps, likes: $likes, views: $views, subtitlesUrl: $subtitlesUrl, timelineId: $timelineId, createdAt: $createdAt, storyDate: $storyDate)';
   }
 
   @override
@@ -954,6 +971,8 @@ class _$StoryImpl implements _Story {
                 .equals(other._timestamps, _timestamps) &&
             (identical(other.likes, likes) || other.likes == likes) &&
             (identical(other.views, views) || other.views == views) &&
+            (identical(other.subtitlesUrl, subtitlesUrl) ||
+                other.subtitlesUrl == subtitlesUrl) &&
             (identical(other.timelineId, timelineId) ||
                 other.timelineId == timelineId) &&
             (identical(other.createdAt, createdAt) ||
@@ -978,6 +997,7 @@ class _$StoryImpl implements _Story {
       const DeepCollectionEquality().hash(_timestamps),
       likes,
       views,
+      subtitlesUrl,
       timelineId,
       createdAt,
       storyDate);
@@ -1012,6 +1032,7 @@ abstract class _Story implements Story {
       final List<Timestamp> timestamps,
       final int likes,
       final int views,
+      final String subtitlesUrl,
       final String? timelineId,
       final String? createdAt,
       final String? storyDate}) = _$StoryImpl;
@@ -1042,6 +1063,8 @@ abstract class _Story implements Story {
   int get likes;
   @override
   int get views;
+  @override
+  String get subtitlesUrl;
   @override
   String? get timelineId;
   @override

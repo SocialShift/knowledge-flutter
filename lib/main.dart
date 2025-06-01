@@ -147,8 +147,8 @@ class _KnowledgeState extends ConsumerState<Knowledge>
       final authNotifier = ref.read(authNotifierProvider.notifier);
       authNotifier.checkSessionValidity();
 
-      // Also check email verification status when app is resumed
-      authNotifier.checkAndHandleEmailVerification();
+      // Don't automatically check email verification on app resume
+      // This was causing verified users to be redirected to verification screen
     }
   }
 
@@ -170,8 +170,9 @@ class _KnowledgeState extends ConsumerState<Knowledge>
         // Set authenticated state with user info
         authNotifier.restoreSession(user, hasProfile);
 
-        // Check email verification status after restoring session
-        await authNotifier.checkAndHandleEmailVerification();
+        // Don't automatically check email verification on session restore
+        // The user object already contains the correct verification status
+        // Only check if the user is already verified to avoid unnecessary redirects
 
         // Preload user-specific data after authentication
         await _preloadUserData();

@@ -189,6 +189,7 @@ class Story with _$Story {
     @Default([]) List<Timestamp> timestamps,
     @Default(0) int likes,
     @Default(0) int views,
+    @Default('') String subtitlesUrl,
     String? timelineId,
     String? createdAt,
     String? storyDate,
@@ -210,6 +211,12 @@ class Story with _$Story {
     String videoUrl = json['video_url'] ?? '';
     if (videoUrl.isNotEmpty && !videoUrl.startsWith('http')) {
       videoUrl = '$mediaBaseUrl/$videoUrl';
+    }
+
+    // Get the subtitles URL and prepend the base URL if it's a relative path
+    String subtitlesUrl = json['subtitles_url'] ?? '';
+    if (subtitlesUrl.isNotEmpty && !subtitlesUrl.startsWith('http')) {
+      subtitlesUrl = '$mediaBaseUrl/$subtitlesUrl';
     }
 
     // Debug print to check the video URL
@@ -237,6 +244,7 @@ class Story with _$Story {
       mediaType: videoUrl.isNotEmpty ? 'video' : 'image',
       likes: json['likes'] ?? 0,
       views: json['views'] ?? 0,
+      subtitlesUrl: subtitlesUrl,
       timelineId: json['timeline_id']?.toString(),
       createdAt: json['created_at'],
       storyDate: storyDate,

@@ -42,13 +42,51 @@ class AuthRepository {
           print('Login - All headers: ${response.headers.map}');
         }
 
-        final userData = response.data['user'];
-        return User(
-          id: userData['id'].toString(),
-          email: userData['email'],
-          username: userData['email'].split('@')[0],
-          isEmailVerified: userData['is_verified'] ?? false,
-        );
+        // First get basic user data from login response
+        final loginUserData = response.data['user'];
+        final userId = loginUserData['id'].toString();
+        final userEmail = loginUserData['email'];
+        final username = userEmail.split('@')[0];
+
+        // Now get the complete user profile with verification status
+        try {
+          final profileResponse = await _apiService.get('/auth/user/me');
+          if (profileResponse.statusCode == 200) {
+            final profileUserData = profileResponse.data['user'] ?? {};
+            final isVerified = profileUserData['is_verified'] ?? false;
+
+            print('Login - Profile API user data: $profileUserData');
+            print('Login - Profile API is_verified: $isVerified');
+            print(
+                'Login - Login API is_verified: ${loginUserData['is_verified']}');
+
+            // Use the verification status from the profile API
+            return User(
+              id: userId,
+              email: userEmail,
+              username: username,
+              isEmailVerified: isVerified,
+            );
+          } else {
+            print('Failed to fetch profile after login, using login data');
+            // Fallback to login response data if profile fetch fails
+            return User(
+              id: userId,
+              email: userEmail,
+              username: username,
+              isEmailVerified: loginUserData['is_verified'] ?? false,
+            );
+          }
+        } catch (profileError) {
+          print('Error fetching profile after login: $profileError');
+          // Fallback to login response data if profile fetch fails
+          return User(
+            id: userId,
+            email: userEmail,
+            username: username,
+            isEmailVerified: loginUserData['is_verified'] ?? false,
+          );
+        }
       } else {
         final message = response.data['detail'] ??
             response.data['message'] ??
@@ -129,12 +167,16 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         final userData = response.data['user'] ?? {};
+        final isVerified = userData['is_verified'] ?? false;
+
+        print('getUserFromSession - User data: $userData');
+        print('getUserFromSession - is_verified: $isVerified');
 
         return User(
           id: userData['id']?.toString() ?? '',
           email: userData['email'] ?? '',
           username: (userData['email'] ?? '').toString().split('@')[0],
-          isEmailVerified: userData['is_verified'] ?? false,
+          isEmailVerified: isVerified,
         );
       } else {
         throw 'Failed to get user data from session';
