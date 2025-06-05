@@ -821,7 +821,7 @@ class _AnimatedMilestoneIcon extends HookWidget {
             boxShadow: [
               BoxShadow(
                 color: AppColors.limeGreen.withOpacity(0.4 + (glowValue * 0.4)),
-                blurRadius: 30 + (pulseValue * 20),
+                blurRadius: 50 + (pulseValue * 20),
                 spreadRadius: 10 + (glowValue * 15),
               ),
               BoxShadow(

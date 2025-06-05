@@ -483,91 +483,91 @@ class _StreakOverlay extends HookWidget {
                                         const SizedBox(height: 24),
 
                                         // Stats Section
-                                        Text(
-                                          'Statistics',
-                                          style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.white
-                                                : AppColors.navyBlue,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: _StatCard(
-                                                title: 'Best Streak',
-                                                value: '$maxStreak',
-                                                subtitle: 'days',
-                                                icon: Icons.emoji_events,
-                                                color: Colors.orange,
-                                                isDarkMode: isDarkMode,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: _StatCard(
-                                                title: 'Quizzes',
-                                                value: '$completedQuizzes',
-                                                subtitle: 'completed',
-                                                icon: Icons.quiz,
-                                                color: Colors.blue,
-                                                isDarkMode: isDarkMode,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        // Text(
+                                        //   'Statistics',
+                                        //   style: TextStyle(
+                                        //     color: isDarkMode
+                                        //         ? Colors.white
+                                        //         : AppColors.navyBlue,
+                                        //     fontSize: 20,
+                                        //     fontWeight: FontWeight.bold,
+                                        //   ),
+                                        // ),
+                                        // const SizedBox(height: 16),
+                                        // Row(
+                                        //   children: [
+                                        //     Expanded(
+                                        //       child: _StatCard(
+                                        //         title: 'Best Streak',
+                                        //         value: '$maxStreak',
+                                        //         subtitle: 'days',
+                                        //         icon: Icons.emoji_events,
+                                        //         color: Colors.orange,
+                                        //         isDarkMode: isDarkMode,
+                                        //       ),
+                                        //     ),
+                                        //     const SizedBox(width: 16),
+                                        //     Expanded(
+                                        //       child: _StatCard(
+                                        //         title: 'Quizzes',
+                                        //         value: '$completedQuizzes',
+                                        //         subtitle: 'completed',
+                                        //         icon: Icons.quiz,
+                                        //         color: Colors.blue,
+                                        //         isDarkMode: isDarkMode,
+                                        //       ),
+                                        //     ),
+                                        //   ],
+                                        // ),
 
-                                        const SizedBox(height: 24),
+                                        // const SizedBox(height: 24),
 
                                         // Motivation Section
-                                        Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: isDarkMode
-                                                ? Colors.white.withOpacity(0.05)
-                                                : Colors.grey.withOpacity(0.05),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Icon(
-                                                Icons.lightbulb,
-                                                color: AppColors.limeGreen,
-                                                size: 32,
-                                              ),
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                'Daily Motivation',
-                                                style: TextStyle(
-                                                  color: isDarkMode
-                                                      ? Colors.white
-                                                      : AppColors.navyBlue,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                _getMotivationMessage(
-                                                    currentStreak),
-                                                style: TextStyle(
-                                                  color: isDarkMode
-                                                      ? Colors.white70
-                                                      : Colors.black54,
-                                                  fontSize: 15,
-                                                  fontStyle: FontStyle.italic,
-                                                  height: 1.5,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                        // Container(
+                                        //   width: double.infinity,
+                                        //   padding: const EdgeInsets.all(20),
+                                        //   decoration: BoxDecoration(
+                                        //     color: isDarkMode
+                                        //         ? Colors.white.withOpacity(0.05)
+                                        //         : Colors.grey.withOpacity(0.05),
+                                        //     borderRadius:
+                                        //         BorderRadius.circular(16),
+                                        //   ),
+                                        //   child: Column(
+                                        //     children: [
+                                        //       Icon(
+                                        //         Icons.lightbulb,
+                                        //         color: AppColors.limeGreen,
+                                        //         size: 32,
+                                        //       ),
+                                        //       const SizedBox(height: 12),
+                                        //       Text(
+                                        //         'Daily Motivation',
+                                        //         style: TextStyle(
+                                        //           color: isDarkMode
+                                        //               ? Colors.white
+                                        //               : AppColors.navyBlue,
+                                        //           fontSize: 18,
+                                        //           fontWeight: FontWeight.bold,
+                                        //         ),
+                                        //       ),
+                                        //       const SizedBox(height: 8),
+                                        //       Text(
+                                        //         _getMotivationMessage(
+                                        //             currentStreak),
+                                        //         style: TextStyle(
+                                        //           color: isDarkMode
+                                        //               ? Colors.white70
+                                        //               : Colors.black54,
+                                        //           fontSize: 15,
+                                        //           fontStyle: FontStyle.italic,
+                                        //           height: 1.5,
+                                        //         ),
+                                        //         textAlign: TextAlign.center,
+                                        //       ),
+                                        //     ],
+                                        //   ),
+                                        // ),
 
                                         const SizedBox(height: 40),
                                       ],

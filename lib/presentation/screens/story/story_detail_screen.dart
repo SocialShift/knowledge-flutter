@@ -225,17 +225,6 @@ class _VideoPartScreen extends HookConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Handle bar
-                  // Container(
-                  //   width: 40,
-                  //   height: 4,
-                  //   margin: const EdgeInsets.only(top: 12),
-                  //   decoration: BoxDecoration(
-                  //     color: Colors.grey.withOpacity(0.3),
-                  //     borderRadius: BorderRadius.circular(2),
-                  //   ),
-                  // ),
-
                   // Fixed Header Section (Title, Views, Year)
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
@@ -487,7 +476,93 @@ class _VideoPartScreen extends HookConsumerWidget {
   }
 }
 
-// Story Part Screen - Shows thumbnail and story description
+// Streaming Text Widget for typewriter effect
+class _StreamingTextWidget extends HookWidget {
+  final String fullText;
+  final TextStyle textStyle;
+  final Duration duration;
+  final Duration delay;
+
+  const _StreamingTextWidget({
+    required this.fullText,
+    required this.textStyle,
+    this.duration = const Duration(milliseconds: 2000),
+    this.delay = const Duration(milliseconds: 0),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final animationController = useAnimationController(duration: duration);
+    final displayedText = useState('');
+    final showCursor = useState(true);
+    final cursorController = useAnimationController(
+      duration: const Duration(milliseconds: 530),
+    );
+
+    // Cursor blinking animation
+    useEffect(() {
+      void startCursorAnimation() {
+        cursorController.repeat(reverse: true);
+      }
+
+      Future.delayed(delay, startCursorAnimation);
+      return null;
+    }, []);
+
+    // Text streaming animation
+    useEffect(() {
+      Future.delayed(delay, () {
+        animationController.forward();
+      });
+
+      void updateText() {
+        final progress = animationController.value;
+        final targetLength = (fullText.length * progress).round();
+
+        if (targetLength <= fullText.length) {
+          displayedText.value = fullText.substring(0, targetLength);
+        }
+
+        // Hide cursor when animation is complete
+        if (progress >= 1.0) {
+          showCursor.value = false;
+          cursorController.stop();
+        }
+      }
+
+      animationController.addListener(updateText);
+
+      return () {
+        animationController.removeListener(updateText);
+      };
+    }, [fullText]);
+
+    return AnimatedBuilder(
+      animation: cursorController,
+      builder: (context, child) {
+        return RichText(
+          text: TextSpan(
+            style: textStyle,
+            children: [
+              TextSpan(text: displayedText.value),
+              if (showCursor.value)
+                TextSpan(
+                  text: '|',
+                  style: textStyle.copyWith(
+                    color: textStyle.color?.withOpacity(
+                      cursorController.value,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Story Part Screen - Shows thumbnail and story description with streaming animation
 class _StoryPartScreen extends HookConsumerWidget {
   final Story story;
   final VoidCallback onBack;
@@ -513,6 +588,7 @@ class _StoryPartScreen extends HookConsumerWidget {
 
     // Current paragraph index
     final currentParagraphIndex = useState(0);
+    final isStreamingComplete = useState(false);
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : AppColors.offWhite,
@@ -567,37 +643,6 @@ class _StoryPartScreen extends HookConsumerWidget {
                 delay: 800.ms,
               ),
 
-          // Back button overlay with white background
-          // Positioned(
-          //   top: MediaQuery.of(context).padding.top + 10,
-          //   left: 16,
-          //   child: GestureDetector(
-          //     onTap: onBack,
-          //     child: Container(
-          //       padding: const EdgeInsets.all(8),
-          //       decoration: BoxDecoration(
-          //         color: Colors.white, // White background
-          //         shape: BoxShape.circle,
-          //         boxShadow: [
-          //           BoxShadow(
-          //             color: Colors.black.withOpacity(0.2),
-          //             blurRadius: 4,
-          //             offset: const Offset(0, 2),
-          //           ),
-          //         ],
-          //       ),
-          //       child: const Icon(
-          //         Icons.arrow_back,
-          //         color: Colors.black, // Black icon on white background
-          //         size: 24,
-          //       ),
-          //     ),
-          //   ),
-          // ).animate().fadeIn(duration: 600.ms, delay: 400.ms).scale(
-          //     begin: const Offset(0.8, 0.8),
-          //     duration: 600.ms,
-          //     curve: Curves.elasticOut),
-
           // Static Bottom Card (60% of screen)
           Positioned(
             bottom: 0,
@@ -621,28 +666,13 @@ class _StoryPartScreen extends HookConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Handle bar
-                  // Container(
-                  //   width: 40,
-                  //   height: 4,
-                  //   margin: const EdgeInsets.only(top: 12),
-                  //   decoration: BoxDecoration(
-                  //     color: Colors.grey.withOpacity(0.3),
-                  //     borderRadius: BorderRadius.circular(2),
-                  //   ),
-                  // ).animate().fadeIn(duration: 600.ms, delay: 2200.ms).scale(
-                  //       begin: const Offset(0.3, 1.0),
-                  //       duration: 800.ms,
-                  //       curve: Curves.elasticOut,
-                  //     ),
-
                   // Fixed Header Section (Title, Year, Read Time, Progress)
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Story Title
+                        // Story Title with slide animation
                         Text(
                           story.title,
                           style: TextStyle(
@@ -669,7 +699,7 @@ class _StoryPartScreen extends HookConsumerWidget {
 
                         const SizedBox(height: 12),
 
-                        // Story metadata
+                        // Story metadata with staggered animations
                         Row(
                           children: [
                             Container(
@@ -690,10 +720,10 @@ class _StoryPartScreen extends HookConsumerWidget {
                             )
                                 .animate()
                                 .fadeIn(duration: 600.ms, delay: 2600.ms)
-                                .scale(
-                                  begin: const Offset(0.8, 0.8),
-                                  duration: 600.ms,
-                                  curve: Curves.elasticOut,
+                                .slideX(
+                                  begin: -0.5,
+                                  duration: 800.ms,
+                                  curve: Curves.easeOutBack,
                                 ),
                             const SizedBox(width: 12),
                             Text(
@@ -712,20 +742,34 @@ class _StoryPartScreen extends HookConsumerWidget {
                                 ),
                             const Spacer(),
                             // Paragraph indicator
-                            Text(
-                              '${currentParagraphIndex.value + 1}/${paragraphs.length}',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? Colors.white.withOpacity(0.1)
+                                    : Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.limeGreen.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                '${currentParagraphIndex.value + 1}/${paragraphs.length}',
+                                style: TextStyle(
+                                  color: AppColors.navyBlue,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             )
                                 .animate()
                                 .fadeIn(duration: 600.ms, delay: 2800.ms)
                                 .slideX(
-                                  begin: 0.3,
-                                  duration: 600.ms,
-                                  curve: Curves.easeOutCubic,
+                                  begin: 0.5,
+                                  duration: 800.ms,
+                                  curve: Curves.easeOutBack,
                                 ),
                           ],
                         ),
@@ -739,9 +783,10 @@ class _StoryPartScreen extends HookConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
                       child: Column(
                         children: [
-                          // Current Paragraph Content
+                          // Current Paragraph Content with streaming animation
                           if (paragraphs.isNotEmpty)
                             Container(
+                              key: ValueKey(currentParagraphIndex.value),
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -754,9 +799,10 @@ class _StoryPartScreen extends HookConsumerWidget {
                                   width: 1,
                                 ),
                               ),
-                              child: Text(
-                                paragraphs[currentParagraphIndex.value],
-                                style: TextStyle(
+                              child: _StreamingTextWidget(
+                                fullText:
+                                    paragraphs[currentParagraphIndex.value],
+                                textStyle: TextStyle(
                                   color: isDarkMode
                                       ? Colors.white
                                       : AppColors.navyBlue,
@@ -764,12 +810,20 @@ class _StoryPartScreen extends HookConsumerWidget {
                                   height: 1.6,
                                   letterSpacing: 0.3,
                                 ),
+                                duration: Duration(
+                                  milliseconds:
+                                      (paragraphs[currentParagraphIndex.value]
+                                                  .length *
+                                              25)
+                                          .clamp(2000, 5000),
+                                ),
+                                delay: const Duration(milliseconds: 500),
                               ),
                             )
                                 .animate()
                                 .fadeIn(duration: 800.ms, delay: 2900.ms)
                                 .slideY(
-                                  begin: 0.5,
+                                  begin: 0.3,
                                   duration: 1000.ms,
                                   curve: Curves.easeOutCubic,
                                 )
@@ -779,6 +833,36 @@ class _StoryPartScreen extends HookConsumerWidget {
                                   color: AppColors.limeGreen.withOpacity(0.1),
                                   delay: 1000.ms,
                                 ),
+
+                          // Progress indicator dots
+                          if (paragraphs.length > 1) ...[
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                paragraphs.length,
+                                (index) => Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: index == currentParagraphIndex.value
+                                        ? AppColors.limeGreen
+                                        : Colors.grey.withOpacity(0.3),
+                                  ),
+                                ),
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 3500.ms)
+                                .slideY(
+                                  begin: 0.3,
+                                  duration: 800.ms,
+                                  curve: Curves.easeOutBack,
+                                ),
+                          ],
 
                           // Story completed message (only on last slide)
                           if (currentParagraphIndex.value ==
