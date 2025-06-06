@@ -274,7 +274,7 @@ class _StreakOverlay extends HookWidget {
                                           height: 24,
                                           width: 24,
                                           colorFilter: const ColorFilter.mode(
-                                            AppColors.limeGreen,
+                                            AppColors.navyBlue,
                                             BlendMode.srcIn,
                                           ),
                                         ),
@@ -379,8 +379,7 @@ class _StreakOverlay extends HookWidget {
                                                   child: Text(
                                                     '$currentStreak',
                                                     style: const TextStyle(
-                                                      color:
-                                                          AppColors.limeGreen,
+                                                      color: AppColors.navyBlue,
                                                       fontSize: 28,
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -400,33 +399,33 @@ class _StreakOverlay extends HookWidget {
                                                 ),
                                               ),
                                               const SizedBox(height: 8),
-                                              if (currentStreak > 0) ...[
-                                                Text(
-                                                  currentStreak == 1
-                                                      ? '1 day in a row! 🔥'
-                                                      : '$currentStreak days in a row! 🔥',
-                                                  style: const TextStyle(
-                                                    color: AppColors.limeGreen,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ] else ...[
-                                                Text(
-                                                  'Start your streak today!',
-                                                  style: TextStyle(
-                                                    color: isDarkMode
-                                                        ? Colors.white70
-                                                        : Colors.black54,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                              ],
+                                              // if (currentStreak > 0) ...[
+                                              //   Text(
+                                              //     currentStreak == 1
+                                              //         ? '1 day in a row! 🔥'
+                                              //         : '$currentStreak days in a row! 🔥',
+                                              //     style: const TextStyle(
+                                              //       color: AppColors.navyBlue,
+                                              //       fontSize: 16,
+                                              //       fontWeight: FontWeight.w600,
+                                              //     ),
+                                              //   ),
+                                              // ] else ...[
+                                              //   Text(
+                                              //     'Start your streak today!',
+                                              //     style: TextStyle(
+                                              //       color: isDarkMode
+                                              //           ? Colors.white70
+                                              //           : Colors.black54,
+                                              //       fontSize: 16,
+                                              //     ),
+                                              //   ),
+                                              // ],
                                             ],
                                           ),
                                         ),
 
-                                        const SizedBox(height: 24),
+                                        const SizedBox(height: 10),
 
                                         // Calendar Section
                                         Container(
@@ -609,8 +608,8 @@ class _StreakOverlay extends HookWidget {
   }
 }
 
-// Enhanced Streak Calendar Widget
-class _StreakCalendar extends StatelessWidget {
+// Enhanced Streak Calendar Widget - Now with real calendar functionality
+class _StreakCalendar extends HookWidget {
   final int currentStreak;
   final bool isDarkMode;
 
@@ -624,128 +623,354 @@ class _StreakCalendar extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
+    // State for current viewing month/year
+    final currentMonth = useState(DateTime(now.year, now.month));
+
+    // Get the first day of the month and calculate calendar layout
+    final firstDayOfMonth =
+        DateTime(currentMonth.value.year, currentMonth.value.month, 1);
+    final lastDayOfMonth =
+        DateTime(currentMonth.value.year, currentMonth.value.month + 1, 0);
+    final firstDayOfWeek = firstDayOfMonth.weekday % 7; // 0 = Sunday
+    final daysInMonth = lastDayOfMonth.day;
+
+    // Calculate previous month days to show
+    final prevMonth =
+        DateTime(currentMonth.value.year, currentMonth.value.month - 1);
+    final lastDayOfPrevMonth =
+        DateTime(prevMonth.year, prevMonth.month + 1, 0).day;
+
+    // Get month name
+    final monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+
+    void goToPreviousMonth() {
+      currentMonth.value =
+          DateTime(currentMonth.value.year, currentMonth.value.month - 1);
+    }
+
+    void goToNextMonth() {
+      currentMonth.value =
+          DateTime(currentMonth.value.year, currentMonth.value.month + 1);
+    }
+
+    void goToToday() {
+      currentMonth.value = DateTime(now.year, now.month);
+    }
+
+    // Function to check if a date is a streak day
+    bool isStreakDay(DateTime date) {
+      final daysDifference = today.difference(date).inDays;
+      return daysDifference >= 0 && daysDifference < currentStreak;
+    }
+
     return Column(
       children: [
+        // Calendar Header with navigation
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            children: [
+              // Previous month button
+              GestureDetector(
+                onTap: goToPreviousMonth,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.chevron_left,
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                    size: 20,
+                  ),
+                ),
+              ),
+
+              // Month and Year display
+              Expanded(
+                child: GestureDetector(
+                  onTap: goToToday,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      children: [
+                        Text(
+                          monthNames[currentMonth.value.month - 1],
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black87,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${currentMonth.value.year}',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Next month button
+              GestureDetector(
+                onTap: goToNextMonth,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.chevron_right,
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         // Week days header
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                .map((day) => Container(
+                      width: 40,
+                      height: 30,
+                      alignment: Alignment.center,
+                      child: Text(
+                        day,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+
+        // Calendar Grid
+        Container(
+          child: Column(
+            children: List.generate(6, (weekIndex) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(7, (dayIndex) {
+                    final cellIndex = weekIndex * 7 + dayIndex;
+                    final totalCellsBeforeMonth = firstDayOfWeek;
+
+                    late DateTime cellDate;
+                    late bool isCurrentMonth;
+                    late bool isToday;
+                    late bool isStreakDayForDate;
+                    late int displayDay;
+
+                    if (cellIndex < totalCellsBeforeMonth) {
+                      // Previous month days
+                      displayDay = lastDayOfPrevMonth -
+                          (totalCellsBeforeMonth - cellIndex - 1);
+                      cellDate =
+                          DateTime(prevMonth.year, prevMonth.month, displayDay);
+                      isCurrentMonth = false;
+                    } else if (cellIndex <
+                        totalCellsBeforeMonth + daysInMonth) {
+                      // Current month days
+                      displayDay = cellIndex - totalCellsBeforeMonth + 1;
+                      cellDate = DateTime(currentMonth.value.year,
+                          currentMonth.value.month, displayDay);
+                      isCurrentMonth = true;
+                    } else {
+                      // Next month days
+                      displayDay =
+                          cellIndex - totalCellsBeforeMonth - daysInMonth + 1;
+                      final nextMonth = DateTime(currentMonth.value.year,
+                          currentMonth.value.month + 1);
+                      cellDate =
+                          DateTime(nextMonth.year, nextMonth.month, displayDay);
+                      isCurrentMonth = false;
+                    }
+
+                    isToday = cellDate.year == today.year &&
+                        cellDate.month == today.month &&
+                        cellDate.day == today.day;
+
+                    isStreakDayForDate = isStreakDay(cellDate);
+
+                    // Hide cells that are too far in the future/past for cleaner look
+                    if (weekIndex >= 5 && !isCurrentMonth) {
+                      return const SizedBox(width: 40, height: 40);
+                    }
+
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isStreakDayForDate && isCurrentMonth
+                            ? isToday
+                                ? AppColors.limeGreen
+                                : AppColors.limeGreen.withOpacity(0.8)
+                            : isToday
+                                ? AppColors.limeGreen.withOpacity(0.3)
+                                : Colors.transparent,
+                        border: isToday
+                            ? Border.all(
+                                color: AppColors.limeGreen,
+                                width: 2,
+                              )
+                            : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$displayDay',
+                          style: TextStyle(
+                            color: !isCurrentMonth
+                                ? (isDarkMode ? Colors.white30 : Colors.black26)
+                                : isStreakDayForDate
+                                    ? Colors.white
+                                    : isToday
+                                        ? AppColors.limeGreen
+                                        : isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black87,
+                            fontSize: 14,
+                            fontWeight: isToday || isStreakDayForDate
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              );
+            }),
+          ),
+        ),
+
+        // const SizedBox(height: 16),
+
+        // Today button and legend
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-              .map((day) => Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: Text(
-                      day,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Today button
+            GestureDetector(
+              onTap: goToToday,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.limeGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.limeGreen.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.today,
+                      color: AppColors.navyBlue,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Today',
                       style: TextStyle(
-                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                        color: AppColors.navyBlue,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 12),
-        // Calendar grid - showing last 3 weeks
-        ...List.generate(3, (weekIndex) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(7, (dayIndex) {
-                final date = today
-                    .subtract(Duration(days: 20 - (weekIndex * 7 + dayIndex)));
-                final daysSinceDate = today.difference(date).inDays;
-                final isStreakDay = daysSinceDate < currentStreak;
-                final isToday = daysSinceDate == 0;
-                final isFutureDate = daysSinceDate < 0;
+                  ],
+                ),
+              ),
+            ),
 
-                return Container(
-                  width: 40,
-                  height: 40,
+            // Legend
+            Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isFutureDate
-                        ? Colors.transparent
-                        : isStreakDay
-                            ? isToday
-                                ? AppColors.limeGreen
-                                : AppColors.limeGreen.withOpacity(0.8)
-                            : isDarkMode
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.3),
-                    border: isToday
-                        ? Border.all(
-                            color: AppColors.limeGreen,
-                            width: 3,
-                          )
-                        : null,
+                    color: AppColors.limeGreen,
                   ),
-                  child: Center(
-                    child: Text(
-                      isFutureDate ? '' : '${date.day}',
-                      style: TextStyle(
-                        color: isFutureDate
-                            ? Colors.transparent
-                            : isStreakDay
-                                ? Colors.white
-                                : isDarkMode
-                                    ? Colors.white70
-                                    : Colors.black54,
-                        fontSize: 14,
-                        fontWeight:
-                            isToday ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Streak day',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
-                );
-              }),
-            ),
-          );
-        }),
-        const SizedBox(height: 16),
-        // Legend
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.limeGreen,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Streak day',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 24),
-            Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDarkMode
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.3),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Missed day',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+                ),
+              ],
             ),
           ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // Streak info
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.limeGreen.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            currentStreak > 0
+                ? 'You\'re on a $currentStreak day streak! Keep it up! 🔥'
+                : 'Start your learning streak today! 🚀',
+            style: TextStyle(
+              color: AppColors.navyBlue,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );

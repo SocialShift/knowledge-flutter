@@ -33,11 +33,36 @@ class ForgotPasswordScreen extends HookConsumerWidget {
       return null;
     }, [authState]);
 
-    // Show success message and navigate to login
+    // Show success message and navigate to login for password reset (not logout)
     useEffect(() {
       authState.maybeMap(
         unauthenticated: (state) {
-          if (state.message != null) {
+          // Clear account deletion messages to prevent redirect loops
+          if (state.message != null &&
+              state.message!.toLowerCase().contains('account deleted')) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Show the message briefly, then clear it
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message!),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              // Clear the message to prevent redirect loops
+              Future.delayed(const Duration(milliseconds: 500), () {
+                final authNotifier = ref.read(authNotifierProvider.notifier);
+                authNotifier.clearMessage();
+              });
+            });
+            return;
+          }
+
+          // Only redirect to login if this is a password reset success message
+          // NOT from logout
+          if (state.message != null &&
+              !state.message!.toLowerCase().contains('logged out') &&
+              !state.message!.toLowerCase().contains('logout')) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

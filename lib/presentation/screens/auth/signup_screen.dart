@@ -35,11 +35,35 @@ class SignupScreen extends HookConsumerWidget {
       return null;
     }, [authState]);
 
-    // Show success message and navigate to login
+    // Show success message and navigate to login for specific scenarios (not logout)
     useEffect(() {
       authState.maybeMap(
         unauthenticated: (state) {
-          if (state.message != null) {
+          // Clear account deletion messages to prevent redirect loops
+          if (state.message != null &&
+              state.message!.toLowerCase().contains('account deleted')) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Show the message briefly, then clear it
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message!),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              // Clear the message to prevent redirect loops
+              Future.delayed(const Duration(milliseconds: 500), () {
+                authNotifier.clearMessage();
+              });
+            });
+            return;
+          }
+
+          // Only redirect to login if this is a success message from signup/password reset
+          // NOT from logout
+          if (state.message != null &&
+              !state.message!.toLowerCase().contains('logged out') &&
+              !state.message!.toLowerCase().contains('logout')) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -254,7 +278,7 @@ class SignupScreen extends HookConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Sign Up',
+                                      'Verify Email',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,

@@ -99,7 +99,7 @@ class StoryListItem extends StatelessWidget {
                           Icon(
                             Icons.calendar_today_outlined,
                             size: 12,
-                            color: AppColors.limeGreen,
+                            color: AppColors.navyBlue,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -108,7 +108,7 @@ class StoryListItem extends StatelessWidget {
                                 ? _formatDate(story.storyDate!)
                                 : '${story.year}',
                             style: TextStyle(
-                              color: AppColors.limeGreen,
+                              color: AppColors.navyBlue,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),

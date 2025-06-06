@@ -51,11 +51,36 @@ class EmailVerificationScreen extends HookConsumerWidget {
       return null;
     }, [authState]);
 
-    // Show success message and navigate to login
+    // Show success message and navigate to login for verification scenarios (not logout)
     useEffect(() {
       authState.maybeMap(
         unauthenticated: (state) {
-          if (state.message != null) {
+          // Clear account deletion messages to prevent redirect loops
+          if (state.message != null &&
+              state.message!.toLowerCase().contains('account deleted')) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Show the message briefly, then clear it
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message!),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              // Clear the message to prevent redirect loops
+              Future.delayed(const Duration(milliseconds: 500), () {
+                final authNotifier = ref.read(authNotifierProvider.notifier);
+                authNotifier.clearMessage();
+              });
+            });
+            return;
+          }
+
+          // Only redirect to login if this is a verification-related success message
+          // NOT from logout
+          if (state.message != null &&
+              !state.message!.toLowerCase().contains('logged out') &&
+              !state.message!.toLowerCase().contains('logout')) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -315,7 +340,58 @@ class EmailVerificationScreen extends HookConsumerWidget {
                       // Back to Login Link
                       Center(
                         child: TextButton(
-                          onPressed: () => context.go('/login'),
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  try {
+                                    // Show loading feedback
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Text('Clearing session...'),
+                                          ],
+                                        ),
+                                        backgroundColor: AppColors.navyBlue,
+                                        behavior: SnackBarBehavior.floating,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+
+                                    // Clear verification state to allow email change
+                                    await authNotifier.clearVerificationState();
+
+                                    if (context.mounted) {
+                                      // Clear the loading snackbar
+                                      ScaffoldMessenger.of(context)
+                                          .clearSnackBars();
+                                      context.go('/login');
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .clearSnackBars();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
                           child: RichText(
                             text: TextSpan(
                               style: TextStyle(
@@ -323,9 +399,9 @@ class EmailVerificationScreen extends HookConsumerWidget {
                                 fontSize: 15,
                               ),
                               children: [
-                                const TextSpan(text: 'Back to '),
+                                const TextSpan(text: 'Use different email? '),
                                 TextSpan(
-                                  text: 'Login',
+                                  text: 'Back to Login',
                                   style: TextStyle(
                                     color: AppColors.navyBlue,
                                     fontWeight: FontWeight.bold,

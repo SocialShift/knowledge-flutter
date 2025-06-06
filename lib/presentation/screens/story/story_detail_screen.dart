@@ -225,22 +225,83 @@ class _VideoPartScreen extends HookConsumerWidget {
               ),
               child: Column(
                 children: [
+                  // Handle bar
+                  // Container(
+                  //   width: 40,
+                  //   height: 4,
+                  //   margin: const EdgeInsets.only(top: 12),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.grey.withOpacity(0.3),
+                  //     borderRadius: BorderRadius.circular(2),
+                  //   ),
+                  // ),
+
                   // Fixed Header Section (Title, Views, Year)
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Story Title
-                        Text(
-                          story.title,
-                          style: TextStyle(
-                            color:
-                                isDarkMode ? Colors.white : AppColors.navyBlue,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
+                        // Title Row with Share Button
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Story Title
+                            Expanded(
+                              child: Text(
+                                story.title,
+                                style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : AppColors.navyBlue,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.2,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            // Share Button
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Coming Soon'),
+                                    backgroundColor: AppColors.limeGreen,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? Colors.white.withOpacity(0.1)
+                                      : Colors.grey.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.limeGreen.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.share,
+                                  color: AppColors.navyBlue,
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(duration: 600.ms, delay: 2500.ms)
+                                .scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  duration: 600.ms,
+                                  curve: Curves.elasticOut,
+                                ),
+                          ],
                         ),
 
                         const SizedBox(height: 12),
@@ -476,93 +537,7 @@ class _VideoPartScreen extends HookConsumerWidget {
   }
 }
 
-// Streaming Text Widget for typewriter effect
-class _StreamingTextWidget extends HookWidget {
-  final String fullText;
-  final TextStyle textStyle;
-  final Duration duration;
-  final Duration delay;
-
-  const _StreamingTextWidget({
-    required this.fullText,
-    required this.textStyle,
-    this.duration = const Duration(milliseconds: 2000),
-    this.delay = const Duration(milliseconds: 0),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final animationController = useAnimationController(duration: duration);
-    final displayedText = useState('');
-    final showCursor = useState(true);
-    final cursorController = useAnimationController(
-      duration: const Duration(milliseconds: 530),
-    );
-
-    // Cursor blinking animation
-    useEffect(() {
-      void startCursorAnimation() {
-        cursorController.repeat(reverse: true);
-      }
-
-      Future.delayed(delay, startCursorAnimation);
-      return null;
-    }, []);
-
-    // Text streaming animation
-    useEffect(() {
-      Future.delayed(delay, () {
-        animationController.forward();
-      });
-
-      void updateText() {
-        final progress = animationController.value;
-        final targetLength = (fullText.length * progress).round();
-
-        if (targetLength <= fullText.length) {
-          displayedText.value = fullText.substring(0, targetLength);
-        }
-
-        // Hide cursor when animation is complete
-        if (progress >= 1.0) {
-          showCursor.value = false;
-          cursorController.stop();
-        }
-      }
-
-      animationController.addListener(updateText);
-
-      return () {
-        animationController.removeListener(updateText);
-      };
-    }, [fullText]);
-
-    return AnimatedBuilder(
-      animation: cursorController,
-      builder: (context, child) {
-        return RichText(
-          text: TextSpan(
-            style: textStyle,
-            children: [
-              TextSpan(text: displayedText.value),
-              if (showCursor.value)
-                TextSpan(
-                  text: '|',
-                  style: textStyle.copyWith(
-                    color: textStyle.color?.withOpacity(
-                      cursorController.value,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Story Part Screen - Shows thumbnail and story description with streaming animation
+// Story Part Screen - Shows thumbnail and story description
 class _StoryPartScreen extends HookConsumerWidget {
   final Story story;
   final VoidCallback onBack;
@@ -586,15 +561,32 @@ class _StoryPartScreen extends HookConsumerWidget {
     final paragraphs =
         storyContent.split('\n').where((p) => p.trim().isNotEmpty).toList();
 
-    // Current paragraph index
-    final currentParagraphIndex = useState(0);
-    final isStreamingComplete = useState(false);
+    // Scroll controller to detect when title reaches top
+    final scrollController = useScrollController();
+    final showTopNotification = useState(false);
+
+    // Listen to scroll changes
+    useEffect(() {
+      void scrollListener() {
+        // Calculate the exact position where title reaches the top
+        // Image height (40% of screen) + card padding (20px) + title margin
+        final titlePosition = MediaQuery.of(context).size.height * 0.4 + 20;
+        final isScrolledPastTitle = scrollController.offset > titlePosition;
+
+        if (isScrolledPastTitle != showTopNotification.value) {
+          showTopNotification.value = isScrolledPastTitle;
+        }
+      }
+
+      scrollController.addListener(scrollListener);
+      return () => scrollController.removeListener(scrollListener);
+    }, [scrollController]);
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : AppColors.offWhite,
       body: Stack(
         children: [
-          // Thumbnail Image (40% of screen with 1:1 aspect ratio)
+          // Background Image (Full Screen)
           Positioned(
             top: 0,
             left: 0,
@@ -625,343 +617,354 @@ class _StoryPartScreen extends HookConsumerWidget {
                   ),
                 ),
               ),
-            ),
-          )
-              .animate()
-              .fadeIn(duration: 800.ms, delay: 1800.ms)
-              .scale(
-                begin: const Offset(0.6, 0.6),
-                end: const Offset(1.0, 1.0),
-                duration: 1500.ms,
-                curve: Curves.elasticOut,
-                delay: 1800.ms,
-              )
-              .then()
-              .shimmer(
-                duration: 2000.ms,
-                color: Colors.white.withOpacity(0.2),
-                delay: 800.ms,
-              ),
-
-          // Static Bottom Card (60% of screen)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.6,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDarkMode ? AppColors.darkSurface : Colors.white,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
+            )
+                .animate()
+                .fadeIn(duration: 800.ms, delay: 1800.ms)
+                .scale(
+                  begin: const Offset(0.6, 0.6),
+                  end: const Offset(1.0, 1.0),
+                  duration: 1500.ms,
+                  curve: Curves.elasticOut,
+                  delay: 1800.ms,
+                )
+                .then()
+                .shimmer(
+                  duration: 2000.ms,
+                  color: Colors.white.withOpacity(0.2),
+                  delay: 800.ms,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
+          ),
+
+          // Main scrollable content
+          CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              // Spacer to push content down (equivalent to image height)
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                ),
               ),
-              child: Column(
-                children: [
-                  // Fixed Header Section (Title, Year, Read Time, Progress)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Story Title with slide animation
-                        Text(
-                          story.title,
-                          style: TextStyle(
-                            color:
-                                isDarkMode ? Colors.white : AppColors.navyBlue,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
-                        )
-                            .animate()
-                            .fadeIn(duration: 800.ms, delay: 2400.ms)
-                            .slideX(
-                              begin: -0.4,
-                              duration: 1000.ms,
-                              curve: Curves.easeOutCubic,
-                            )
-                            .then()
-                            .shimmer(
-                              duration: 1500.ms,
-                              color: AppColors.limeGreen.withOpacity(0.4),
-                              delay: 500.ms,
-                            ),
 
-                        const SizedBox(height: 12),
-
-                        // Story metadata with staggered animations
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.limeGreen.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${story.year}',
-                                style: const TextStyle(
-                                  color: AppColors.navyBlue,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 2600.ms)
-                                .slideX(
-                                  begin: -0.5,
-                                  duration: 800.ms,
-                                  curve: Curves.easeOutBack,
-                                ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${_calculateReadingTime(storyContent)} min read',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 2700.ms)
-                                .slideX(
-                                  begin: -0.3,
-                                  duration: 600.ms,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                            const Spacer(),
-                            // Paragraph indicator
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isDarkMode
-                                    ? Colors.white.withOpacity(0.1)
-                                    : Colors.grey.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.limeGreen.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                '${currentParagraphIndex.value + 1}/${paragraphs.length}',
-                                style: TextStyle(
-                                  color: AppColors.navyBlue,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 2800.ms)
-                                .slideX(
-                                  begin: 0.5,
-                                  duration: 800.ms,
-                                  curve: Curves.easeOutBack,
-                                ),
-                          ],
-                        ),
-                      ],
+              // Story Content Card
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? AppColors.darkSurface : Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
                   ),
-
-                  // Scrollable Story Content Section
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
-                      child: Column(
-                        children: [
-                          // Current Paragraph Content with streaming animation
-                          if (paragraphs.isNotEmpty)
-                            Container(
-                              key: ValueKey(currentParagraphIndex.value),
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDarkMode
-                                    ? Colors.white.withOpacity(0.05)
-                                    : Colors.grey.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.limeGreen.withOpacity(0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: _StreamingTextWidget(
-                                fullText:
-                                    paragraphs[currentParagraphIndex.value],
-                                textStyle: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white
-                                      : AppColors.navyBlue,
-                                  fontSize: 16,
-                                  height: 1.6,
-                                  letterSpacing: 0.3,
-                                ),
-                                duration: Duration(
-                                  milliseconds:
-                                      (paragraphs[currentParagraphIndex.value]
-                                                  .length *
-                                              25)
-                                          .clamp(2000, 5000),
-                                ),
-                                delay: const Duration(milliseconds: 500),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 800.ms, delay: 2900.ms)
-                                .slideY(
-                                  begin: 0.3,
-                                  duration: 1000.ms,
-                                  curve: Curves.easeOutCubic,
-                                )
-                                .then()
-                                .shimmer(
-                                  duration: 2000.ms,
-                                  color: AppColors.limeGreen.withOpacity(0.1),
-                                  delay: 1000.ms,
-                                ),
-
-                          // Progress indicator dots
-                          if (paragraphs.length > 1) ...[
-                            const SizedBox(height: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Fixed Header Section (Title, Year, Read Time, Share Button)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title Row with Share Button
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                paragraphs.length,
-                                (index) => Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 4),
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: index == currentParagraphIndex.value
-                                        ? AppColors.limeGreen
-                                        : Colors.grey.withOpacity(0.3),
-                                  ),
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 3500.ms)
-                                .slideY(
-                                  begin: 0.3,
-                                  duration: 800.ms,
-                                  curve: Curves.easeOutBack,
-                                ),
-                          ],
-
-                          // Story completed message (only on last slide)
-                          if (currentParagraphIndex.value ==
-                              paragraphs.length - 1) ...[
-                            const SizedBox(height: 20),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.limeGreen.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.limeGreen.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: AppColors.limeGreen,
-                                    size: 32,
-                                  )
-                                      .animate()
-                                      .fadeIn(duration: 600.ms, delay: 1500.ms)
-                                      .scale(
-                                        begin: const Offset(0.5, 0.5),
-                                        duration: 800.ms,
-                                        curve: Curves.elasticOut,
-                                      )
-                                      .then()
-                                      .shake(duration: 500.ms, hz: 3),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Story Complete!',
-                                    style: TextStyle(
-                                      color: AppColors.limeGreen,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                      .animate()
-                                      .fadeIn(duration: 600.ms, delay: 1700.ms)
-                                      .slideY(
-                                        begin: 0.3,
-                                        duration: 600.ms,
-                                        curve: Curves.easeOutBack,
-                                      ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Ready for the milestones?',
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Story Title
+                                Expanded(
+                                  child: Text(
+                                    story.title,
                                     style: TextStyle(
                                       color: isDarkMode
-                                          ? Colors.white70
-                                          : Colors.black54,
-                                      fontSize: 14,
+                                          ? Colors.white
+                                          : AppColors.navyBlue,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.2,
                                     ),
                                   )
                                       .animate()
-                                      .fadeIn(duration: 600.ms, delay: 1800.ms)
-                                      .slideY(
-                                        begin: 0.3,
-                                        duration: 600.ms,
-                                        curve: Curves.easeOutBack,
+                                      .fadeIn(duration: 800.ms, delay: 2400.ms)
+                                      .slideX(
+                                        begin: 0.4,
+                                        duration: 1000.ms,
+                                        curve: Curves.easeOutCubic,
+                                      )
+                                      .then()
+                                      .shimmer(
+                                        duration: 1500.ms,
+                                        color: AppColors.limeGreen
+                                            .withOpacity(0.4),
+                                        delay: 500.ms,
                                       ),
-                                ],
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 800.ms, delay: 1400.ms)
-                                .scale(
-                                  begin: const Offset(0.8, 0.8),
-                                  duration: 1000.ms,
-                                  curve: Curves.elasticOut,
-                                )
-                                .then()
-                                .shimmer(
-                                  duration: 2000.ms,
-                                  color: AppColors.limeGreen.withOpacity(0.3),
                                 ),
+
+                                const SizedBox(width: 12),
+
+                                // Share Button
+                                GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text('Coming Soon'),
+                                        backgroundColor: AppColors.limeGreen,
+                                        behavior: SnackBarBehavior.floating,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isDarkMode
+                                          ? Colors.white.withOpacity(0.1)
+                                          : Colors.grey.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: AppColors.limeGreen
+                                            .withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.share,
+                                      color: AppColors.navyBlue,
+                                      size: 20,
+                                    ),
+                                  ),
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 600.ms, delay: 2500.ms)
+                                    .scale(
+                                      begin: const Offset(0.8, 0.8),
+                                      duration: 600.ms,
+                                      curve: Curves.elasticOut,
+                                    ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Story metadata
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.limeGreen.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    '${story.year}',
+                                    style: const TextStyle(
+                                      color: AppColors.navyBlue,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 600.ms, delay: 2600.ms)
+                                    .scale(
+                                      begin: const Offset(0.8, 0.8),
+                                      duration: 600.ms,
+                                      curve: Curves.elasticOut,
+                                    ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${_calculateReadingTime(storyContent)} min read',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 600.ms, delay: 2700.ms)
+                                    .slideX(
+                                      begin: -0.3,
+                                      duration: 600.ms,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                              ],
+                            ),
                           ],
+                        ),
+                      ),
+
+                      // Scrollable Story Content Section
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20,
+                            100), // Added bottom padding for fixed buttons
+                        child: Column(
+                          children: [
+                            // All Story Paragraphs in a single scrollable view
+                            if (paragraphs.isNotEmpty)
+                              ...paragraphs.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final paragraph = entry.value;
+                                return Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isDarkMode
+                                        ? Colors.white.withOpacity(0.05)
+                                        : Colors.grey.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          AppColors.limeGreen.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    paragraph,
+                                    style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : AppColors.navyBlue,
+                                      fontSize: 16,
+                                      height: 1.6,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                )
+                                    .animate()
+                                    .fadeIn(
+                                        duration: 600.ms,
+                                        delay: (2900 + index * 200).ms)
+                                    .slideY(
+                                      begin: 0.3,
+                                      duration: 800.ms,
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .then()
+                                    .shimmer(
+                                      duration: 2000.ms,
+                                      color:
+                                          AppColors.limeGreen.withOpacity(0.1),
+                                      delay: (500 + index * 100).ms,
+                                    );
+                              }).toList(),
+
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                    .animate()
+                    .slideY(
+                        begin: 1.0,
+                        duration: 1200.ms,
+                        curve: Curves.easeOutCubic,
+                        delay: 500.ms)
+                    .fadeIn(duration: 800.ms, delay: 500.ms),
+              ),
+            ],
+          ),
+
+          // Top Notification Bar (appears when scrolled past title)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: showTopNotification.value
+                ? 0
+                : -200, // Increased negative value to ensure it's completely hidden
+            left: 0,
+            right: 0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: showTopNotification.value
+                  ? 1.0
+                  : 0.0, // Add opacity animation for better hiding
+              child: Container(
+                padding: EdgeInsets.fromLTRB(
+                    20, MediaQuery.of(context).padding.top + 8, 20, 12),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? AppColors.darkSurface.withOpacity(0.95)
+                      : Colors.white.withOpacity(0.95),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            story.title,
+                            style: TextStyle(
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : AppColors.navyBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${story.year}',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+
+                    // Share button in notification bar
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Coming Soon'),
+                            backgroundColor: AppColors.limeGreen,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.limeGreen.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.share,
+                          color: AppColors.navyBlue,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          )
-              .animate()
-              .slideY(
-                  begin: 1.0,
-                  duration: 1200.ms,
-                  curve: Curves.easeOutCubic,
-                  delay: 500.ms)
-              .fadeIn(duration: 800.ms, delay: 500.ms),
+          ),
 
-          // Fixed Action Buttons with opaque background
+          // Fixed Action Buttons at the bottom
           Positioned(
             bottom: 0,
             left: 0,
@@ -988,15 +991,7 @@ class _StoryPartScreen extends HookConsumerWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        if (currentParagraphIndex.value > 0) {
-                          // Go to previous paragraph
-                          currentParagraphIndex.value--;
-                        } else {
-                          // Go back to video screen or previous screen
-                          onBack();
-                        }
-                      },
+                      onPressed: onBack,
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey),
                         shape: RoundedRectangleBorder(
@@ -1004,30 +999,13 @@ class _StoryPartScreen extends HookConsumerWidget {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (currentParagraphIndex.value > 0) ...[
-                            const Icon(
-                              Icons.arrow_back,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            currentParagraphIndex.value > 0
-                                ? 'Previous'
-                                : 'Back',
-                            style: TextStyle(
-                              color: isDarkMode
-                                  ? Colors.white
-                                  : AppColors.navyBlue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Back',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 3200.ms).slideX(
@@ -1038,12 +1016,7 @@ class _StoryPartScreen extends HookConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed:
-                          currentParagraphIndex.value < paragraphs.length - 1
-                              ? () {
-                                  currentParagraphIndex.value++;
-                                }
-                              : onMilestones,
+                      onPressed: onMilestones,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.limeGreen,
                         foregroundColor: Colors.black,
@@ -1053,28 +1026,12 @@ class _StoryPartScreen extends HookConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            currentParagraphIndex.value < paragraphs.length - 1
-                                ? 'Continue'
-                                : 'Milestones',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (currentParagraphIndex.value <
-                              paragraphs.length - 1) ...[
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.arrow_forward,
-                              size: 16,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ],
+                      child: const Text(
+                        'Milestones',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   )

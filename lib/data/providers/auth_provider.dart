@@ -21,14 +21,29 @@ class AuthNotifier extends _$AuthNotifier {
 
   // Restore user session from a valid session token
   Future<void> restoreSession(User user, bool hasCompletedProfile) async {
-    // Set the state immediately to avoid the login screen flash
+    print('Session restore started for user: ${user.email}');
+    print('User email verification status: ${user.isEmailVerified}');
+
+    // Check if email is verified before setting authenticated state
+    if (!user.isEmailVerified) {
+      // If email is not verified, set to email verification pending state
+      state = AuthState.emailVerificationPending(
+        email: user.email,
+        message:
+            'Please verify your email to continue. Check your inbox for verification code.',
+      );
+      print('Session restored - redirecting to email verification');
+      return;
+    }
+
+    // Set the state to authenticated only if email is verified
     state = AuthState.authenticated(
       user: user,
       message: 'Welcome back, ${user.email}!',
       hasCompletedProfile: hasCompletedProfile,
     );
 
-    print('Session restored for user: ${user.email}');
+    print('Session restored successfully for verified user: ${user.email}');
   }
 
   Future<void> login(String email, String password) async {
@@ -241,13 +256,45 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> logout() async {
+    print('Logout process started');
+
     try {
+      // Stop session checks first
+      _sessionCheckTimer?.cancel();
+
+      // Call logout API and clear storage
       await ref.read(authRepositoryProvider).logout();
+
+      // Immediately set state to unauthenticated to prevent any race conditions
       state = const AuthState.unauthenticated(
         message: 'You have been logged out successfully.',
       );
+
+      // Additional cleanup - invalidate auth repository to clear any cached state
+      ref.invalidate(authRepositoryProvider);
+
+      print('Logout completed successfully');
     } catch (e) {
-      state = AuthState.error(e.toString());
+      print('Logout error: $e');
+      // Even if logout API fails, clear local state and storage
+      _sessionCheckTimer?.cancel();
+
+      try {
+        // Try to force logout again which includes storage cleanup
+        await ref.read(authRepositoryProvider).logout();
+      } catch (_) {
+        // Ignore secondary logout errors
+      }
+
+      // Set to unauthenticated state regardless of API error
+      state = const AuthState.unauthenticated(
+        message: 'You have been logged out.',
+      );
+
+      // Invalidate auth repository to clear any cached state
+      ref.invalidate(authRepositoryProvider);
+
+      print('Logout completed with local cleanup');
     }
   }
 
@@ -355,13 +402,94 @@ class AuthNotifier extends _$AuthNotifier {
       // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
 
+      print('Account deletion successful, setting unauthenticated state');
       state = const AuthState.unauthenticated(
-        message: 'Your account has been deleted successfully.',
+        message: 'Account deleted successfully. Thank you for your feedback.',
       );
     } catch (e) {
+      print('Account deletion failed: $e');
       // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(e.toString());
     }
+  }
+
+  // Force clear all authentication state - useful for troubleshooting
+  Future<void> forceLogout() async {
+    // Cancel any running timers
+    _sessionCheckTimer?.cancel();
+
+    // Clear storage directly
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.logout();
+    } catch (_) {
+      // Ignore errors, we're force clearing
+    }
+
+    // Set unauthenticated state
+    state = const AuthState.unauthenticated(
+      message: 'Logged out successfully.',
+    );
+
+    // Invalidate providers to clear any cached data
+    ref.invalidate(authRepositoryProvider);
+  }
+
+  // Clear current verification state to allow email change
+  Future<void> clearVerificationState() async {
+    print('Clearing verification state to allow email change');
+
+    // Cancel any running timers
+    _sessionCheckTimer?.cancel();
+
+    // Clear storage to remove current session
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.logout();
+    } catch (_) {
+      // Ignore errors, we're clearing state
+    }
+
+    // Set to initial state to allow fresh login
+    state = const AuthState.initial();
+
+    // Invalidate providers to clear any cached data
+    ref.invalidate(authRepositoryProvider);
+
+    print('Verification state cleared - user can now use different email');
+  }
+
+  // Mark profile setup as completed
+  Future<void> markProfileSetupCompleted() async {
+    // Only update if user is currently authenticated
+    state.maybeMap(
+      authenticated: (authState) {
+        state = AuthState.authenticated(
+          user: authState.user,
+          message: authState.message,
+          hasCompletedProfile: true,
+        );
+        print(
+            'Profile setup marked as completed for user: ${authState.user.email}');
+      },
+      orElse: () {
+        print(
+            'Cannot mark profile setup as completed - user not authenticated');
+      },
+    );
+  }
+
+  // Clear any message from auth state (useful after account deletion)
+  void clearMessage() {
+    state.maybeMap(
+      unauthenticated: (currentState) {
+        state = const AuthState.unauthenticated();
+        print('Auth message cleared');
+      },
+      orElse: () {
+        // Don't clear messages for other states
+      },
+    );
   }
 }

@@ -167,6 +167,10 @@ class _KnowledgeState extends ConsumerState<Knowledge>
         final user = await authRepository.getUserFromSession();
         final hasProfile = await authRepository.hasCompletedProfileSetup();
 
+        print('Session restore debug:');
+        print('  - User: ${user.email}');
+        print('  - hasCompletedProfile: $hasProfile');
+
         // Set authenticated state with user info
         authNotifier.restoreSession(user, hasProfile);
 

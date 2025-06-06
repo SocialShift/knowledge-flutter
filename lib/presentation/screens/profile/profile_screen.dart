@@ -1566,12 +1566,52 @@ class LogoutButtonWidget extends StatelessWidget {
             final shouldLogout = await _showLogoutConfirmationDialog(context);
             if (shouldLogout && context.mounted) {
               try {
+                // Show loading state
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text('Logging out...'),
+                      ],
+                    ),
+                    backgroundColor: AppColors.navyBlue,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    margin: const EdgeInsets.all(12),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+
+                // Perform logout
                 await authNotifier.logout();
+
+                // Wait a brief moment to ensure state is updated
+                await Future.delayed(const Duration(milliseconds: 100));
+
                 if (context.mounted) {
+                  // Clear any existing snackbars
+                  ScaffoldMessenger.of(context).clearSnackBars();
+
+                  // Navigate to login page and clear navigation stack
                   context.go('/login');
                 }
               } catch (e) {
                 if (context.mounted) {
+                  // Clear loading snackbar
+                  ScaffoldMessenger.of(context).clearSnackBars();
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error logging out: $e'),

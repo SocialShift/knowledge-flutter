@@ -588,7 +588,7 @@ class _DeleteAccountFormState extends ConsumerState<_DeleteAccountForm> {
             ),
             const SizedBox(height: 24),
             const Text(
-              '🙏 Thank you for helping us grow.',
+              'Account Deleted Successfully',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -598,7 +598,7 @@ class _DeleteAccountFormState extends ConsumerState<_DeleteAccountForm> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Even though you\'re leaving, your voice helps us build a better experience for all. We hope to see you again soon.',
+              'Your account has been permanently deleted. Thank you for your feedback - it helps us build a better experience for everyone. We hope to see you again in the future.',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade700,
@@ -682,15 +682,37 @@ class _DeleteAccountFormState extends ConsumerState<_DeleteAccountForm> {
             feedback: feedback,
           );
 
-      // Show thank you screen
+      // Show thank you screen after successful deletion
       setState(() {
         _feedbackSubmitted = true;
       });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully!'),
+            backgroundColor: AppColors.limeGreen,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _showPasswordError = true;
         _passwordErrorText = e.toString();
       });
+
+      // Show error message in snackbar as well for better visibility
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 }

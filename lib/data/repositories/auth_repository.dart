@@ -135,10 +135,19 @@ class AuthRepository {
 
   Future<void> logout() async {
     try {
+      // Try to call logout API first
       await _apiService.post('/auth/logout');
-      await _storage.delete(key: 'session_cookie');
     } catch (e) {
-      throw 'Logout failed';
+      // Log error but don't throw - we still want to clear local storage
+      print('Logout API call failed: $e');
+    } finally {
+      // Always clear session storage regardless of API success/failure
+      try {
+        await _storage.delete(key: 'session_cookie');
+      } catch (e) {
+        print('Error clearing session storage: $e');
+        // Don't throw here - logout should always succeed locally
+      }
     }
   }
 
@@ -345,7 +354,11 @@ class AuthRepository {
         data: data,
       );
 
-      if (response.statusCode != 200) {
+      print('Delete account response status: ${response.statusCode}');
+      print('Delete account response data: ${response.data}');
+
+      // Accept both 200 (OK) and 204 (No Content) as success for DELETE operations
+      if (response.statusCode != 200 && response.statusCode != 204) {
         final message = response.data['detail'] ??
             response.data['message'] ??
             'Account deletion failed';
@@ -354,9 +367,20 @@ class AuthRepository {
 
       // Clear session storage after successful deletion
       await _storage.delete(key: 'session_cookie');
+
+      print('Account deleted successfully and session cleared');
     } on DioException catch (e) {
+      print('DioException in deleteAccount: ${e.response?.statusCode}');
+      print('DioException response data: ${e.response?.data}');
+
       if (e.response?.statusCode == 401) {
         throw 'Incorrect password. Please try again.';
+      } else if (e.response?.statusCode == 204) {
+        // 204 No Content is actually a success for DELETE operations
+        // Clear session storage and return successfully
+        await _storage.delete(key: 'session_cookie');
+        print('Account deleted successfully (204 No Content)');
+        return;
       } else if (e.response?.data != null) {
         final message = e.response?.data['detail'] ??
             e.response?.data['message'] ??
@@ -365,6 +389,7 @@ class AuthRepository {
       }
       throw 'Connection error. Please try again.';
     } catch (e) {
+      print('General error in deleteAccount: $e');
       throw 'Account deletion failed: ${e.toString()}';
     }
   }

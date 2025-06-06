@@ -48,8 +48,8 @@ class LeaderboardScreen extends HookConsumerWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFFFFD700), // Gold/Yellow
-                    const Color(0xFF6366F1), // Purple/Blue
+                    AppColors.navyBlue, // Gold/Yellow
+                    AppColors.limeGreen, // Purple/Blue
                   ],
                   stops: const [0.0, 1.0],
                 ),

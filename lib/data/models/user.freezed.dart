@@ -24,7 +24,6 @@ mixin _$User {
   String get email => throw _privateConstructorUsedError;
   String get username => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_verified')
   bool get isEmailVerified => throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
@@ -46,7 +45,7 @@ abstract class $UserCopyWith<$Res> {
       String email,
       String username,
       String? avatar,
-      @JsonKey(name: 'is_verified') bool isEmailVerified});
+      bool isEmailVerified});
 }
 
 /// @nodoc
@@ -107,7 +106,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String email,
       String username,
       String? avatar,
-      @JsonKey(name: 'is_verified') bool isEmailVerified});
+      bool isEmailVerified});
 }
 
 /// @nodoc
@@ -161,7 +160,7 @@ class _$UserImpl implements _User {
       required this.email,
       required this.username,
       this.avatar,
-      @JsonKey(name: 'is_verified') this.isEmailVerified = false});
+      this.isEmailVerified = false});
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserImplFromJson(json);
@@ -175,7 +174,7 @@ class _$UserImpl implements _User {
   @override
   final String? avatar;
   @override
-  @JsonKey(name: 'is_verified')
+  @JsonKey()
   final bool isEmailVerified;
 
   @override
@@ -224,7 +223,7 @@ abstract class _User implements User {
       required final String email,
       required final String username,
       final String? avatar,
-      @JsonKey(name: 'is_verified') final bool isEmailVerified}) = _$UserImpl;
+      final bool isEmailVerified}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
@@ -237,7 +236,6 @@ abstract class _User implements User {
   @override
   String? get avatar;
   @override
-  @JsonKey(name: 'is_verified')
   bool get isEmailVerified;
 
   /// Create a copy of User

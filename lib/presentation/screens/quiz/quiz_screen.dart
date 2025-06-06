@@ -1145,7 +1145,7 @@ class _QuizFeedbackOverlay extends HookWidget {
                               ]
                             : [
                                 Colors.red.withOpacity(0.95),
-                                Colors.red.shade600.withOpacity(0.95),
+                                AppColors.navyBlue.withOpacity(0.95),
                               ],
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -1201,13 +1201,13 @@ class _QuizFeedbackOverlay extends HookWidget {
                         Text(
                           isCorrect
                               ? 'Well done! You got it right!'
-                              : 'Don\'t worry, keep trying!',
+                              : 'Correct answer is:',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 20,
                             fontWeight: FontWeight.w500,
                           ),
-                          textAlign: TextAlign.center,
+                          textAlign: TextAlign.left,
                         )
                             .animate(delay: Duration(milliseconds: 400))
                             .fadeIn(duration: const Duration(milliseconds: 300))
@@ -1219,7 +1219,7 @@ class _QuizFeedbackOverlay extends HookWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: AppColors.navyBlue.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.3),
@@ -1230,16 +1230,16 @@ class _QuizFeedbackOverlay extends HookWidget {
                                 Icon(
                                   Icons.lightbulb_outline,
                                   color: Colors.white,
-                                  size: 18,
+                                  size: 30,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Correct answer: ${correctOption!.text}',
+                                    '${correctOption!.text.toUpperCase()}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ),

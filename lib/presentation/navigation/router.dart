@@ -49,6 +49,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
+      // Debug logging for profile completion status
+      if (state.uri.path == '/' || state.uri.path == '/profile-setup') {
+        print('Router redirect check:');
+        print('  - isAuthenticated: $isAuthenticated');
+        print('  - hasCompletedProfile: $hasCompletedProfile');
+        print('  - current path: ${state.uri.path}');
+      }
+
+      // Check if user is explicitly unauthenticated (logged out)
+      final isExplicitlyUnauthenticated = authState.maybeMap(
+        unauthenticated: (_) => true,
+        orElse: () => false,
+      );
+
+      final isAuthRoute = state.uri.path == '/login' ||
+          state.uri.path == '/signup' ||
+          state.uri.path == '/forgot-password' ||
+          state.uri.path == '/email-verification';
+
+      // If user is explicitly unauthenticated (just logged out), allow access to auth routes
+      if (isExplicitlyUnauthenticated && isAuthRoute) {
+        return null; // Allow access to auth routes
+      }
+
       // For initial route '/', redirect based on auth state
       if (state.uri.path == '/') {
         if (isAuthenticated) {
@@ -93,11 +117,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      final isAuthRoute = state.uri.path == '/login' ||
-          state.uri.path == '/signup' ||
-          state.uri.path == '/forgot-password' ||
-          state.uri.path == '/email-verification';
-
       // For guest users, skip onboarding and redirect directly to home
       if (authState.maybeMap(
         guest: (_) => true,
@@ -111,23 +130,33 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isProfileSetupRoute = state.uri.path == '/profile-setup';
 
       if (isAuthenticated) {
-        // If user has completed profile, go to home
+        // If user has completed profile, redirect auth routes to home
         if (hasCompletedProfile) {
-          return isAuthRoute ? '/home' : null;
+          if (isAuthRoute) {
+            return '/home';
+          }
+          return null;
         }
 
         // If onboarding is not complete and on onboarding route, allow it
-        if (!isOnboardingComplete && isOnboardingRoute) return null;
+        if (!isOnboardingComplete && isOnboardingRoute) {
+          return null;
+        }
 
         // If onboarding is complete but profile setup not done, go to profile setup
-        if (isOnboardingComplete && !isProfileSetupRoute)
+        if (isOnboardingComplete && !isProfileSetupRoute) {
           return '/profile-setup';
+        }
 
         // If on profile setup route, allow it
-        if (isProfileSetupRoute) return null;
+        if (isProfileSetupRoute) {
+          return null;
+        }
 
         // If onboarding is not complete, go to onboarding
-        if (!isOnboardingComplete) return '/onboarding';
+        if (!isOnboardingComplete) {
+          return '/onboarding';
+        }
 
         // Otherwise go to home
         return '/home';

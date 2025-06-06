@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
+import 'package:knowledge/data/repositories/auth_repository.dart';
 // import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -191,6 +192,22 @@ class ProfileSetupScreen extends HookConsumerWidget {
           personalizationQuestions: personalizationQuestions,
           avatarUrl: avatarFile.value?.path,
         );
+
+        // Verify profile completion status from backend and update auth state
+        final authNotifier = ref.read(authNotifierProvider.notifier);
+        final authRepository = ref.read(authRepositoryProvider);
+
+        // Double-check profile completion from backend
+        final isProfileCompleted =
+            await authRepository.hasCompletedProfileSetup();
+        print('Profile completion verified from backend: $isProfileCompleted');
+
+        if (isProfileCompleted) {
+          await authNotifier.markProfileSetupCompleted();
+        }
+
+        // Also invalidate the user profile provider to refresh data
+        ref.invalidate(userProfileProvider);
 
         if (context.mounted) {
           context.go('/home');
