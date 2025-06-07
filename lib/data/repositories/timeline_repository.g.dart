@@ -471,5 +471,135 @@ class _StoryDetailProviderElement
   @override
   String get storyId => (origin as StoryDetailProvider).storyId;
 }
+
+String _$markStoryAsSeenHash() => r'49b3aac0eae80b7e5ff4e0ff5d8d0165b5c13614';
+
+/// See also [markStoryAsSeen].
+@ProviderFor(markStoryAsSeen)
+const markStoryAsSeenProvider = MarkStoryAsSeenFamily();
+
+/// See also [markStoryAsSeen].
+class MarkStoryAsSeenFamily extends Family<AsyncValue<bool>> {
+  /// See also [markStoryAsSeen].
+  const MarkStoryAsSeenFamily();
+
+  /// See also [markStoryAsSeen].
+  MarkStoryAsSeenProvider call(
+    String storyId,
+  ) {
+    return MarkStoryAsSeenProvider(
+      storyId,
+    );
+  }
+
+  @override
+  MarkStoryAsSeenProvider getProviderOverride(
+    covariant MarkStoryAsSeenProvider provider,
+  ) {
+    return call(
+      provider.storyId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'markStoryAsSeenProvider';
+}
+
+/// See also [markStoryAsSeen].
+class MarkStoryAsSeenProvider extends AutoDisposeFutureProvider<bool> {
+  /// See also [markStoryAsSeen].
+  MarkStoryAsSeenProvider(
+    String storyId,
+  ) : this._internal(
+          (ref) => markStoryAsSeen(
+            ref as MarkStoryAsSeenRef,
+            storyId,
+          ),
+          from: markStoryAsSeenProvider,
+          name: r'markStoryAsSeenProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$markStoryAsSeenHash,
+          dependencies: MarkStoryAsSeenFamily._dependencies,
+          allTransitiveDependencies:
+              MarkStoryAsSeenFamily._allTransitiveDependencies,
+          storyId: storyId,
+        );
+
+  MarkStoryAsSeenProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.storyId,
+  }) : super.internal();
+
+  final String storyId;
+
+  @override
+  Override overrideWith(
+    FutureOr<bool> Function(MarkStoryAsSeenRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: MarkStoryAsSeenProvider._internal(
+        (ref) => create(ref as MarkStoryAsSeenRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        storyId: storyId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<bool> createElement() {
+    return _MarkStoryAsSeenProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MarkStoryAsSeenProvider && other.storyId == storyId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, storyId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MarkStoryAsSeenRef on AutoDisposeFutureProviderRef<bool> {
+  /// The parameter `storyId` of this provider.
+  String get storyId;
+}
+
+class _MarkStoryAsSeenProviderElement
+    extends AutoDisposeFutureProviderElement<bool> with MarkStoryAsSeenRef {
+  _MarkStoryAsSeenProviderElement(super.provider);
+
+  @override
+  String get storyId => (origin as MarkStoryAsSeenProvider).storyId;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

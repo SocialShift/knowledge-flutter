@@ -142,6 +142,33 @@ class TimelineRepository {
     }
   }
 
+  // Mark a story as seen
+  Future<bool> markStoryAsSeen(String storyId) async {
+    try {
+      final response = await _apiService.post(
+        '/story/$storyId/mark-seen',
+        data: {},
+      );
+
+      if (response.statusCode == 401) {
+        throw 'Please log in again to continue';
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        final errorMessage = response.data['detail'] ??
+            response.data['message'] ??
+            'Failed to mark story as seen';
+        print('Error marking story as seen: $errorMessage');
+        return false;
+      }
+    } catch (e) {
+      print('Error marking story $storyId as seen: $e');
+      return false;
+    }
+  }
+
   // Helper method to extract the start year from a year range string like "2024 - 2030"
   int _parseYearRange(String yearRange) {
     try {
@@ -224,4 +251,11 @@ Future<List<Story>> timelineStories(
 Future<Story> storyDetail(StoryDetailRef ref, String storyId) async {
   final repository = ref.watch(timelineRepositoryProvider);
   return repository.getStoryById(storyId);
+}
+
+// Provider for marking a story as seen
+@riverpod
+Future<bool> markStoryAsSeen(MarkStoryAsSeenRef ref, String storyId) async {
+  final repository = ref.watch(timelineRepositoryProvider);
+  return repository.markStoryAsSeen(storyId);
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:knowledge/data/providers/timeline_provider.dart';
 
-class CircularTimeline extends StatelessWidget {
+class CircularTimeline extends ConsumerWidget {
   final List<TimelinePeriod> periods;
   final int selectedIndex;
   final Function(int) onPeriodSelected;
@@ -20,7 +22,7 @@ class CircularTimeline extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: 140,
       child: Row(
@@ -86,6 +88,18 @@ class CircularTimeline extends StatelessWidget {
                         ? timelineIds![index]
                         : null;
 
+                // Check if this timeline has unseen stories
+                final hasUnseenStories = timelineId != null
+                    ? ref
+                        .watch(filteredTimelineStoriesProvider(timelineId))
+                        .when(
+                          data: (stories) =>
+                              stories.any((story) => !story.isSeen),
+                          loading: () => false,
+                          error: (_, __) => false,
+                        )
+                    : false;
+
                 // Use RepaintBoundary to optimize rendering for each item
                 return RepaintBoundary(
                   child: Row(
@@ -110,8 +124,15 @@ class CircularTimeline extends StatelessWidget {
                                   border: Border.all(
                                     color: isSelected
                                         ? AppColors.limeGreen
-                                        : Colors.transparent,
-                                    width: 3,
+                                        : hasUnseenStories
+                                            ? AppColors.limeGreen
+                                                .withOpacity(0.6)
+                                            : Colors.transparent,
+                                    width: isSelected
+                                        ? 3
+                                        : hasUnseenStories
+                                            ? 2
+                                            : 0,
                                   ),
                                   boxShadow: isSelected
                                       ? [
@@ -122,7 +143,16 @@ class CircularTimeline extends StatelessWidget {
                                             spreadRadius: 2,
                                           ),
                                         ]
-                                      : [],
+                                      : hasUnseenStories
+                                          ? [
+                                              BoxShadow(
+                                                color: AppColors.limeGreen
+                                                    .withOpacity(0.2),
+                                                blurRadius: 4,
+                                                spreadRadius: 1,
+                                              ),
+                                            ]
+                                          : [],
                                 ),
                                 child: Hero(
                                   tag: timelineId != null

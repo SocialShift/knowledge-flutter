@@ -3,8 +3,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:knowledge/data/repositories/timeline_repository.dart';
 
-class StoryListItem extends StatelessWidget {
+class StoryListItem extends ConsumerWidget {
   final Story story;
   final VoidCallback onTap;
 
@@ -15,7 +17,22 @@ class StoryListItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the story detail to get real-time updates, but with a shorter cache time
+    final storyDetailAsync = ref.watch(storyDetailProvider(story.id));
+
+    // Use the updated story data if available, otherwise use the passed story
+    final currentStory = storyDetailAsync.when(
+      data: (updatedStory) => updatedStory,
+      loading: () => story,
+      error: (_, __) => story,
+    );
+
+    // Force refresh of story state when mounting
+    ref.listen(storyDetailProvider(story.id), (previous, next) {
+      // This will trigger a rebuild when the story state changes
+    });
+
     // Using RepaintBoundary to isolate repainting for better iOS performance
     return RepaintBoundary(
       child: GestureDetector(
@@ -39,53 +56,60 @@ class StoryListItem extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left side - Image with subtle border
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      width: 110,
-                      height: 110,
-                      child: CachedNetworkImage(
-                        imageUrl: story.imageUrl,
-                        fit: BoxFit.cover,
-                        // Set memory cache size and duration for iOS optimization
-                        memCacheWidth: 220, // 2x size for Retina displays
-                        memCacheHeight: 220,
-                        maxWidthDiskCache: 440,
-                        maxHeightDiskCache: 440,
-                        filterQuality: FilterQuality.medium,
-                        fadeInDuration: const Duration(milliseconds: 200),
-                        placeholderFadeInDuration:
-                            const Duration(milliseconds: 200),
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.limeGreen),
-                                strokeWidth: 2,
+                // Left side - Image with subtle border and unseen indicator
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: currentStory.isSeen
+                              ? Colors.grey.withOpacity(0.2)
+                              : AppColors.limeGreen.withOpacity(0.5),
+                          width: currentStory.isSeen ? 1 : 2,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          width: 110,
+                          height: 110,
+                          child: CachedNetworkImage(
+                            imageUrl: currentStory.imageUrl,
+                            fit: BoxFit.cover,
+                            // Set memory cache size and duration for iOS optimization
+                            memCacheWidth: 220, // 2x size for Retina displays
+                            memCacheHeight: 220,
+                            maxWidthDiskCache: 440,
+                            maxHeightDiskCache: 440,
+                            filterQuality: FilterQuality.medium,
+                            fadeInDuration: const Duration(milliseconds: 200),
+                            placeholderFadeInDuration:
+                                const Duration(milliseconds: 200),
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.limeGreen),
+                                    strokeWidth: 2,
+                                  ),
+                                ),
                               ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[200],
+                              child:
+                                  const Icon(Icons.error, color: Colors.grey),
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.error, color: Colors.grey),
-                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 const SizedBox(width: 16),
                 // Right side - Content
@@ -103,10 +127,10 @@ class StoryListItem extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            story.storyDate != null &&
-                                    story.storyDate!.isNotEmpty
-                                ? _formatDate(story.storyDate!)
-                                : '${story.year}',
+                            currentStory.storyDate != null &&
+                                    currentStory.storyDate!.isNotEmpty
+                                ? _formatDate(currentStory.storyDate!)
+                                : '${currentStory.year}',
                             style: TextStyle(
                               color: AppColors.navyBlue,
                               fontSize: 13,
@@ -118,7 +142,7 @@ class StoryListItem extends StatelessWidget {
                       const SizedBox(height: 8),
                       // Title
                       Text(
-                        story.title,
+                        currentStory.title,
                         style: const TextStyle(
                           color: Colors.black87,
                           fontSize: 18,
@@ -129,7 +153,7 @@ class StoryListItem extends StatelessWidget {
                       const SizedBox(height: 8),
                       // Description
                       Text(
-                        story.description,
+                        currentStory.description,
                         style: TextStyle(
                           color: Colors.black54,
                           fontSize: 14,

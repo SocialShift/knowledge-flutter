@@ -12,6 +12,7 @@ import 'package:knowledge/data/models/profile.dart';
 import 'package:knowledge/data/providers/feedback_provider.dart';
 // import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
 import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
+import 'package:knowledge/presentation/widgets/bookmarked_timelines_widget.dart';
 import 'package:intl/intl.dart';
 
 // Create a cached profile provider to prevent unnecessary reloading
@@ -517,6 +518,107 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
   @override
   bool get wantKeepAlive => true;
 
+  // State for switching between overview and bookmarked sections
+  bool _showBookmarked = false;
+
+  Widget _buildToggleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Toggle buttons
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: widget.isDarkMode ? AppColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.navyBlue.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _showBookmarked = false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !_showBookmarked
+                          ? AppColors.navyBlue
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.insights,
+                          color: !_showBookmarked
+                              ? Colors.white
+                              : AppColors.navyBlue,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Overview',
+                          style: TextStyle(
+                            color: !_showBookmarked
+                                ? Colors.white
+                                : AppColors.navyBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _showBookmarked = true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _showBookmarked
+                          ? AppColors.navyBlue
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.bookmark,
+                          color: _showBookmarked
+                              ? Colors.white
+                              : AppColors.navyBlue,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Bookmarked',
+                          style: TextStyle(
+                            color: _showBookmarked
+                                ? Colors.white
+                                : AppColors.navyBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
@@ -552,8 +654,8 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
 
               const SizedBox(height: 12),
 
-              // Overview section with rank, journey and points
-              OverviewWidget(profile: widget.profile)
+              // Toggle section header with overview and bookmarked options
+              _buildToggleSection()
                   .animate()
                   .fadeIn(
                     duration: const Duration(milliseconds: 500),
@@ -561,39 +663,61 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
                   )
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
 
-              const SizedBox(height: 12),
+              // Content section with smooth transitions
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.1),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      )),
+                      child: child,
+                    ),
+                  );
+                },
+                child: _showBookmarked
+                    ? Column(
+                        key: const ValueKey('bookmarked'),
+                        children: [
+                          // Bookmarked timelines section - no fixed height, integrates with main scroll
+                          const BookmarkedTimelinesWidget(),
+                          const SizedBox(height: 20),
+                          // Only logout button when in bookmark tab
+                          LogoutButtonWidget(authNotifier: widget.authNotifier),
+                          const SizedBox(height: 16),
+                        ],
+                      )
+                    : Column(
+                        key: const ValueKey('overview'),
+                        children: [
+                          // Overview section with rank, journey and points
+                          OverviewWidget(profile: widget.profile),
+                          const SizedBox(height: 12),
 
-              // Percentile rank
-              if (widget.profile.percentile != null)
-                PercentileWidget(profile: widget.profile)
-                    .animate()
-                    .fadeIn(
-                      duration: const Duration(milliseconds: 500),
-                      delay: const Duration(milliseconds: 150),
-                    )
-                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+                          // Percentile rank
+                          if (widget.profile.percentile != null) ...[
+                            PercentileWidget(profile: widget.profile),
+                            const SizedBox(height: 12),
+                          ],
 
-              const SizedBox(height: 12),
+                          // Streak information
+                          if (widget.profile.currentLoginStreak != null) ...[
+                            StreakInfoWidget(profile: widget.profile),
+                            const SizedBox(height: 12),
+                          ],
 
-              // Streak information
-              if (widget.profile.currentLoginStreak != null)
-                StreakInfoWidget(profile: widget.profile)
-                    .animate()
-                    .fadeIn(
-                      duration: const Duration(milliseconds: 500),
-                      delay: const Duration(milliseconds: 200),
-                    )
-                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
-
-              // Logout button
-              const SizedBox(height: 0),
-              LogoutButtonWidget(authNotifier: widget.authNotifier)
-                  .animate()
-                  .fadeIn(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 250),
-                  ),
-              const SizedBox(height: 16),
+                          // Logout button
+                          LogoutButtonWidget(authNotifier: widget.authNotifier),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+              ),
             ],
           ),
         ),
@@ -986,25 +1110,25 @@ class OverviewWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.fromLTRB(20, 28, 16, 12),
-          child: Row(
-            children: [
-              Icon(
-                Icons.insights,
-                color: AppColors.navyBlue,
-                size: 20,
-              ),
-              SizedBox(width: 6),
-              Text(
-                "Overview",
-                style: TextStyle(
-                  color: AppColors.navyBlue,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+          padding: EdgeInsets.fromLTRB(20, 10, 16, 12),
+          // child: Row(
+          //   children: [
+          //     Icon(
+          //       Icons.insights,
+          //       color: AppColors.navyBlue,
+          //       size: 20,
+          //     ),
+          //     SizedBox(width: 6),
+          //     Text(
+          //       "Overview",
+          //       style: TextStyle(
+          //         color: AppColors.navyBlue,
+          //         fontSize: 18,
+          //         fontWeight: FontWeight.bold,
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),

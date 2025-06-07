@@ -49,6 +49,7 @@ class Timeline with _$Timeline {
     MainCharacter? mainCharacter,
     @Default([]) List<Story> stories,
     @Default([]) List<String> categories,
+    @Default(false) bool isSeen,
   }) = _Timeline;
 
   factory Timeline.fromJson(Map<String, dynamic> json) =>
@@ -85,6 +86,42 @@ class Timeline with _$Timeline {
       year: _parseYearRange(json['year_range'] ?? ''),
       mainCharacter: mainCharacter,
       categories: categories,
+      isSeen: json['is_seen'] ?? false,
+    );
+  }
+
+  // Factory constructor to create a Timeline from the bookmark API response
+  static Timeline fromBookmarkApiResponse(Map<String, dynamic> json) {
+    final mediaBaseUrl = dotenv.env['MEDIA_BASE_URL'] ?? '';
+
+    // Get the thumbnail URL and prepend the base URL if it's a relative path
+    String thumbnailUrl = json['thumbnail_url'] ?? '';
+    if (thumbnailUrl.isNotEmpty && !thumbnailUrl.startsWith('http')) {
+      thumbnailUrl = '$mediaBaseUrl/$thumbnailUrl';
+    }
+
+    // Parse main character if available
+    MainCharacter? mainCharacter;
+    if (json['main_character'] != null) {
+      mainCharacter = MainCharacter.fromApiResponse(json['main_character']);
+    }
+
+    // Parse categories if available
+    List<String> categories = [];
+    if (json['categories'] != null && json['categories'] is List) {
+      categories =
+          List<String>.from(json['categories'].map((c) => c.toString()));
+    }
+
+    return Timeline(
+      id: json['id'].toString(),
+      title: json['title'] ?? '',
+      description: json['overview'] ?? '',
+      imageUrl: thumbnailUrl,
+      year: _parseYearRange(json['year_range'] ?? ''),
+      mainCharacter: mainCharacter,
+      categories: categories,
+      isSeen: json['is_seen'] ?? false,
     );
   }
 
@@ -193,6 +230,7 @@ class Story with _$Story {
     String? timelineId,
     String? createdAt,
     String? storyDate,
+    @Default(false) bool isSeen,
   }) = _Story;
 
   factory Story.fromJson(Map<String, dynamic> json) => _$StoryFromJson(json);
@@ -249,6 +287,7 @@ class Story with _$Story {
       createdAt: json['created_at'],
       storyDate: storyDate,
       year: year, // Use the parsed year from story_date
+      isSeen: json['is_seen'] ?? false,
     );
   }
 }

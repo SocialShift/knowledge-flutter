@@ -43,6 +43,7 @@ _$TimelineImpl _$$TimelineImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      isSeen: json['isSeen'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
@@ -55,6 +56,7 @@ Map<String, dynamic> _$$TimelineImplToJson(_$TimelineImpl instance) =>
       'mainCharacter': instance.mainCharacter,
       'stories': instance.stories,
       'categories': instance.categories,
+      'isSeen': instance.isSeen,
     };
 
 _$StoryImpl _$$StoryImplFromJson(Map<String, dynamic> json) => _$StoryImpl(
@@ -77,6 +79,7 @@ _$StoryImpl _$$StoryImplFromJson(Map<String, dynamic> json) => _$StoryImpl(
       timelineId: json['timelineId'] as String?,
       createdAt: json['createdAt'] as String?,
       storyDate: json['storyDate'] as String?,
+      isSeen: json['isSeen'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$StoryImplToJson(_$StoryImpl instance) =>
@@ -97,6 +100,7 @@ Map<String, dynamic> _$$StoryImplToJson(_$StoryImpl instance) =>
       'timelineId': instance.timelineId,
       'createdAt': instance.createdAt,
       'storyDate': instance.storyDate,
+      'isSeen': instance.isSeen,
     };
 
 _$TimestampImpl _$$TimestampImplFromJson(Map<String, dynamic> json) =>

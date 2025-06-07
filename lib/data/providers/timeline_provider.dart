@@ -142,6 +142,132 @@ final paginatedTimelinesProvider =
   return PaginatedTimelinesNotifier(ref);
 });
 
+// Provider to find the first timeline with unseen stories
+final firstUnseenTimelineIndexProvider = Provider<int>((ref) {
+  final timelinesAsync = ref.watch(timelinesSortedByYearProvider);
+
+  return timelinesAsync.when(
+    data: (timelines) {
+      // Find the first timeline that has unseen stories
+      for (int i = 0; i < timelines.length; i++) {
+        final timeline = timelines[i];
+        final storiesAsync =
+            ref.watch(filteredTimelineStoriesProvider(timeline.id));
+
+        final hasUnseenStories = storiesAsync.when(
+          data: (stories) => stories.any((story) => !story.isSeen),
+          loading: () => false,
+          error: (_, __) => false,
+        );
+
+        if (hasUnseenStories) {
+          return i;
+        }
+      }
+
+      // If no timeline has unseen stories, return 0 (first timeline)
+      return 0;
+    },
+    loading: () => 0,
+    error: (_, __) => 0,
+  );
+});
+
+// Provider to check if all stories in a timeline are seen
+final timelineAllStoriesSeenProvider =
+    Provider.family<bool, String>((ref, timelineId) {
+  final storiesAsync = ref.watch(filteredTimelineStoriesProvider(timelineId));
+
+  return storiesAsync.when(
+    data: (stories) {
+      if (stories.isEmpty) return true;
+      return stories.every((story) => story.isSeen);
+    },
+    loading: () => false,
+    error: (_, __) => false,
+  );
+});
+
+// Provider to get the next timeline index with unseen stories from a given index
+final nextUnseenTimelineIndexProvider =
+    Provider.family<int?, int>((ref, currentIndex) {
+  final timelinesAsync = ref.watch(timelinesSortedByYearProvider);
+
+  return timelinesAsync.when(
+    data: (timelines) {
+      // Look for the next timeline with unseen stories starting from currentIndex + 1
+      for (int i = currentIndex + 1; i < timelines.length; i++) {
+        final timeline = timelines[i];
+        final storiesAsync =
+            ref.watch(filteredTimelineStoriesProvider(timeline.id));
+
+        final hasUnseenStories = storiesAsync.when(
+          data: (stories) => stories.any((story) => !story.isSeen),
+          loading: () => false,
+          error: (_, __) => false,
+        );
+
+        if (hasUnseenStories) {
+          return i;
+        }
+      }
+
+      // If no timeline found after current index, check from beginning
+      for (int i = 0; i < currentIndex; i++) {
+        final timeline = timelines[i];
+        final storiesAsync =
+            ref.watch(filteredTimelineStoriesProvider(timeline.id));
+
+        final hasUnseenStories = storiesAsync.when(
+          data: (stories) => stories.any((story) => !story.isSeen),
+          loading: () => false,
+          error: (_, __) => false,
+        );
+
+        if (hasUnseenStories) {
+          return i;
+        }
+      }
+
+      return null; // No timeline with unseen stories found
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
+});
+
+// Enhanced provider to mark a story as seen and update the cache with real-time feedback
+final markStorySeenProvider = Provider<Future<void> Function(String)>((ref) {
+  return (String storyId) async {
+    try {
+      // Mark the story as seen via API
+      final success = await ref.read(markStoryAsSeenProvider(storyId).future);
+
+      if (success) {
+        // Force immediate invalidation of all story-related providers for real-time updates
+        ref.invalidate(timelineStoriesProvider);
+        ref.invalidate(filteredTimelineStoriesProvider);
+        ref.invalidate(storyDetailProvider);
+
+        // Force refresh of timeline and story data
+
+        // Wait a brief moment then invalidate UI state providers
+        await Future.delayed(const Duration(milliseconds: 100));
+        ref.invalidate(firstUnseenTimelineIndexProvider);
+        ref.invalidate(timelineAllStoriesSeenProvider);
+        ref.invalidate(nextUnseenTimelineIndexProvider);
+
+        debugPrint(
+            'Story $storyId marked as seen successfully with real-time updates');
+      } else {
+        debugPrint('Failed to mark story $storyId as seen');
+      }
+    } catch (e) {
+      debugPrint('Error marking story $storyId as seen: $e');
+    }
+  };
+});
+
 class PaginatedTimelinesNotifier
     extends StateNotifier<PaginatedData<Timeline>> {
   final Ref _ref;

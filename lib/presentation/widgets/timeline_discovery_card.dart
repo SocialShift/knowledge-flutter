@@ -4,6 +4,7 @@ import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math' as math;
 

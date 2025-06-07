@@ -6,6 +6,7 @@ import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/presentation/widgets/story_list_item.dart';
+import 'package:knowledge/presentation/widgets/bookmark_icon.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 
 class TimelineDetailScreen extends HookConsumerWidget {
@@ -85,6 +86,16 @@ class TimelineDetailScreen extends HookConsumerWidget {
                     ),
                   ),
                 ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: BookmarkIcon(
+                      timelineId: timeline.id,
+                      size: 24,
+                      defaultColor: Colors.white,
+                    ),
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,

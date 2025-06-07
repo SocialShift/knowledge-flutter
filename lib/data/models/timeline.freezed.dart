@@ -264,6 +264,7 @@ mixin _$Timeline {
   MainCharacter? get mainCharacter => throw _privateConstructorUsedError;
   List<Story> get stories => throw _privateConstructorUsedError;
   List<String> get categories => throw _privateConstructorUsedError;
+  bool get isSeen => throw _privateConstructorUsedError;
 
   /// Serializes this Timeline to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -288,7 +289,8 @@ abstract class $TimelineCopyWith<$Res> {
       int year,
       MainCharacter? mainCharacter,
       List<Story> stories,
-      List<String> categories});
+      List<String> categories,
+      bool isSeen});
 
   $MainCharacterCopyWith<$Res>? get mainCharacter;
 }
@@ -316,6 +318,7 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
     Object? mainCharacter = freezed,
     Object? stories = null,
     Object? categories = null,
+    Object? isSeen = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -350,6 +353,10 @@ class _$TimelineCopyWithImpl<$Res, $Val extends Timeline>
           ? _value.categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isSeen: null == isSeen
+          ? _value.isSeen
+          : isSeen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 
@@ -384,7 +391,8 @@ abstract class _$$TimelineImplCopyWith<$Res>
       int year,
       MainCharacter? mainCharacter,
       List<Story> stories,
-      List<String> categories});
+      List<String> categories,
+      bool isSeen});
 
   @override
   $MainCharacterCopyWith<$Res>? get mainCharacter;
@@ -411,6 +419,7 @@ class __$$TimelineImplCopyWithImpl<$Res>
     Object? mainCharacter = freezed,
     Object? stories = null,
     Object? categories = null,
+    Object? isSeen = null,
   }) {
     return _then(_$TimelineImpl(
       id: null == id
@@ -445,6 +454,10 @@ class __$$TimelineImplCopyWithImpl<$Res>
           ? _value._categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isSeen: null == isSeen
+          ? _value.isSeen
+          : isSeen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -460,7 +473,8 @@ class _$TimelineImpl implements _Timeline {
       required this.year,
       this.mainCharacter,
       final List<Story> stories = const [],
-      final List<String> categories = const []})
+      final List<String> categories = const [],
+      this.isSeen = false})
       : _stories = stories,
         _categories = categories;
 
@@ -498,8 +512,12 @@ class _$TimelineImpl implements _Timeline {
   }
 
   @override
+  @JsonKey()
+  final bool isSeen;
+
+  @override
   String toString() {
-    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, mainCharacter: $mainCharacter, stories: $stories, categories: $categories)';
+    return 'Timeline(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, mainCharacter: $mainCharacter, stories: $stories, categories: $categories, isSeen: $isSeen)';
   }
 
   @override
@@ -518,7 +536,8 @@ class _$TimelineImpl implements _Timeline {
                 other.mainCharacter == mainCharacter) &&
             const DeepCollectionEquality().equals(other._stories, _stories) &&
             const DeepCollectionEquality()
-                .equals(other._categories, _categories));
+                .equals(other._categories, _categories) &&
+            (identical(other.isSeen, isSeen) || other.isSeen == isSeen));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -532,7 +551,8 @@ class _$TimelineImpl implements _Timeline {
       year,
       mainCharacter,
       const DeepCollectionEquality().hash(_stories),
-      const DeepCollectionEquality().hash(_categories));
+      const DeepCollectionEquality().hash(_categories),
+      isSeen);
 
   /// Create a copy of Timeline
   /// with the given fields replaced by the non-null parameter values.
@@ -559,7 +579,8 @@ abstract class _Timeline implements Timeline {
       required final int year,
       final MainCharacter? mainCharacter,
       final List<Story> stories,
-      final List<String> categories}) = _$TimelineImpl;
+      final List<String> categories,
+      final bool isSeen}) = _$TimelineImpl;
 
   factory _Timeline.fromJson(Map<String, dynamic> json) =
       _$TimelineImpl.fromJson;
@@ -580,6 +601,8 @@ abstract class _Timeline implements Timeline {
   List<Story> get stories;
   @override
   List<String> get categories;
+  @override
+  bool get isSeen;
 
   /// Create a copy of Timeline
   /// with the given fields replaced by the non-null parameter values.
@@ -611,6 +634,7 @@ mixin _$Story {
   String? get timelineId => throw _privateConstructorUsedError;
   String? get createdAt => throw _privateConstructorUsedError;
   String? get storyDate => throw _privateConstructorUsedError;
+  bool get isSeen => throw _privateConstructorUsedError;
 
   /// Serializes this Story to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -642,7 +666,8 @@ abstract class $StoryCopyWith<$Res> {
       String subtitlesUrl,
       String? timelineId,
       String? createdAt,
-      String? storyDate});
+      String? storyDate,
+      bool isSeen});
 }
 
 /// @nodoc
@@ -676,6 +701,7 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
     Object? timelineId = freezed,
     Object? createdAt = freezed,
     Object? storyDate = freezed,
+    Object? isSeen = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -742,6 +768,10 @@ class _$StoryCopyWithImpl<$Res, $Val extends Story>
           ? _value.storyDate
           : storyDate // ignore: cast_nullable_to_non_nullable
               as String?,
+      isSeen: null == isSeen
+          ? _value.isSeen
+          : isSeen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -769,7 +799,8 @@ abstract class _$$StoryImplCopyWith<$Res> implements $StoryCopyWith<$Res> {
       String subtitlesUrl,
       String? timelineId,
       String? createdAt,
-      String? storyDate});
+      String? storyDate,
+      bool isSeen});
 }
 
 /// @nodoc
@@ -801,6 +832,7 @@ class __$$StoryImplCopyWithImpl<$Res>
     Object? timelineId = freezed,
     Object? createdAt = freezed,
     Object? storyDate = freezed,
+    Object? isSeen = null,
   }) {
     return _then(_$StoryImpl(
       id: null == id
@@ -867,6 +899,10 @@ class __$$StoryImplCopyWithImpl<$Res>
           ? _value.storyDate
           : storyDate // ignore: cast_nullable_to_non_nullable
               as String?,
+      isSeen: null == isSeen
+          ? _value.isSeen
+          : isSeen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -890,7 +926,8 @@ class _$StoryImpl implements _Story {
       this.subtitlesUrl = '',
       this.timelineId,
       this.createdAt,
-      this.storyDate})
+      this.storyDate,
+      this.isSeen = false})
       : _timestamps = timestamps;
 
   factory _$StoryImpl.fromJson(Map<String, dynamic> json) =>
@@ -942,10 +979,13 @@ class _$StoryImpl implements _Story {
   final String? createdAt;
   @override
   final String? storyDate;
+  @override
+  @JsonKey()
+  final bool isSeen;
 
   @override
   String toString() {
-    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps, likes: $likes, views: $views, subtitlesUrl: $subtitlesUrl, timelineId: $timelineId, createdAt: $createdAt, storyDate: $storyDate)';
+    return 'Story(id: $id, title: $title, description: $description, imageUrl: $imageUrl, year: $year, isCompleted: $isCompleted, mediaType: $mediaType, mediaUrl: $mediaUrl, content: $content, timestamps: $timestamps, likes: $likes, views: $views, subtitlesUrl: $subtitlesUrl, timelineId: $timelineId, createdAt: $createdAt, storyDate: $storyDate, isSeen: $isSeen)';
   }
 
   @override
@@ -978,7 +1018,8 @@ class _$StoryImpl implements _Story {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.storyDate, storyDate) ||
-                other.storyDate == storyDate));
+                other.storyDate == storyDate) &&
+            (identical(other.isSeen, isSeen) || other.isSeen == isSeen));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1000,7 +1041,8 @@ class _$StoryImpl implements _Story {
       subtitlesUrl,
       timelineId,
       createdAt,
-      storyDate);
+      storyDate,
+      isSeen);
 
   /// Create a copy of Story
   /// with the given fields replaced by the non-null parameter values.
@@ -1035,7 +1077,8 @@ abstract class _Story implements Story {
       final String subtitlesUrl,
       final String? timelineId,
       final String? createdAt,
-      final String? storyDate}) = _$StoryImpl;
+      final String? storyDate,
+      final bool isSeen}) = _$StoryImpl;
 
   factory _Story.fromJson(Map<String, dynamic> json) = _$StoryImpl.fromJson;
 
@@ -1071,6 +1114,8 @@ abstract class _Story implements Story {
   String? get createdAt;
   @override
   String? get storyDate;
+  @override
+  bool get isSeen;
 
   /// Create a copy of Story
   /// with the given fields replaced by the non-null parameter values.

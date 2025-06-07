@@ -17,6 +17,7 @@ import 'package:knowledge/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/butterfly_loading_widget.dart';
 import 'package:knowledge/presentation/widgets/streak_sliding_widget.dart';
+import 'package:knowledge/presentation/widgets/bookmark_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // Create cached versions of providers with keepAlive set to true
@@ -52,6 +53,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   int _selectedTimelineIndex = 0; // Default to first timeline
+  bool _hasInitializedIndex = false; // Track if we've set the initial focus
+  bool _isManualRefresh = false; // Track if user is manually refreshing
 
   // Animation controller for the swipe transition
   late AnimationController _animationController;
@@ -407,6 +410,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // Main content
             timelinesAsync.when(
               data: (timelines) {
+                // Get the index of the first timeline with unseen stories
+                final firstUnseenIndex =
+                    ref.watch(firstUnseenTimelineIndexProvider);
+
+                // Initialize _selectedTimelineIndex to the first unseen timeline only once
+                if (!_hasInitializedIndex && firstUnseenIndex != 0) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _selectedTimelineIndex = firstUnseenIndex;
+                      _hasInitializedIndex = true;
+                    });
+                  });
+                } else if (!_hasInitializedIndex) {
+                  _hasInitializedIndex = true;
+                }
+
                 // Ensure we don't go out of bounds
                 if (_selectedTimelineIndex >= timelines.length &&
                     timelines.isNotEmpty) {
@@ -424,6 +443,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 // Watch the cached stories provider for the selected timeline
                 final storiesAsync = ref
                     .watch(cachedTimelineStoriesProvider(selectedTimeline.id));
+
+                // Check if we should auto-advance to next unseen timeline
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _autoAdvanceToNextUnseenTimeline(timelines);
+                });
+
+                // Listen for changes in current timeline's story completion status
+                // Only auto-advance if not in manual refresh mode
+                ref.listen(timelineAllStoriesSeenProvider(selectedTimeline.id),
+                    (previous, next) {
+                  if (previous == false && next == true && !_isManualRefresh) {
+                    // All stories just became seen, auto-advance to next unseen timeline
+                    _autoAdvanceToNextUnseenTimeline(timelines);
+                  }
+                });
 
                 // Ensure the selected timeline is centered when page loads
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -447,12 +481,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   },
                   child: RefreshIndicator(
                     onRefresh: () async {
+                      // Set manual refresh flag to prevent auto-advance
+                      _isManualRefresh = true;
+
                       // Refresh all the data - invalidate the original providers, not the cached ones
                       ref.invalidate(timelinesProvider);
                       ref.invalidate(
                           timelineStoriesProvider(selectedTimeline.id));
+                      ref.invalidate(
+                          filteredTimelineStoriesProvider(selectedTimeline.id));
+
                       // Add a small delay for better UX
                       await Future.delayed(const Duration(milliseconds: 800));
+
+                      // Reset manual refresh flag after delay
+                      _isManualRefresh = false;
                     },
                     color: AppColors.limeGreen,
                     backgroundColor: cardColor,
@@ -993,6 +1036,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                                         ),
                                                       ],
                                                     ),
+                                                  ),
+                                                  const Spacer(),
+                                                  // Bookmark icon with instant feedback
+                                                  BookmarkIcon(
+                                                    timelineId:
+                                                        selectedTimeline.id,
+                                                    size: 20,
+                                                    defaultColor: textColor,
+                                                    showBackground: false,
+                                                    showInstantFeedback: true,
+                                                    onToggleComplete:
+                                                        (isBookmarked,
+                                                            message) {
+                                                      // Show success popup
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Row(
+                                                            children: [
+                                                              Icon(
+                                                                isBookmarked
+                                                                    ? Icons
+                                                                        .bookmark
+                                                                    : Icons
+                                                                        .bookmark_border,
+                                                                color: Colors
+                                                                    .white,
+                                                                size: 20,
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 8),
+                                                              Text(message),
+                                                            ],
+                                                          ),
+                                                          backgroundColor:
+                                                              AppColors
+                                                                  .limeGreen,
+                                                          behavior:
+                                                              SnackBarBehavior
+                                                                  .floating,
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                          ),
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .all(12),
+                                                          duration:
+                                                              const Duration(
+                                                                  seconds: 2),
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
                                                 ],
                                               ),
@@ -1977,6 +2077,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ],
     );
+  }
+
+  // Method to auto-advance to next timeline with unseen stories
+  void _autoAdvanceToNextUnseenTimeline(List<Timeline> timelines) {
+    // Don't auto-advance if user is manually refreshing or if we haven't initialized yet
+    if (_isManualRefresh ||
+        !_hasInitializedIndex ||
+        _selectedTimelineIndex >= timelines.length) return;
+
+    final selectedTimeline = timelines[_selectedTimelineIndex];
+    final allStoriesSeen =
+        ref.read(timelineAllStoriesSeenProvider(selectedTimeline.id));
+
+    if (allStoriesSeen) {
+      final nextUnseenIndex =
+          ref.read(nextUnseenTimelineIndexProvider(_selectedTimelineIndex));
+
+      if (nextUnseenIndex != null &&
+          nextUnseenIndex != _selectedTimelineIndex) {
+        // Auto-advance to next timeline with unseen stories
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _changeTimeline(timelines, nextUnseenIndex - _selectedTimelineIndex);
+        });
+      }
+    }
   }
 }
 

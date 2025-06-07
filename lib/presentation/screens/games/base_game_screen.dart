@@ -225,7 +225,7 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                               ]
                             : [
                                 Colors.red.withOpacity(0.95),
-                                Colors.red.shade600.withOpacity(0.95),
+                                AppColors.navyBlue.withOpacity(0.95),
                               ],
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -284,7 +284,7 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                               : 'Don\'t worry, keep trying!',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 20,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
@@ -310,16 +310,16 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
                                 Icon(
                                   Icons.lightbulb_outline,
                                   color: Colors.white,
-                                  size: 18,
+                                  size: 30,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Correct answer: ${_correctOption!.text}',
+                                    '${_correctOption!.text.toUpperCase()}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ),

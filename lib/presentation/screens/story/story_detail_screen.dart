@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
+import 'package:knowledge/data/providers/timeline_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:video_player/video_player.dart';
@@ -34,6 +35,28 @@ class StoryDetailScreen extends HookConsumerWidget {
 
     // State for navigation between video and story parts
     final currentPart = useState(0); // 0 = video part, 1 = story part
+
+    // Mark story as seen when the screen is first loaded
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final markStorySeenFunction = ref.read(markStorySeenProvider);
+        await markStorySeenFunction(storyId);
+      });
+      return null;
+    }, [storyId]);
+
+    // Listen for when the story detail screen is about to be disposed
+    // to trigger a final refresh of the timeline state
+    useEffect(() {
+      return () {
+        // Force refresh of timeline providers when leaving the story
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.invalidate(firstUnseenTimelineIndexProvider);
+          ref.invalidate(timelineAllStoriesSeenProvider);
+          ref.invalidate(nextUnseenTimelineIndexProvider);
+        });
+      };
+    }, []);
 
     return Scaffold(
       backgroundColor: backgroundColor,
