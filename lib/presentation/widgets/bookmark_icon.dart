@@ -31,6 +31,13 @@ class BookmarkIcon extends HookConsumerWidget {
     final localBookmarkState = useState<bool?>(null);
     final isProcessing = useState(false);
 
+    // Reset local state when timelineId changes to prevent state persistence across different timelines
+    useEffect(() {
+      localBookmarkState.value = null;
+      isProcessing.value = false;
+      return null;
+    }, [timelineId]);
+
     return bookmarkStatusAsync.when(
       loading: () => Container(
         width: size + 16,
