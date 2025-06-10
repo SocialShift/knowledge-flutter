@@ -605,26 +605,26 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
                           ],
                         ),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFe2e8f0).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.navyBlue.withOpacity(0.2),
-                          ),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.lightbulb_outline,
-                            color: AppColors.navyBlue,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            _showMonetizationDialog();
-                          },
-                        ),
-                      ),
+                      // Container(
+                      //   decoration: BoxDecoration(
+                      //     color: const Color(0xFFe2e8f0).withOpacity(0.5),
+                      //     borderRadius: BorderRadius.circular(12),
+                      //     border: Border.all(
+                      //       color: AppColors.navyBlue.withOpacity(0.2),
+                      //     ),
+                      //   ),
+                      //   child: IconButton(
+                      //     icon: Icon(
+                      //       Icons.lightbulb_outline,
+                      //       color: AppColors.navyBlue,
+                      //       size: 20,
+                      //     ),
+                      //     onPressed: () {
+                      //       HapticFeedback.lightImpact();
+                      //       _showMonetizationDialog();
+                      //     },
+                      //   ),
+                      // ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -810,9 +810,9 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
           Tab(
             child: Text('Games'),
           ),
-          Tab(
-            child: Text('Milestones'),
-          ),
+          // Tab(
+          //   child: Text('Milestones'),
+          // ),
         ],
       ),
     ).animate().fadeIn(delay: const Duration(milliseconds: 400)).scale(

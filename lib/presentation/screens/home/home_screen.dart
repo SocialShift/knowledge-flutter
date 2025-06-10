@@ -672,38 +672,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 const StreakSlidingWidget(),
 
                                 // Lightbulb icon
-                                GestureDetector(
-                                  onTap: () {
-                                    // Show monetization coming soon dialog
-                                    _showMonetizationDialog(context);
-                                  },
-                                  child: Container(
-                                    height: 40,
-                                    width: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDarkMode
-                                          ? Colors.white.withOpacity(0.1)
-                                          : Colors.white.withOpacity(0.2),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.lightbulb_outline,
-                                      color: AppColors.limeGreen,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ).animate().fadeIn().scale(
-                                      delay: const Duration(milliseconds: 400),
-                                      duration:
-                                          const Duration(milliseconds: 500),
-                                    ),
+                                // GestureDetector(
+                                //   onTap: () {
+                                //     // Show monetization coming soon dialog
+                                //     _showMonetizationDialog(context);
+                                //   },
+                                //   child: Container(
+                                //     height: 40,
+                                //     width: 40,
+                                //     decoration: BoxDecoration(
+                                //       shape: BoxShape.circle,
+                                //       color: isDarkMode
+                                //           ? Colors.white.withOpacity(0.1)
+                                //           : Colors.white.withOpacity(0.2),
+                                //       boxShadow: [
+                                //         BoxShadow(
+                                //           color: Colors.black.withOpacity(0.1),
+                                //           blurRadius: 4,
+                                //           offset: const Offset(0, 2),
+                                //         ),
+                                //       ],
+                                //     ),
+                                //     child: const Icon(
+                                //       Icons.lightbulb_outline,
+                                //       color: AppColors.limeGreen,
+                                //       size: 24,
+                                //     ),
+                                //   ),
+                                // ).animate().fadeIn().scale(
+                                //       delay: const Duration(milliseconds: 400),
+                                //       duration:
+                                //           const Duration(milliseconds: 500),
+                                //     ),
                               ],
                             ),
                           ),

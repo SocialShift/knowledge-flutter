@@ -287,43 +287,43 @@ class _VideoPartScreen extends HookConsumerWidget {
                             const SizedBox(width: 12),
 
                             // Share Button
-                            GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Coming Soon'),
-                                    backgroundColor: AppColors.limeGreen,
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: isDarkMode
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.grey.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: AppColors.limeGreen.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.share,
-                                  color: AppColors.navyBlue,
-                                  size: 20,
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 2500.ms)
-                                .scale(
-                                  begin: const Offset(0.8, 0.8),
-                                  duration: 600.ms,
-                                  curve: Curves.elasticOut,
-                                ),
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     ScaffoldMessenger.of(context).showSnackBar(
+                            //       SnackBar(
+                            //         content: const Text('Coming Soon'),
+                            //         backgroundColor: AppColors.limeGreen,
+                            //         behavior: SnackBarBehavior.floating,
+                            //         duration: const Duration(seconds: 2),
+                            //       ),
+                            //     );
+                            //   },
+                            //   child: Container(
+                            //     padding: const EdgeInsets.all(8),
+                            //     decoration: BoxDecoration(
+                            //       color: isDarkMode
+                            //           ? Colors.white.withOpacity(0.1)
+                            //           : Colors.grey.withOpacity(0.1),
+                            //       borderRadius: BorderRadius.circular(8),
+                            //       border: Border.all(
+                            //         color: AppColors.limeGreen.withOpacity(0.3),
+                            //         width: 1,
+                            //       ),
+                            //     ),
+                            //     child: Icon(
+                            //       Icons.share,
+                            //       color: AppColors.navyBlue,
+                            //       size: 20,
+                            //     ),
+                            //   ),
+                            // )
+                            //     .animate()
+                            //     .fadeIn(duration: 600.ms, delay: 2500.ms)
+                            //     .scale(
+                            //       begin: const Offset(0.8, 0.8),
+                            //       duration: 600.ms,
+                            //       curve: Curves.elasticOut,
+                            //     ),
                           ],
                         ),
 
@@ -732,44 +732,44 @@ class _StoryPartScreen extends HookConsumerWidget {
                                 const SizedBox(width: 12),
 
                                 // Share Button
-                                GestureDetector(
-                                  onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Coming Soon'),
-                                        backgroundColor: AppColors.limeGreen,
-                                        behavior: SnackBarBehavior.floating,
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: isDarkMode
-                                          ? Colors.white.withOpacity(0.1)
-                                          : Colors.grey.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: AppColors.limeGreen
-                                            .withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      Icons.share,
-                                      color: AppColors.navyBlue,
-                                      size: 20,
-                                    ),
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(duration: 600.ms, delay: 2500.ms)
-                                    .scale(
-                                      begin: const Offset(0.8, 0.8),
-                                      duration: 600.ms,
-                                      curve: Curves.elasticOut,
-                                    ),
+                                // GestureDetector(
+                                //   onTap: () {
+                                //     ScaffoldMessenger.of(context).showSnackBar(
+                                //       SnackBar(
+                                //         content: const Text('Coming Soon'),
+                                //         backgroundColor: AppColors.limeGreen,
+                                //         behavior: SnackBarBehavior.floating,
+                                //         duration: const Duration(seconds: 2),
+                                //       ),
+                                //     );
+                                //   },
+                                //   child: Container(
+                                //     padding: const EdgeInsets.all(8),
+                                //     decoration: BoxDecoration(
+                                //       color: isDarkMode
+                                //           ? Colors.white.withOpacity(0.1)
+                                //           : Colors.grey.withOpacity(0.1),
+                                //       borderRadius: BorderRadius.circular(8),
+                                //       border: Border.all(
+                                //         color: AppColors.limeGreen
+                                //             .withOpacity(0.3),
+                                //         width: 1,
+                                //       ),
+                                //     ),
+                                //     child: Icon(
+                                //       Icons.share,
+                                //       color: AppColors.navyBlue,
+                                //       size: 20,
+                                //     ),
+                                //   ),
+                                // )
+                                //     .animate()
+                                //     .fadeIn(duration: 600.ms, delay: 2500.ms)
+                                //     .scale(
+                                //       begin: const Offset(0.8, 0.8),
+                                //       duration: 600.ms,
+                                //       curve: Curves.elasticOut,
+                                //     ),
                               ],
                             ),
 
@@ -957,30 +957,30 @@ class _StoryPartScreen extends HookConsumerWidget {
                     ),
 
                     // Share button in notification bar
-                    GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Coming Soon'),
-                            backgroundColor: AppColors.limeGreen,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.limeGreen.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.share,
-                          color: AppColors.navyBlue,
-                          size: 18,
-                        ),
-                      ),
-                    ),
+                    // GestureDetector(
+                    //   onTap: () {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       SnackBar(
+                    //         content: const Text('Coming Soon'),
+                    //         backgroundColor: AppColors.limeGreen,
+                    //         behavior: SnackBarBehavior.floating,
+                    //         duration: const Duration(seconds: 2),
+                    //       ),
+                    //     );
+                    //   },
+                    //   child: Container(
+                    //     padding: const EdgeInsets.all(8),
+                    //     decoration: BoxDecoration(
+                    //       color: AppColors.limeGreen.withOpacity(0.2),
+                    //       borderRadius: BorderRadius.circular(8),
+                    //     ),
+                    //     child: Icon(
+                    //       Icons.share,
+                    //       color: AppColors.navyBlue,
+                    //       size: 18,
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

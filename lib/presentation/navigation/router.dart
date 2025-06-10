@@ -28,6 +28,7 @@ import 'package:knowledge/presentation/screens/socials/add_friends.dart';
 import 'package:knowledge/presentation/screens/socials/user_profile_screen.dart';
 import 'package:knowledge/presentation/screens/socials/followers_screen.dart';
 import 'package:knowledge/presentation/screens/socials/following_screen.dart';
+import 'package:knowledge/presentation/screens/community/community_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -355,6 +356,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               context: context,
               state: state,
               child: const ElearningScreen(),
+            ),
+          ),
+          // Community route
+          GoRoute(
+            path: '/community',
+            pageBuilder: (context, state) => buildCupertinoPageTransition(
+              context: context,
+              state: state,
+              child: const CommunityScreen(),
             ),
           ),
           // Add games center route

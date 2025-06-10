@@ -1050,44 +1050,44 @@ class SocialCountsWidget extends StatelessWidget {
                     .slideY(begin: 0.2, end: 0),
               ),
               const SizedBox(width: 8),
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.navyBlue.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.share_outlined,
-                    size: 18,
-                    color: AppColors.navyBlue,
-                  ),
-                  onPressed: () {
-                    // Share profile functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Coming soon!'),
-                        backgroundColor: AppColors.navyBlue,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        margin: const EdgeInsets.all(12),
-                      ),
-                    );
-                  },
-                  tooltip: 'Share Profile',
-                  padding: EdgeInsets.zero,
-                ),
-              ).animate().fadeIn(
-                    duration: const Duration(milliseconds: 400),
-                    delay: const Duration(milliseconds: 350),
-                  ),
+              // Container(
+              //   height: 40,
+              //   width: 40,
+              //   decoration: BoxDecoration(
+              //     color: Colors.white,
+              //     borderRadius: BorderRadius.circular(12),
+              //     border: Border.all(
+              //       color: AppColors.navyBlue.withOpacity(0.2),
+              //       width: 1,
+              //     ),
+              //   ),
+              //   child: IconButton(
+              //     icon: const Icon(
+              //       Icons.share_outlined,
+              //       size: 18,
+              //       color: AppColors.navyBlue,
+              //     ),
+              //     onPressed: () {
+              //       // Share profile functionality
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         SnackBar(
+              //           content: const Text('Coming soon!'),
+              //           backgroundColor: AppColors.navyBlue,
+              //           behavior: SnackBarBehavior.floating,
+              //           shape: RoundedRectangleBorder(
+              //             borderRadius: BorderRadius.circular(10),
+              //           ),
+              //           margin: const EdgeInsets.all(12),
+              //         ),
+              //       );
+              //     },
+              //     tooltip: 'Share Profile',
+              //     padding: EdgeInsets.zero,
+              //   ),
+              // ).animate().fadeIn(
+              //       duration: const Duration(milliseconds: 400),
+              //       delay: const Duration(milliseconds: 350),
+              //     ),
             ],
           ),
         ),

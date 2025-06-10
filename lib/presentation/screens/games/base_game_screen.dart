@@ -438,19 +438,284 @@ class _BaseGameScreenState extends ConsumerState<BaseGameScreen>
   void _showGameOverDialog() {
     final gameState = ref.read(gameStateNotifierProvider);
     final totalQuestions = gameState.questions.length;
+    final score = gameState.score;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    // Navigate to the new GameCompletionScreen
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => GameCompletionScreen(
-          gameId: widget.gameId,
-          gameTitle: widget.gameTitle,
-          gameType: widget.gameType,
-          score: gameState.score,
-          totalQuestions: totalQuestions,
-        ),
-      ),
+    // Show congratulations overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [AppColors.darkSurface, AppColors.darkCard]
+                    : [Colors.white, AppColors.offWhite],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Congratulations icon
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.limeGreen,
+                        AppColors.limeGreen.withOpacity(0.8)
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                )
+                    .animate()
+                    .scale(duration: const Duration(milliseconds: 500))
+                    .then()
+                    .shake(duration: const Duration(milliseconds: 300)),
+
+                const SizedBox(height: 20),
+
+                // Congratulations text
+                Text(
+                  'Congratulations! 🎉',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                )
+                    .animate(delay: const Duration(milliseconds: 200))
+                    .fadeIn(duration: const Duration(milliseconds: 400))
+                    .slideY(begin: 0.3, end: 0),
+
+                const SizedBox(height: 12),
+
+                // Game completed text
+                Text(
+                  'You completed ${widget.gameTitle}!',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                )
+                    .animate(delay: const Duration(milliseconds: 300))
+                    .fadeIn(duration: const Duration(milliseconds: 400))
+                    .slideY(begin: 0.3, end: 0),
+
+                const SizedBox(height: 24),
+
+                // Score display
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.limeGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.limeGreen.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Your Score',
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white70
+                              : Colors.grey.shade600,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: AppColors.limeGreen,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$score / $totalQuestions',
+                            style: TextStyle(
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : AppColors.navyBlue,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getPerformanceMessage(score, totalQuestions),
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white70
+                              : Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+                    .animate(delay: const Duration(milliseconds: 400))
+                    .fadeIn(duration: const Duration(milliseconds: 400))
+                    .slideY(begin: 0.3, end: 0),
+
+                const SizedBox(height: 32),
+
+                // Action buttons
+                Row(
+                  children: [
+                    // Exit button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Close dialog and navigate to home
+                          Navigator.of(context).pop();
+                          context.go('/');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDarkMode
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade200,
+                          foregroundColor:
+                              isDarkMode ? Colors.white : Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.home, size: 18),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Exit',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Play Again button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Close dialog and restart the game
+                          Navigator.of(context).pop();
+                          _restartGame();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.limeGreen,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                          shadowColor: AppColors.limeGreen.withOpacity(0.3),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.refresh, size: 18),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Play Again',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+                    .animate(delay: const Duration(milliseconds: 500))
+                    .fadeIn(duration: const Duration(milliseconds: 400))
+                    .slideY(begin: 0.3, end: 0),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  String _getPerformanceMessage(int score, int total) {
+    final percentage = (score / total * 100).round();
+
+    if (percentage >= 90) return 'Outstanding! You\'re a history master! 🏆';
+    if (percentage >= 80) return 'Excellent work! Well done! 🌟';
+    if (percentage >= 70) return 'Great job! Keep it up! 🎯';
+    if (percentage >= 60) return 'Good effort! You\'re improving! 👍';
+    if (percentage >= 50) return 'Not bad! Practice makes perfect! 💪';
+    return 'Keep trying! You\'ll get better! 📚';
+  }
+
+  void _restartGame() {
+    // Reset UI state
+    setState(() {
+      _showFeedback = false;
+      _selectedOptionId = null;
+      _correctOption = null;
+      _isCorrect = null;
+    });
+
+    // Reset animations
+    _scoreAnimationController.reset();
+    _progressAnimationController.reset();
+    _feedbackAnimationController.reset();
+    _overlayAnimationController.reset();
+    _popupAnimationController.reset();
+
+    // Remove any existing overlays
+    _feedbackOverlay?.remove();
+    _feedbackOverlay = null;
+
+    // Reload questions which will reset the game state
+    _loadQuestions();
   }
 
   @override

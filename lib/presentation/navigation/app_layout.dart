@@ -70,11 +70,21 @@ class AppLayout extends StatelessWidget {
                   unselectedIconColor: unselectedIconColor,
                   indicatorColor: indicatorColor,
                 ),
+                // _buildNavItem(
+                //   context: context,
+                //   icon: Icons.groups_outlined,
+                //   selectedIcon: Icons.groups,
+                //   isSelected: currentIndex == 2,
+                //   onTap: () => context.go('/community'),
+                //   selectedIconColor: selectedIconColor,
+                //   unselectedIconColor: unselectedIconColor,
+                //   indicatorColor: indicatorColor,
+                // ),
                 _buildNavItem(
                   context: context,
                   icon: Icons.psychology_outlined,
                   selectedIcon: Icons.psychology,
-                  isSelected: currentIndex == 2,
+                  isSelected: currentIndex == 3,
                   onTap: () => context.go('/games'),
                   selectedIconColor: selectedIconColor,
                   unselectedIconColor: unselectedIconColor,
@@ -84,7 +94,7 @@ class AppLayout extends StatelessWidget {
                   context: context,
                   icon: Icons.emoji_events_outlined,
                   selectedIcon: Icons.emoji_events,
-                  isSelected: currentIndex == 3,
+                  isSelected: currentIndex == 4,
                   onTap: () => context.go('/leaderboard'),
                   selectedIconColor: selectedIconColor,
                   unselectedIconColor: unselectedIconColor,
@@ -94,7 +104,7 @@ class AppLayout extends StatelessWidget {
                   context: context,
                   icon: Icons.person_outline,
                   selectedIcon: Icons.person,
-                  isSelected: currentIndex == 4,
+                  isSelected: currentIndex == 5,
                   onTap: () => context.go('/profile'),
                   showProfileIndicator: true,
                   selectedIconColor: selectedIconColor,
@@ -162,9 +172,10 @@ class AppLayout extends StatelessWidget {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/home')) return 0;
     if (location.startsWith('/elearning')) return 1;
-    if (location.startsWith('/games')) return 2;
-    if (location.startsWith('/leaderboard')) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith('/community')) return 2;
+    if (location.startsWith('/games')) return 3;
+    if (location.startsWith('/leaderboard')) return 4;
+    if (location.startsWith('/profile')) return 5;
     return 0; // Default to home
   }
 }

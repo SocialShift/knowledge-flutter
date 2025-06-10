@@ -64,12 +64,12 @@ class LeaderboardScreen extends HookConsumerWidget {
                     child: Row(
                       children: [
                         // App Logo
-                        Image.asset(
-                          'assets/images/logo/logo.png',
-                          alignment: Alignment.center,
-                          height: 32,
-                          width: 32,
-                        ),
+                        // Image.asset(
+                        //   'assets/images/logo/logo.png',
+                        //   alignment: Alignment.center,
+                        //   height: 32,
+                        //   width: 32,
+                        // ),
 
                         const SizedBox(width: 12),
                         const Expanded(
