@@ -18,6 +18,7 @@ import 'dart:math' as math;
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:developer' as developer;
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -167,9 +168,9 @@ class _KnowledgeState extends ConsumerState<Knowledge>
         final user = await authRepository.getUserFromSession();
         final hasProfile = await authRepository.hasCompletedProfileSetup();
 
-        print('Session restore debug:');
-        print('  - User: ${user.email}');
-        print('  - hasCompletedProfile: $hasProfile');
+        DebugUtils.debugLog('Session restore debug:');
+        DebugUtils.debugLog('  - User: ${user.email}');
+        DebugUtils.debugLog('  - hasCompletedProfile: $hasProfile');
 
         // Set authenticated state with user info
         authNotifier.restoreSession(user, hasProfile);

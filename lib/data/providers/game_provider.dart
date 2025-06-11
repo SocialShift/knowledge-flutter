@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/repositories/game_repository.dart';
 import 'package:knowledge/data/models/game_question.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'game_provider.g.dart';
 
@@ -24,7 +25,7 @@ Future<List<GameQuestion>> gameQuestions(
     final questionsResponse = GameQuestionResponse.fromJson(response);
     return questionsResponse.items;
   } catch (e) {
-    print('Error in gameQuestions provider: $e');
+    DebugUtils.debugError('Error in gameQuestions provider: $e');
 
     // Create appropriate mock data based on game type
     if (gameType == kGuessYearGameType) {
@@ -458,7 +459,7 @@ class GameStateNotifier extends _$GameStateNotifier {
 
       return isCorrect;
     } catch (e) {
-      print('Error submitting answer: $e');
+      DebugUtils.debugError('Error submitting answer: $e');
 
       // Still update local state for testing purposes
       final isCorrect = selectedOption.isCorrect;

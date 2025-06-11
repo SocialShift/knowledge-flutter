@@ -1,6 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:knowledge/data/providers/filter_provider.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'timeline.freezed.dart';
 part 'timeline.g.dart';
@@ -128,7 +129,7 @@ class Timeline with _$Timeline {
   // Helper method to extract the start year from a year range string like "2024 - 2030"
   static int _parseYearRange(String yearRange) {
     try {
-      print('Parsing year range: $yearRange');
+      DebugUtils.debugLog('Parsing year range: $yearRange');
 
       // If the year range is empty, return default
       if (yearRange.isEmpty) {
@@ -156,7 +157,7 @@ class Timeline with _$Timeline {
 
       return 2000; // Default year if parsing fails
     } catch (e) {
-      print('Error parsing year range: $e');
+      DebugUtils.debugError('Error parsing year range: $e');
       return 2000; // Default year if parsing fails
     }
   }
@@ -258,7 +259,7 @@ class Story with _$Story {
     }
 
     // Debug print to check the video URL
-    print('Story ID: ${json['id']} - Video URL: $videoUrl');
+    DebugUtils.debugLog('Story ID: ${json['id']} - Video URL: $videoUrl');
 
     // Get the story date
     String storyDate = json['story_date'] ?? '';
@@ -269,7 +270,7 @@ class Story with _$Story {
       try {
         year = int.parse(storyDate.split('-')[0]);
       } catch (e) {
-        print('Error parsing year from story_date: $e');
+        DebugUtils.debugError('Error parsing year from story_date: $e');
       }
     }
 

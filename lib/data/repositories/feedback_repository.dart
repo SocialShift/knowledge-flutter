@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'feedback_repository.g.dart';
 
@@ -36,7 +37,7 @@ class FeedbackRepository {
 
       return false;
     } catch (e) {
-      print('Error submitting feedback: $e');
+      DebugUtils.debugError('Error submitting feedback: $e');
       return false;
     }
   }
@@ -47,7 +48,7 @@ class FeedbackRepository {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_feedbackShownKey) ?? false;
     } catch (e) {
-      print('Error checking feedback status: $e');
+      DebugUtils.debugError('Error checking feedback status: $e');
       return false;
     }
   }
@@ -58,7 +59,7 @@ class FeedbackRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_feedbackShownKey, true);
     } catch (e) {
-      print('Error marking feedback as shown: $e');
+      DebugUtils.debugError('Error marking feedback as shown: $e');
     }
   }
 
@@ -69,7 +70,7 @@ class FeedbackRepository {
       await prefs.setString(_lastFeedbackRatingKey, rating);
       await prefs.setString(_lastFeedbackTextKey, text);
     } catch (e) {
-      print('Error saving last feedback: $e');
+      DebugUtils.debugError('Error saving last feedback: $e');
     }
   }
 
@@ -79,7 +80,7 @@ class FeedbackRepository {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_lastFeedbackRatingKey);
     } catch (e) {
-      print('Error getting last feedback rating: $e');
+      DebugUtils.debugError('Error getting last feedback rating: $e');
       return null;
     }
   }
@@ -90,7 +91,7 @@ class FeedbackRepository {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_lastFeedbackTextKey);
     } catch (e) {
-      print('Error getting last feedback text: $e');
+      DebugUtils.debugError('Error getting last feedback text: $e');
       return null;
     }
   }

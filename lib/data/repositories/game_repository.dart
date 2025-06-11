@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:knowledge/core/config/app_config.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'game_repository.g.dart';
 
@@ -21,9 +22,8 @@ class GameRepository {
       dio.options.connectTimeout = const Duration(seconds: 15);
       dio.options.receiveTimeout = const Duration(seconds: 15);
 
-      // Print debug info
-      print('Fetching game questions for game type: $gameType');
-      print(
+      DebugUtils.debugLog('Fetching game questions for game type: $gameType');
+      DebugUtils.debugLog(
           'Request URL: ${AppConfig.baseUrl}/game/questions/?game_type=$gameType');
 
       final response = await dio.get(
@@ -38,14 +38,15 @@ class GameRepository {
       );
 
       // Log response status
-      print('Response status code: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      DebugUtils.debugLog('Response status code: ${response.statusCode}');
+      DebugUtils.debugLog('Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         return response.data;
       } else if (response.statusCode == 307 || response.statusCode == 302) {
         // Handle redirect
-        print('Received redirect. Location: ${response.headers['location']}');
+        DebugUtils.debugLog(
+            'Received redirect. Location: ${response.headers['location']}');
         final redirectUrl = response.headers['location']?.first;
         if (redirectUrl != null) {
           final redirectResponse = await dio.get(redirectUrl);
@@ -58,13 +59,14 @@ class GameRepository {
         throw 'Failed to load questions with status code: ${response.statusCode}';
       }
     } catch (e) {
-      print('Error fetching game questions: $e');
+      DebugUtils.debugError('Error fetching game questions: $e');
       // More detailed error logging
       if (e is DioException) {
-        print('DioException type: ${e.type}');
-        print('DioException message: ${e.message}');
-        print('DioException response: ${e.response?.data}');
-        print('DioException status code: ${e.response?.statusCode}');
+        DebugUtils.debugError('DioException type: ${e.type}');
+        DebugUtils.debugError('DioException message: ${e.message}');
+        DebugUtils.debugError('DioException response: ${e.response?.data}');
+        DebugUtils.debugError(
+            'DioException status code: ${e.response?.statusCode}');
       }
       rethrow;
     }
@@ -87,7 +89,7 @@ class GameRepository {
         throw 'Failed to submit attempt with status code: ${response.statusCode}';
       }
     } catch (e) {
-      print('Error submitting game attempt: $e');
+      DebugUtils.debugError('Error submitting game attempt: $e');
       rethrow;
     }
   }

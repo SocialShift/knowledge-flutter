@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:knowledge/core/config/app_config.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 class ApiService {
   final Dio _dio;
@@ -36,10 +37,7 @@ class ApiService {
               response.headers['Set-Cookie'] ?? response.headers['set-cookie'];
 
           if (cookies != null && cookies.isNotEmpty) {
-            // Only log in debug mode
-            if (kDebugMode) {
-              print('Storing cookie: ${cookies.first}');
-            }
+            DebugUtils.debugLog('Storing cookie: ${cookies.first}');
             await _storage.write(key: 'session_cookie', value: cookies.first);
           }
           return handler.next(response);
@@ -48,19 +46,14 @@ class ApiService {
           // Attach session cookie to requests
           final cookie = await _storage.read(key: 'session_cookie');
           if (cookie != null) {
-            // Only log in debug mode
-            if (kDebugMode) {
-              print('Attaching cookie to request: $cookie');
-            }
+            DebugUtils.debugLog('Attaching cookie to request: $cookie');
             options.headers['Cookie'] = cookie;
           }
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          if (kDebugMode) {
-            print('Request error: ${e.message}');
-            print('Request path: ${e.requestOptions.path}');
-          }
+          DebugUtils.debugError('Request error: ${e.message}');
+          DebugUtils.debugError('Request path: ${e.requestOptions.path}');
           return handler.next(e);
         },
       ),
@@ -73,9 +66,7 @@ class ApiService {
               e.type == DioExceptionType.sendTimeout ||
               e.type == DioExceptionType.receiveTimeout) {
             try {
-              if (kDebugMode) {
-                print('Retrying request due to timeout...');
-              }
+              DebugUtils.debugInfo('Retrying request due to timeout...');
               final response = await _dio.fetch(e.requestOptions);
               return handler.resolve(response);
             } catch (e) {
@@ -118,9 +109,8 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      if (kDebugMode) {
-        print('Making POST request to: ${_dio.options.baseUrl}$path');
-      }
+      DebugUtils.debugLog(
+          'Making POST request to: ${_dio.options.baseUrl}$path');
 
       final response = await _dio.post(
         path,
@@ -133,9 +123,7 @@ class ApiService {
         ),
       );
 
-      if (kDebugMode) {
-        print('Response status: ${response.statusCode}');
-      }
+      DebugUtils.debugLog('Response status: ${response.statusCode}');
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -153,10 +141,8 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      if (kDebugMode) {
-        print('DioException occurred: ${e.message}');
-        print('DioException type: ${e.type}');
-      }
+      DebugUtils.debugError('DioException occurred: ${e.message}');
+      DebugUtils.debugError('DioException type: ${e.type}');
       throw _handleDioError(e);
     }
   }
@@ -167,8 +153,9 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      print('Making FormData POST request to: ${_dio.options.baseUrl}$path');
-      print('FormData fields: ${formData.fields}');
+      DebugUtils.debugLog(
+          'Making FormData POST request to: ${_dio.options.baseUrl}$path');
+      DebugUtils.debugLog('FormData fields: ${formData.fields}');
 
       final response = await _dio.post(
         path,
@@ -184,8 +171,8 @@ class ApiService {
         ),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      DebugUtils.debugLog('Response status: ${response.statusCode}');
+      DebugUtils.debugLog('Response data: ${response.data}');
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -203,9 +190,9 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      print('DioException occurred: ${e.message}');
-      print('DioException type: ${e.type}');
-      print('DioException response: ${e.response?.data}');
+      DebugUtils.debugError('DioException occurred: ${e.message}');
+      DebugUtils.debugError('DioException type: ${e.type}');
+      DebugUtils.debugError('DioException response: ${e.response?.data}');
       throw _handleDioError(e);
     }
   }
@@ -216,8 +203,9 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      print('Making FormData PATCH request to: ${_dio.options.baseUrl}$path');
-      print('FormData fields: ${formData.fields}');
+      DebugUtils.debugLog(
+          'Making FormData PATCH request to: ${_dio.options.baseUrl}$path');
+      DebugUtils.debugLog('FormData fields: ${formData.fields}');
 
       final response = await _dio.patch(
         path,
@@ -233,8 +221,8 @@ class ApiService {
         ),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      DebugUtils.debugLog('Response status: ${response.statusCode}');
+      DebugUtils.debugLog('Response data: ${response.data}');
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -252,9 +240,9 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      print('DioException occurred: ${e.message}');
-      print('DioException type: ${e.type}');
-      print('DioException response: ${e.response?.data}');
+      DebugUtils.debugError('DioException occurred: ${e.message}');
+      DebugUtils.debugError('DioException type: ${e.type}');
+      DebugUtils.debugError('DioException response: ${e.response?.data}');
       throw _handleDioError(e);
     }
   }
@@ -292,9 +280,9 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      print('DioException in patch: ${e.message}');
-      print('DioException type: ${e.type}');
-      print('DioException response: ${e.response?.data}');
+      DebugUtils.debugError('DioException in patch: ${e.message}');
+      DebugUtils.debugError('DioException type: ${e.type}');
+      DebugUtils.debugError('DioException response: ${e.response?.data}');
       throw _handleDioError(e);
     }
   }
@@ -305,8 +293,9 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      print('Making DELETE request to: ${_dio.options.baseUrl}$path');
-      print('Request data: $data');
+      DebugUtils.debugLog(
+          'Making DELETE request to: ${_dio.options.baseUrl}$path');
+      DebugUtils.debugLog('Request data: $data');
 
       final response = await _dio.delete(
         path,
@@ -319,8 +308,8 @@ class ApiService {
         ),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      DebugUtils.debugLog('Response status: ${response.statusCode}');
+      DebugUtils.debugLog('Response data: ${response.data}');
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -338,9 +327,9 @@ class ApiService {
 
       return response;
     } on DioException catch (e) {
-      print('DioException in delete: ${e.message}');
-      print('DioException type: ${e.type}');
-      print('DioException response: ${e.response?.data}');
+      DebugUtils.debugError('DioException in delete: ${e.message}');
+      DebugUtils.debugError('DioException type: ${e.type}');
+      DebugUtils.debugError('DioException response: ${e.response?.data}');
       throw _handleDioError(e);
     }
   }

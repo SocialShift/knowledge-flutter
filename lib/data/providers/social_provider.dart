@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/social_user.dart';
 import 'package:knowledge/data/repositories/social_repository.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'social_provider.g.dart';
 
@@ -60,7 +61,7 @@ class SocialNotifier extends _$SocialNotifier {
       });
     } catch (e) {
       if (kDebugMode) {
-        print('Error following user: $e');
+        DebugUtils.debugError('Error following user: $e');
       }
     }
   }
@@ -83,7 +84,7 @@ class SocialNotifier extends _$SocialNotifier {
       });
     } catch (e) {
       if (kDebugMode) {
-        print('Error unfollowing user: $e');
+        DebugUtils.debugError('Error unfollowing user: $e');
       }
     }
   }

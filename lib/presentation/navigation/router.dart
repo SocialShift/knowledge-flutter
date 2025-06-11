@@ -29,6 +29,7 @@ import 'package:knowledge/presentation/screens/socials/user_profile_screen.dart'
 import 'package:knowledge/presentation/screens/socials/followers_screen.dart';
 import 'package:knowledge/presentation/screens/socials/following_screen.dart';
 import 'package:knowledge/presentation/screens/community/community_screen.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -52,10 +53,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Debug logging for profile completion status
       if (state.uri.path == '/' || state.uri.path == '/profile-setup') {
-        print('Router redirect check:');
-        print('  - isAuthenticated: $isAuthenticated');
-        print('  - hasCompletedProfile: $hasCompletedProfile');
-        print('  - current path: ${state.uri.path}');
+        DebugUtils.debugLog('Router redirect check:');
+        DebugUtils.debugLog('  - isAuthenticated: $isAuthenticated');
+        DebugUtils.debugLog('  - hasCompletedProfile: $hasCompletedProfile');
+        DebugUtils.debugLog('  - current path: ${state.uri.path}');
       }
 
       // Check if user is explicitly unauthenticated (logged out)

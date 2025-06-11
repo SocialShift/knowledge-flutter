@@ -4,6 +4,7 @@ import 'package:knowledge/data/repositories/auth_repository.dart';
 import 'package:knowledge/data/models/user.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'auth_provider.g.dart';
 
@@ -21,8 +22,9 @@ class AuthNotifier extends _$AuthNotifier {
 
   // Restore user session from a valid session token
   Future<void> restoreSession(User user, bool hasCompletedProfile) async {
-    print('Session restore started for user: ${user.email}');
-    print('User email verification status: ${user.isEmailVerified}');
+    DebugUtils.debugLog('Session restore started for user: ${user.email}');
+    DebugUtils.debugLog(
+        'User email verification status: ${user.isEmailVerified}');
 
     // Check if email is verified before setting authenticated state
     if (!user.isEmailVerified) {
@@ -32,7 +34,8 @@ class AuthNotifier extends _$AuthNotifier {
         message:
             'Please verify your email to continue. Check your inbox for verification code.',
       );
-      print('Session restored - redirecting to email verification');
+      DebugUtils.debugLog(
+          'Session restored - redirecting to email verification');
       return;
     }
 
@@ -43,7 +46,8 @@ class AuthNotifier extends _$AuthNotifier {
       hasCompletedProfile: hasCompletedProfile,
     );
 
-    print('Session restored successfully for verified user: ${user.email}');
+    DebugUtils.debugLog(
+        'Session restored successfully for verified user: ${user.email}');
   }
 
   Future<void> login(String email, String password) async {
@@ -256,7 +260,7 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> logout() async {
-    print('Logout process started');
+    DebugUtils.debugLog('Logout process started');
 
     try {
       // Stop session checks first
@@ -273,9 +277,9 @@ class AuthNotifier extends _$AuthNotifier {
       // Additional cleanup - invalidate auth repository to clear any cached state
       ref.invalidate(authRepositoryProvider);
 
-      print('Logout completed successfully');
+      DebugUtils.debugLog('Logout completed successfully');
     } catch (e) {
-      print('Logout error: $e');
+      DebugUtils.debugError('Logout error: $e');
       // Even if logout API fails, clear local state and storage
       _sessionCheckTimer?.cancel();
 
@@ -294,7 +298,7 @@ class AuthNotifier extends _$AuthNotifier {
       // Invalidate auth repository to clear any cached state
       ref.invalidate(authRepositoryProvider);
 
-      print('Logout completed with local cleanup');
+      DebugUtils.debugLog('Logout completed with local cleanup');
     }
   }
 
@@ -378,7 +382,7 @@ class AuthNotifier extends _$AuthNotifier {
       }
       // If user IS verified, do nothing - keep current authenticated state
     } catch (e) {
-      print('Error checking email verification: $e');
+      DebugUtils.debugError('Error checking email verification: $e');
       // Don't change state on error, just log it
     }
   }
@@ -402,12 +406,13 @@ class AuthNotifier extends _$AuthNotifier {
       // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
 
-      print('Account deletion successful, setting unauthenticated state');
+      DebugUtils.debugLog(
+          'Account deletion successful, setting unauthenticated state');
       state = const AuthState.unauthenticated(
         message: 'Account deleted successfully. Thank you for your feedback.',
       );
     } catch (e) {
-      print('Account deletion failed: $e');
+      DebugUtils.debugError('Account deletion failed: $e');
       // Add a small delay to ensure the loading state is visible
       await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(e.toString());
@@ -438,7 +443,7 @@ class AuthNotifier extends _$AuthNotifier {
 
   // Clear current verification state to allow email change
   Future<void> clearVerificationState() async {
-    print('Clearing verification state to allow email change');
+    DebugUtils.debugLog('Clearing verification state to allow email change');
 
     // Cancel any running timers
     _sessionCheckTimer?.cancel();
@@ -457,7 +462,8 @@ class AuthNotifier extends _$AuthNotifier {
     // Invalidate providers to clear any cached data
     ref.invalidate(authRepositoryProvider);
 
-    print('Verification state cleared - user can now use different email');
+    DebugUtils.debugLog(
+        'Verification state cleared - user can now use different email');
   }
 
   // Mark profile setup as completed
@@ -470,11 +476,11 @@ class AuthNotifier extends _$AuthNotifier {
           message: authState.message,
           hasCompletedProfile: true,
         );
-        print(
+        DebugUtils.debugLog(
             'Profile setup marked as completed for user: ${authState.user.email}');
       },
       orElse: () {
-        print(
+        DebugUtils.debugError(
             'Cannot mark profile setup as completed - user not authenticated');
       },
     );
@@ -485,7 +491,7 @@ class AuthNotifier extends _$AuthNotifier {
     state.maybeMap(
       unauthenticated: (currentState) {
         state = const AuthState.unauthenticated();
-        print('Auth message cleared');
+        DebugUtils.debugLog('Auth message cleared');
       },
       orElse: () {
         // Don't clear messages for other states

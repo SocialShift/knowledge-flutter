@@ -4,6 +4,7 @@ import 'package:knowledge/data/models/timeline.dart';
 import 'package:knowledge/data/repositories/timeline_repository.dart';
 import 'package:knowledge/data/models/history_item.dart';
 import 'package:knowledge/data/providers/filter_provider.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 // A simple class to hold pagination state
 class PaginatedData<T> {
@@ -257,13 +258,13 @@ final markStorySeenProvider = Provider<Future<void> Function(String)>((ref) {
         ref.invalidate(timelineAllStoriesSeenProvider);
         ref.invalidate(nextUnseenTimelineIndexProvider);
 
-        debugPrint(
+        DebugUtils.debugLog(
             'Story $storyId marked as seen successfully with real-time updates');
       } else {
-        debugPrint('Failed to mark story $storyId as seen');
+        DebugUtils.debugError('Failed to mark story $storyId as seen');
       }
     } catch (e) {
-      debugPrint('Error marking story $storyId as seen: $e');
+      DebugUtils.debugError('Error marking story $storyId as seen: $e');
     }
   };
 });

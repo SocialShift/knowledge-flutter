@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:knowledge/data/models/user_profile.dart';
 import 'package:knowledge/data/repositories/profile_repository.dart';
+import 'package:knowledge/core/utils/debug_utils.dart';
 
 part 'auth_repository.g.dart';
 
@@ -30,16 +31,18 @@ class AuthRepository {
         // Get the Set-Cookie header value directly
         final setCookieHeader = response.headers.map['set-cookie']?.first;
         if (setCookieHeader != null) {
-          print('Login - Found Set-Cookie header: $setCookieHeader');
+          DebugUtils.debugLog(
+              'Login - Found Set-Cookie header: $setCookieHeader');
           // Store the complete session cookie
           await _storage.write(key: 'session_cookie', value: setCookieHeader);
 
           // Verify storage
           final storedCookie = await _storage.read(key: 'session_cookie');
-          print('Login - Stored cookie verification: $storedCookie');
+          DebugUtils.debugLog(
+              'Login - Stored cookie verification: $storedCookie');
         } else {
-          print('Login - No Set-Cookie header found in response');
-          print('Login - All headers: ${response.headers.map}');
+          DebugUtils.debugLog('Login - No Set-Cookie header found in response');
+          DebugUtils.debugLog('Login - All headers: ${response.headers.map}');
         }
 
         // First get basic user data from login response
@@ -94,7 +97,7 @@ class AuthRepository {
         throw message.toString();
       }
     } catch (e) {
-      print('Login error: $e');
+      DebugUtils.debugError('Login error: $e');
       throw 'Authentication failed: ${e.toString()}';
     }
   }
@@ -111,7 +114,7 @@ class AuthRepository {
         },
       );
 
-      print('Signup Response: ${response.data}');
+      DebugUtils.debugLog('Signup Response: ${response.data}');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return; // Successful registration
