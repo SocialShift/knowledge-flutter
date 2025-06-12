@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/presentation/screens/profile/delete_account_screen.dart';
+import 'package:knowledge/core/utils/url_utils.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -106,31 +107,70 @@ class SettingsScreen extends ConsumerWidget {
               //   ],
               // ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
 
-              // const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-              // About App Section
+              // Legal Section
               _SettingsSection(
-                title: 'About',
-                icon: Icons.info_outline,
+                title: 'Legal',
+                icon: Icons.gavel_outlined,
                 children: [
                   _SettingsTile(
-                    title: 'Version',
+                    title: 'Privacy Policy',
                     leading: Icon(
-                      Icons.app_settings_alt_outlined,
+                      Icons.privacy_tip_outlined,
                       color:
                           isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
                     ),
-                    trailing: const Text(
-                      '1.0.0',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: isDarkMode ? Colors.grey : Colors.grey,
                     ),
-                    onTap: () {},
+                    onTap: () => UrlUtils.launchPrivacyPolicy(context: context),
+                  ),
+                  _SettingsTile(
+                    title: 'Terms & Conditions',
+                    leading: Icon(
+                      Icons.description_outlined,
+                      color:
+                          isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: isDarkMode ? Colors.grey : Colors.grey,
+                    ),
+                    onTap: () =>
+                        UrlUtils.launchTermsOfService(context: context),
                   ),
                 ],
-              ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
+              ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
+
+              const SizedBox(height: 16),
+
+              // About App Section
+              // _SettingsSection(
+              //   title: 'About',
+              //   icon: Icons.info_outline,
+              //   children: [
+              //     _SettingsTile(
+              //       title: 'Version',
+              //       leading: Icon(
+              //         Icons.app_settings_alt_outlined,
+              //         color:
+              //             isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+              //       ),
+              //       trailing: const Text(
+              //         '1.0.0',
+              //         style: TextStyle(
+              //           color: Colors.grey,
+              //           fontSize: 14,
+              //         ),
+              //       ),
+              //       onTap: () {},
+              //     ),
+              //   ],
+              // ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
             ],
           ),
         ),

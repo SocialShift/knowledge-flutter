@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/core/utils/url_utils.dart';
 
 class SignupScreen extends HookConsumerWidget {
   const SignupScreen({super.key});
@@ -162,6 +163,21 @@ class SignupScreen extends HookConsumerWidget {
                         ).animate().fadeIn().slideY(
                               begin: 0.3,
                               delay: const Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 500),
+                            ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'We provide personalised experience for each user',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white60,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ).animate().fadeIn().slideY(
+                              begin: 0.3,
+                              delay: const Duration(milliseconds: 300),
                               duration: const Duration(milliseconds: 500),
                             ),
                       ],
@@ -325,6 +341,48 @@ class SignupScreen extends HookConsumerWidget {
                       ).animate().fadeIn().slideY(
                             begin: 0.2,
                             delay: const Duration(milliseconds: 700),
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                      const SizedBox(height: 20),
+                      // Legal Links
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: () =>
+                                UrlUtils.launchPrivacyPolicy(context: context),
+                            child: Text(
+                              'Privacy Policy',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            ' • ',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                UrlUtils.launchTermsOfService(context: context),
+                            child: Text(
+                              'Terms & Conditions',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fadeIn().slideY(
+                            begin: 0.2,
+                            delay: const Duration(milliseconds: 800),
                             duration: const Duration(milliseconds: 500),
                           ),
                       const SizedBox(height: 16),

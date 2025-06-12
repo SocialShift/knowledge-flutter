@@ -6,7 +6,7 @@ part of 'social_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$socialNotifierHash() => r'9951899933fc809f407836fc703b9f54bc7d6ab1';
+String _$socialNotifierHash() => r'6a05d65234e188cb0db43c8d7dcb877a82842827';
 
 /// See also [SocialNotifier].
 @ProviderFor(SocialNotifier)
