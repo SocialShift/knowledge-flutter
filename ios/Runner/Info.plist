@@ -44,7 +44,7 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
-	<array>
+	<array> 
 		<!-- <string>audio</string> -->
 	</array>
 	<key>UILaunchStoryboardName</key>
