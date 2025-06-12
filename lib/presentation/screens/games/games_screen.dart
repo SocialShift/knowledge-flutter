@@ -810,9 +810,9 @@ class _GamesScreenState extends ConsumerState<GamesScreen>
           Tab(
             child: Text('Games'),
           ),
-          // Tab(
-          //   child: Text('Milestones'),
-          // ),
+          Tab(
+            child: Text('Milestones'),
+          ),
         ],
       ),
     ).animate().fadeIn(delay: const Duration(milliseconds: 400)).scale(

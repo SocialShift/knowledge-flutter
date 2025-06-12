@@ -134,7 +134,7 @@ class AppLayout extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64,
+        width: 50,
         child: Stack(
           alignment: Alignment.center,
           children: [
