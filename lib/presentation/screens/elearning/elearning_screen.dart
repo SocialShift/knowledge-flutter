@@ -684,66 +684,66 @@ class _HeaderSection extends StatelessWidget {
                 ),
               ),
               // Notification icon with badge
-              // Consumer(
-              //   builder: (context, ref, child) {
-              //     final notificationsAsync =
-              //         ref.watch(onThisDayNotificationsProvider);
+              Consumer(
+                builder: (context, ref, child) {
+                  final notificationsAsync =
+                      ref.watch(onThisDayNotificationsProvider);
 
-              //     // Check if there are notifications
-              //     final hasNotifications = notificationsAsync.hasValue &&
-              //         notificationsAsync.value!.isNotEmpty;
+                  // Check if there are notifications
+                  final hasNotifications = notificationsAsync.hasValue &&
+                      notificationsAsync.value!.isNotEmpty;
 
-              //     return Stack(
-              //       children: [
-              //         GestureDetector(
-              //           onTap: () {
-              //             // Navigate to notifications screen
-              //             context.push('/notifications');
-              //           },
-              //           child: Container(
-              //             height: 40,
-              //             width: 40,
-              //             decoration: BoxDecoration(
-              //               shape: BoxShape.circle,
-              //               color: iconBgColor,
-              //               boxShadow: [
-              //                 BoxShadow(
-              //                   color: Colors.black.withOpacity(0.1),
-              //                   blurRadius: 4,
-              //                   offset: const Offset(0, 2),
-              //                 ),
-              //               ],
-              //             ),
-              //             child: const Icon(
-              //               Icons.notifications_outlined,
-              //               color: Colors.white,
-              //               size: 24,
-              //             ),
-              //           ),
-              //         ),
+                  return Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to notifications screen
+                          context.push('/notifications');
+                        },
+                        child: Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: iconBgColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
 
-              //         // Notification badge
-              //         if (hasNotifications)
-              //           Positioned(
-              //             right: 0,
-              //             top: 0,
-              //             child: Container(
-              //               width: 10,
-              //               height: 10,
-              //               decoration: BoxDecoration(
-              //                 color: Colors.red,
-              //                 shape: BoxShape.circle,
-              //                 border: Border.all(
-              //                   color: Colors.white,
-              //                   width: 1.5,
-              //                 ),
-              //               ),
-              //             ),
-              //           ),
-              //       ],
-              //     );
-              //   },
-              // ),
+                      // Notification badge
+                      if (hasNotifications)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 20),

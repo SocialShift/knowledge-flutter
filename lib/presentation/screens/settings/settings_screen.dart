@@ -81,31 +81,31 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Accessibility Section
-              // _SettingsSection(
-              //   title: 'Accessibility',
-              //   icon: Icons.accessibility_new_outlined,
-              //   children: [
-              //     _SettingsTile(
-              //       title: 'Dark Mode',
-              //       leading: Icon(
-              //         themeMode == ThemeMode.dark
-              //             ? Icons.dark_mode
-              //             : Icons.light_mode,
-              //         color:
-              //             isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
-              //       ),
-              //       trailing: Switch(
-              //         value: themeMode == ThemeMode.dark,
-              //         onChanged: (_) => themeNotifier.toggleTheme(),
-              //         activeColor: AppColors.limeGreen,
-              //         activeTrackColor: isDarkMode
-              //             ? AppColors.limeGreen.withOpacity(0.3)
-              //             : AppColors.navyBlue.withOpacity(0.5),
-              //       ),
-              //       onTap: () => themeNotifier.toggleTheme(),
-              //     ),
-              //   ],
-              // ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
+              _SettingsSection(
+                title: 'Accessibility',
+                icon: Icons.accessibility_new_outlined,
+                children: [
+                  _SettingsTile(
+                    title: 'Dark Mode',
+                    leading: Icon(
+                      themeMode == ThemeMode.dark
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      color:
+                          isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+                    ),
+                    trailing: Switch(
+                      value: themeMode == ThemeMode.dark,
+                      onChanged: (_) => themeNotifier.toggleTheme(),
+                      activeColor: AppColors.limeGreen,
+                      activeTrackColor: isDarkMode
+                          ? AppColors.limeGreen.withOpacity(0.3)
+                          : AppColors.navyBlue.withOpacity(0.5),
+                    ),
+                    onTap: () => themeNotifier.toggleTheme(),
+                  ),
+                ],
+              ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
 
               const SizedBox(height: 16),
 
