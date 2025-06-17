@@ -26,11 +26,12 @@ final communityCategoriesProvider =
 // ignore: unused_element
 typedef CommunityCategoriesRef
     = AutoDisposeProviderRef<List<CommunityCategory>>;
-String _$allCommunitiesHash() => r'ea250d5a2b1c0ed5e8b8de845110f678bc9802e3';
+String _$allCommunitiesHash() => r'd991c3928bd59808326fd41bb7035e9b311a2aa7';
 
 /// See also [allCommunities].
 @ProviderFor(allCommunities)
-final allCommunitiesProvider = AutoDisposeProvider<List<Community>>.internal(
+final allCommunitiesProvider =
+    AutoDisposeFutureProvider<List<Community>>.internal(
   allCommunities,
   name: r'allCommunitiesProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -42,7 +43,7 @@ final allCommunitiesProvider = AutoDisposeProvider<List<Community>>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef AllCommunitiesRef = AutoDisposeProviderRef<List<Community>>;
+typedef AllCommunitiesRef = AutoDisposeFutureProviderRef<List<Community>>;
 String _$communitiesByCategoryHash() =>
     r'03598b98e95b00699d7f64602906478148057a0f';
 
@@ -200,11 +201,12 @@ class _CommunitiesByCategoryProviderElement
   String get categoryId => (origin as CommunitiesByCategoryProvider).categoryId;
 }
 
-String _$joinedCommunitiesHash() => r'1e9916fd7338fd87c1e1b1735ebf442c13198af5';
+String _$joinedCommunitiesHash() => r'08933c7205532ec381d5e03cc0b7160615245f68';
 
 /// See also [joinedCommunities].
 @ProviderFor(joinedCommunities)
-final joinedCommunitiesProvider = AutoDisposeProvider<List<Community>>.internal(
+final joinedCommunitiesProvider =
+    AutoDisposeFutureProvider<List<Community>>.internal(
   joinedCommunities,
   name: r'joinedCommunitiesProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -216,8 +218,8 @@ final joinedCommunitiesProvider = AutoDisposeProvider<List<Community>>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef JoinedCommunitiesRef = AutoDisposeProviderRef<List<Community>>;
-String _$communityActionsHash() => r'9111e5be81cf45cf44575e834eba30275f50e6a6';
+typedef JoinedCommunitiesRef = AutoDisposeFutureProviderRef<List<Community>>;
+String _$communityActionsHash() => r'8789493cdb07e8569683b4a32e665b95d724c091';
 
 /// See also [CommunityActions].
 @ProviderFor(CommunityActions)

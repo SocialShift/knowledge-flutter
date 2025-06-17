@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
+import 'package:knowledge/presentation/screens/profile/avatar_selection_screen.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
@@ -106,6 +107,7 @@ class EditProfileScreen extends HookConsumerWidget {
     final selectedState = useState<String>('');
     final selectedLanguage = useState<String>('English');
     final selectedImage = useState<File?>(null);
+    final selectedGameAvatar = useState<String?>(null);
 
     // Initialize controllers with current profile data
     useEffect(() {
@@ -119,7 +121,7 @@ class EditProfileScreen extends HookConsumerWidget {
       return null;
     }, [profileAsync]);
 
-    Future<void> pickImage() async {
+    Future<void> pickFromDevice() async {
       try {
         final picker = ImagePicker();
         final pickedFile = await picker.pickImage(
@@ -131,6 +133,7 @@ class EditProfileScreen extends HookConsumerWidget {
 
         if (pickedFile != null) {
           selectedImage.value = File(pickedFile.path);
+          selectedGameAvatar.value = null; // Clear game avatar selection
           // Show a snackbar confirmation
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -165,6 +168,106 @@ class EditProfileScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> pickGameAvatar() async {
+      final result = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AvatarSelectionScreen(),
+        ),
+      );
+
+      if (result != null) {
+        selectedGameAvatar.value = result;
+        selectedImage.value = null; // Clear device image selection
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Game avatar selected successfully'),
+              backgroundColor:
+                  isDarkMode ? AppColors.darkCard : AppColors.navyBlue,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              margin: const EdgeInsets.all(12),
+            ),
+          );
+        }
+      }
+    }
+
+    void showAvatarOptions() {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          decoration: BoxDecoration(
+            color: isDarkMode ? AppColors.darkCard : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Choose Avatar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Icon(
+                    Icons.pets,
+                    color:
+                        isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+                  ),
+                  title: Text(
+                    'Game Avatars',
+                    style: TextStyle(color: textColor),
+                  ),
+                  subtitle: const Text('Choose from our collection'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    pickGameAvatar();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.photo_library,
+                    color:
+                        isDarkMode ? AppColors.limeGreen : AppColors.navyBlue,
+                  ),
+                  title: Text(
+                    'Device Gallery',
+                    style: TextStyle(color: textColor),
+                  ),
+                  subtitle: const Text('Pick from your photos'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    pickFromDevice();
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     Future<void> handleSave() async {
       if (nicknameController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,6 +289,8 @@ class EditProfileScreen extends HookConsumerWidget {
         String? imageUrl;
         if (selectedImage.value != null) {
           imageUrl = "file://${selectedImage.value!.path}";
+        } else if (selectedGameAvatar.value != null) {
+          imageUrl = selectedGameAvatar.value;
         }
 
         await profileNotifier.updateProfile(
@@ -296,7 +401,7 @@ class EditProfileScreen extends HookConsumerWidget {
                     child: Column(
                       children: [
                         GestureDetector(
-                          onTap: pickImage,
+                          onTap: showAvatarOptions,
                           child: Stack(
                             children: [
                               Container(
@@ -328,9 +433,21 @@ class EditProfileScreen extends HookConsumerWidget {
                                               height: 110,
                                               fit: BoxFit.cover,
                                             )
-                                          : UserAvatar(
-                                              size: 110,
-                                            ),
+                                          : selectedGameAvatar.value != null
+                                              ? Image.asset(
+                                                  selectedGameAvatar.value!,
+                                                  width: 110,
+                                                  height: 110,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return UserAvatar(
+                                                        size: 110);
+                                                  },
+                                                )
+                                              : UserAvatar(
+                                                  size: 110,
+                                                ),
                                     ),
                                   ),
                                 ),

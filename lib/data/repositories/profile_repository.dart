@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:knowledge/data/models/profile.dart';
@@ -40,27 +43,52 @@ class ProfileRepository {
         formData.fields.add(MapEntry('languagePreference', languagePreference));
       }
 
-      // Handle avatar as a MultipartFile
+      // Handle avatar URL
       if (avatarUrl != null && avatarUrl.isNotEmpty) {
-        // Extract the file path from the "file://" URL format
-        final filePath = avatarUrl.startsWith('file://')
-            ? avatarUrl.substring(7)
-            : avatarUrl;
+        if (avatarUrl.startsWith('assets/')) {
+          // This is a game avatar - load from assets and send as MultipartFile
+          try {
+            // Load the asset as bytes
+            final ByteData assetData = await rootBundle.load(avatarUrl);
+            final Uint8List bytes = assetData.buffer.asUint8List();
 
-        // Create a File object to check if the file exists
-        final file = File(filePath);
-        if (await file.exists()) {
-          // Create a MultipartFile from the file
-          final fileName = filePath.split('/').last;
-          final multipartFile = await MultipartFile.fromFile(
-            file.path,
-            filename: fileName,
-          );
+            // Extract filename from asset path
+            final fileName = avatarUrl.split('/').last;
 
-          // Add the file to the form data with the correct field name
-          formData.files.add(MapEntry('avatar_file', multipartFile));
+            // Create MultipartFile from bytes
+            final multipartFile = MultipartFile.fromBytes(
+              bytes,
+              filename: fileName,
+              contentType:
+                  MediaType('image', 'jpeg'), // Assuming JPEG, adjust if needed
+            );
+
+            // Add the file to the form data
+            formData.files.add(MapEntry('avatar_file', multipartFile));
+          } catch (e) {
+            print('Error loading game avatar asset: $e');
+          }
         } else {
-          print('Avatar file does not exist: $filePath');
+          // This is a file from device - handle as MultipartFile
+          final filePath = avatarUrl.startsWith('file://')
+              ? avatarUrl.substring(7)
+              : avatarUrl;
+
+          // Create a File object to check if the file exists
+          final file = File(filePath);
+          if (await file.exists()) {
+            // Create a MultipartFile from the file
+            final fileName = filePath.split('/').last;
+            final multipartFile = await MultipartFile.fromFile(
+              file.path,
+              filename: fileName,
+            );
+
+            // Add the file to the form data with the correct field name
+            formData.files.add(MapEntry('avatar_file', multipartFile));
+          } else {
+            print('Avatar file does not exist: $filePath');
+          }
         }
       }
 

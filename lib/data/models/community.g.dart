@@ -26,21 +26,16 @@ Map<String, dynamic> _$$CommunityCategoryImplToJson(
 
 _$CommunityImpl _$$CommunityImplFromJson(Map<String, dynamic> json) =>
     _$CommunityImpl(
-      id: json['id'] as String,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String,
-      description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String,
-      categoryId: json['categoryId'] as String,
-      memberCount: (json['memberCount'] as num).toInt(),
-      xpReward: (json['xpReward'] as num).toInt(),
-      isJoined: json['isJoined'] as bool,
-      tags:
-          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              const [],
-      location: json['location'] as String?,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
+      description: json['description'] as String?,
+      topics: json['topics'] as String?,
+      bannerUrl: json['banner_url'] as String?,
+      iconUrl: json['icon_url'] as String?,
+      createdAt: json['created_at'] as String?,
+      createdBy: (json['created_by'] as num?)?.toInt(),
+      memberCount: (json['memberCount'] as num?)?.toInt() ?? 0,
+      isJoined: json['isJoined'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$CommunityImplToJson(_$CommunityImpl instance) =>
@@ -48,12 +43,11 @@ Map<String, dynamic> _$$CommunityImplToJson(_$CommunityImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'description': instance.description,
-      'imageUrl': instance.imageUrl,
-      'categoryId': instance.categoryId,
+      'topics': instance.topics,
+      'banner_url': instance.bannerUrl,
+      'icon_url': instance.iconUrl,
+      'created_at': instance.createdAt,
+      'created_by': instance.createdBy,
       'memberCount': instance.memberCount,
-      'xpReward': instance.xpReward,
       'isJoined': instance.isJoined,
-      'tags': instance.tags,
-      'location': instance.location,
-      'createdAt': instance.createdAt?.toIso8601String(),
     };

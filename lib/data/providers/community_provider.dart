@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/community.dart';
 import 'package:knowledge/data/repositories/community_repository.dart';
+import 'dart:io';
 
 part 'community_provider.g.dart';
 
@@ -11,11 +12,11 @@ List<CommunityCategory> communityCategories(ref) {
   return repository.getCategories();
 }
 
-// Provider for all communities
+// Provider for all communities (now async)
 @riverpod
-List<Community> allCommunities(ref) {
+Future<List<Community>> allCommunities(ref) async {
   final repository = ref.watch(communityRepositoryProvider.notifier);
-  return repository.getCommunities();
+  return await repository.getCommunities();
 }
 
 // Provider for communities filtered by category
@@ -27,8 +28,8 @@ Future<List<Community>> communitiesByCategory(ref, String categoryId) async {
 
 // Provider for joined communities
 @riverpod
-List<Community> joinedCommunities(ref) {
-  final allCommunities = ref.watch(allCommunitiesProvider);
+Future<List<Community>> joinedCommunities(ref) async {
+  final allCommunities = await ref.watch(allCommunitiesProvider);
   return allCommunities.where((community) => community.isJoined).toList();
 }
 
@@ -56,5 +57,27 @@ class CommunityActions extends _$CommunityActions {
     // Invalidate providers to refresh data
     ref.invalidate(allCommunitiesProvider);
     ref.invalidate(joinedCommunitiesProvider);
+  }
+
+  Future<Community> createCommunity({
+    required String name,
+    String? description,
+    String? topics,
+    File? bannerFile,
+    File? iconFile,
+  }) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    final community = await repository.createCommunity(
+      name: name,
+      description: description,
+      topics: topics,
+      bannerFile: bannerFile,
+      iconFile: iconFile,
+    );
+
+    // Invalidate providers to refresh data
+    ref.invalidate(allCommunitiesProvider);
+
+    return community;
   }
 }

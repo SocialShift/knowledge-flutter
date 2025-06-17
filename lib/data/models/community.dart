@@ -19,17 +19,16 @@ class CommunityCategory with _$CommunityCategory {
 @freezed
 class Community with _$Community {
   const factory Community({
-    required String id,
+    required int id,
     required String name,
-    required String description,
-    required String imageUrl,
-    required String categoryId,
-    required int memberCount,
-    required int xpReward,
-    required bool isJoined,
-    @Default([]) List<String> tags,
-    String? location,
-    DateTime? createdAt,
+    String? description,
+    String? topics,
+    @JsonKey(name: 'banner_url') String? bannerUrl,
+    @JsonKey(name: 'icon_url') String? iconUrl,
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'created_by') int? createdBy,
+    @Default(0) int memberCount, // For local use, not from API
+    @Default(false) bool isJoined, // For local use, not from API
   }) = _Community;
 
   factory Community.fromJson(Map<String, dynamic> json) =>

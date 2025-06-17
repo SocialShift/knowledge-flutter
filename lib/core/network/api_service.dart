@@ -162,9 +162,7 @@ class ApiService {
         data: formData,
         queryParameters: queryParameters,
         options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // Don't set Content-Type manually for FormData - let Dio handle it with boundary
           validateStatus: (status) {
             return status != null && status < 500;
           },
@@ -173,6 +171,15 @@ class ApiService {
 
       DebugUtils.debugLog('Response status: ${response.statusCode}');
       DebugUtils.debugLog('Response data: ${response.data}');
+
+      if (response.statusCode == 307) {
+        DebugUtils.debugError('307 Temporary Redirect received');
+        DebugUtils.debugError(
+            'This usually means the API endpoint URL is incorrect or needs modification');
+        DebugUtils.debugError(
+            'Location header: ${response.headers['location']}');
+        throw 'API endpoint redirected (307). Please check the endpoint URL.';
+      }
 
       if (response.statusCode == 401) {
         throw 'Unauthorized access';
@@ -212,9 +219,7 @@ class ApiService {
         data: formData,
         queryParameters: queryParameters,
         options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // Don't set Content-Type manually for FormData - let Dio handle it with boundary
           validateStatus: (status) {
             return status != null && status < 500;
           },

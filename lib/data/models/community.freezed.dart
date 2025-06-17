@@ -226,17 +226,21 @@ Community _$CommunityFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Community {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
-  String get imageUrl => throw _privateConstructorUsedError;
-  String get categoryId => throw _privateConstructorUsedError;
-  int get memberCount => throw _privateConstructorUsedError;
-  int get xpReward => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  String? get topics => throw _privateConstructorUsedError;
+  @JsonKey(name: 'banner_url')
+  String? get bannerUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'icon_url')
+  String? get iconUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_by')
+  int? get createdBy => throw _privateConstructorUsedError;
+  int get memberCount =>
+      throw _privateConstructorUsedError; // For local use, not from API
   bool get isJoined => throw _privateConstructorUsedError;
-  List<String> get tags => throw _privateConstructorUsedError;
-  String? get location => throw _privateConstructorUsedError;
-  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this Community to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -254,17 +258,16 @@ abstract class $CommunityCopyWith<$Res> {
       _$CommunityCopyWithImpl<$Res, Community>;
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
-      String description,
-      String imageUrl,
-      String categoryId,
+      String? description,
+      String? topics,
+      @JsonKey(name: 'banner_url') String? bannerUrl,
+      @JsonKey(name: 'icon_url') String? iconUrl,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') int? createdBy,
       int memberCount,
-      int xpReward,
-      bool isJoined,
-      List<String> tags,
-      String? location,
-      DateTime? createdAt});
+      bool isJoined});
 }
 
 /// @nodoc
@@ -284,61 +287,56 @@ class _$CommunityCopyWithImpl<$Res, $Val extends Community>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? description = null,
-    Object? imageUrl = null,
-    Object? categoryId = null,
-    Object? memberCount = null,
-    Object? xpReward = null,
-    Object? isJoined = null,
-    Object? tags = null,
-    Object? location = freezed,
+    Object? description = freezed,
+    Object? topics = freezed,
+    Object? bannerUrl = freezed,
+    Object? iconUrl = freezed,
     Object? createdAt = freezed,
+    Object? createdBy = freezed,
+    Object? memberCount = null,
+    Object? isJoined = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
+      description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
-              as String,
-      imageUrl: null == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      categoryId: null == categoryId
-          ? _value.categoryId
-          : categoryId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      topics: freezed == topics
+          ? _value.topics
+          : topics // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bannerUrl: freezed == bannerUrl
+          ? _value.bannerUrl
+          : bannerUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      iconUrl: freezed == iconUrl
+          ? _value.iconUrl
+          : iconUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as int?,
       memberCount: null == memberCount
           ? _value.memberCount
           : memberCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      xpReward: null == xpReward
-          ? _value.xpReward
-          : xpReward // ignore: cast_nullable_to_non_nullable
               as int,
       isJoined: null == isJoined
           ? _value.isJoined
           : isJoined // ignore: cast_nullable_to_non_nullable
               as bool,
-      tags: null == tags
-          ? _value.tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      location: freezed == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as String?,
-      createdAt: freezed == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
     ) as $Val);
   }
 }
@@ -352,17 +350,16 @@ abstract class _$$CommunityImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String name,
-      String description,
-      String imageUrl,
-      String categoryId,
+      String? description,
+      String? topics,
+      @JsonKey(name: 'banner_url') String? bannerUrl,
+      @JsonKey(name: 'icon_url') String? iconUrl,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') int? createdBy,
       int memberCount,
-      int xpReward,
-      bool isJoined,
-      List<String> tags,
-      String? location,
-      DateTime? createdAt});
+      bool isJoined});
 }
 
 /// @nodoc
@@ -380,61 +377,56 @@ class __$$CommunityImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? description = null,
-    Object? imageUrl = null,
-    Object? categoryId = null,
-    Object? memberCount = null,
-    Object? xpReward = null,
-    Object? isJoined = null,
-    Object? tags = null,
-    Object? location = freezed,
+    Object? description = freezed,
+    Object? topics = freezed,
+    Object? bannerUrl = freezed,
+    Object? iconUrl = freezed,
     Object? createdAt = freezed,
+    Object? createdBy = freezed,
+    Object? memberCount = null,
+    Object? isJoined = null,
   }) {
     return _then(_$CommunityImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
+      description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
-              as String,
-      imageUrl: null == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      categoryId: null == categoryId
-          ? _value.categoryId
-          : categoryId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      topics: freezed == topics
+          ? _value.topics
+          : topics // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bannerUrl: freezed == bannerUrl
+          ? _value.bannerUrl
+          : bannerUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      iconUrl: freezed == iconUrl
+          ? _value.iconUrl
+          : iconUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as int?,
       memberCount: null == memberCount
           ? _value.memberCount
           : memberCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      xpReward: null == xpReward
-          ? _value.xpReward
-          : xpReward // ignore: cast_nullable_to_non_nullable
               as int,
       isJoined: null == isJoined
           ? _value.isJoined
           : isJoined // ignore: cast_nullable_to_non_nullable
               as bool,
-      tags: null == tags
-          ? _value._tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      location: freezed == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as String?,
-      createdAt: freezed == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
     ));
   }
 }
@@ -445,53 +437,49 @@ class _$CommunityImpl implements _Community {
   const _$CommunityImpl(
       {required this.id,
       required this.name,
-      required this.description,
-      required this.imageUrl,
-      required this.categoryId,
-      required this.memberCount,
-      required this.xpReward,
-      required this.isJoined,
-      final List<String> tags = const [],
-      this.location,
-      this.createdAt})
-      : _tags = tags;
+      this.description,
+      this.topics,
+      @JsonKey(name: 'banner_url') this.bannerUrl,
+      @JsonKey(name: 'icon_url') this.iconUrl,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'created_by') this.createdBy,
+      this.memberCount = 0,
+      this.isJoined = false});
 
   factory _$CommunityImpl.fromJson(Map<String, dynamic> json) =>
       _$$CommunityImplFromJson(json);
 
   @override
-  final String id;
+  final int id;
   @override
   final String name;
   @override
-  final String description;
+  final String? description;
   @override
-  final String imageUrl;
+  final String? topics;
   @override
-  final String categoryId;
+  @JsonKey(name: 'banner_url')
+  final String? bannerUrl;
   @override
-  final int memberCount;
+  @JsonKey(name: 'icon_url')
+  final String? iconUrl;
   @override
-  final int xpReward;
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
   @override
-  final bool isJoined;
-  final List<String> _tags;
+  @JsonKey(name: 'created_by')
+  final int? createdBy;
   @override
   @JsonKey()
-  List<String> get tags {
-    if (_tags is EqualUnmodifiableListView) return _tags;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_tags);
-  }
-
+  final int memberCount;
+// For local use, not from API
   @override
-  final String? location;
-  @override
-  final DateTime? createdAt;
+  @JsonKey()
+  final bool isJoined;
 
   @override
   String toString() {
-    return 'Community(id: $id, name: $name, description: $description, imageUrl: $imageUrl, categoryId: $categoryId, memberCount: $memberCount, xpReward: $xpReward, isJoined: $isJoined, tags: $tags, location: $location, createdAt: $createdAt)';
+    return 'Community(id: $id, name: $name, description: $description, topics: $topics, bannerUrl: $bannerUrl, iconUrl: $iconUrl, createdAt: $createdAt, createdBy: $createdBy, memberCount: $memberCount, isJoined: $isJoined)';
   }
 
   @override
@@ -503,38 +491,24 @@ class _$CommunityImpl implements _Community {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.description, description) ||
                 other.description == description) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.categoryId, categoryId) ||
-                other.categoryId == categoryId) &&
+            (identical(other.topics, topics) || other.topics == topics) &&
+            (identical(other.bannerUrl, bannerUrl) ||
+                other.bannerUrl == bannerUrl) &&
+            (identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy) &&
             (identical(other.memberCount, memberCount) ||
                 other.memberCount == memberCount) &&
-            (identical(other.xpReward, xpReward) ||
-                other.xpReward == xpReward) &&
             (identical(other.isJoined, isJoined) ||
-                other.isJoined == isJoined) &&
-            const DeepCollectionEquality().equals(other._tags, _tags) &&
-            (identical(other.location, location) ||
-                other.location == location) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.isJoined == isJoined));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      description,
-      imageUrl,
-      categoryId,
-      memberCount,
-      xpReward,
-      isJoined,
-      const DeepCollectionEquality().hash(_tags),
-      location,
-      createdAt);
+  int get hashCode => Object.hash(runtimeType, id, name, description, topics,
+      bannerUrl, iconUrl, createdAt, createdBy, memberCount, isJoined);
 
   /// Create a copy of Community
   /// with the given fields replaced by the non-null parameter values.
@@ -554,43 +528,44 @@ class _$CommunityImpl implements _Community {
 
 abstract class _Community implements Community {
   const factory _Community(
-      {required final String id,
+      {required final int id,
       required final String name,
-      required final String description,
-      required final String imageUrl,
-      required final String categoryId,
-      required final int memberCount,
-      required final int xpReward,
-      required final bool isJoined,
-      final List<String> tags,
-      final String? location,
-      final DateTime? createdAt}) = _$CommunityImpl;
+      final String? description,
+      final String? topics,
+      @JsonKey(name: 'banner_url') final String? bannerUrl,
+      @JsonKey(name: 'icon_url') final String? iconUrl,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'created_by') final int? createdBy,
+      final int memberCount,
+      final bool isJoined}) = _$CommunityImpl;
 
   factory _Community.fromJson(Map<String, dynamic> json) =
       _$CommunityImpl.fromJson;
 
   @override
-  String get id;
+  int get id;
   @override
   String get name;
   @override
-  String get description;
+  String? get description;
   @override
-  String get imageUrl;
+  String? get topics;
   @override
-  String get categoryId;
+  @JsonKey(name: 'banner_url')
+  String? get bannerUrl;
   @override
-  int get memberCount;
+  @JsonKey(name: 'icon_url')
+  String? get iconUrl;
   @override
-  int get xpReward;
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+  @JsonKey(name: 'created_by')
+  int? get createdBy;
+  @override
+  int get memberCount; // For local use, not from API
   @override
   bool get isJoined;
-  @override
-  List<String> get tags;
-  @override
-  String? get location;
-  @override
-  DateTime? get createdAt;
 
   /// Create a copy of Community
   /// with the given fields replaced by the non-null parameter values.

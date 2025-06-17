@@ -13,6 +13,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io' show Platform;
 import 'package:audio_session/audio_session.dart';
 import 'dart:developer' as developer;
+import 'package:knowledge/core/utils/simple_sharing_utils.dart';
 
 class StoryDetailScreen extends HookConsumerWidget {
   final String storyId;
@@ -288,15 +289,25 @@ class _VideoPartScreen extends HookConsumerWidget {
 
                             // Share Button
                             GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Coming Soon'),
-                                    backgroundColor: AppColors.limeGreen,
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
+                              onTap: () async {
+                                try {
+                                  await SimpleSharingUtils.shareStory(
+                                    context: context,
+                                    story: story,
+                                  );
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('Failed to share story: $e'),
+                                        backgroundColor: Colors.red,
+                                        behavior: SnackBarBehavior.floating,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.all(8),
@@ -733,15 +744,27 @@ class _StoryPartScreen extends HookConsumerWidget {
 
                                 // Share Button
                                 GestureDetector(
-                                  onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Coming Soon'),
-                                        backgroundColor: AppColors.limeGreen,
-                                        behavior: SnackBarBehavior.floating,
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
+                                  onTap: () async {
+                                    try {
+                                      await SimpleSharingUtils.shareStory(
+                                        context: context,
+                                        story: story,
+                                      );
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Failed to share story: $e'),
+                                            backgroundColor: Colors.red,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration:
+                                                const Duration(seconds: 3),
+                                          ),
+                                        );
+                                      }
+                                    }
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
@@ -958,15 +981,24 @@ class _StoryPartScreen extends HookConsumerWidget {
 
                     // Share button in notification bar
                     GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Coming Soon'),
-                            backgroundColor: AppColors.limeGreen,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                      onTap: () async {
+                        try {
+                          await SimpleSharingUtils.shareStory(
+                            context: context,
+                            story: story,
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to share story: $e'),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),

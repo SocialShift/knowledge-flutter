@@ -6,8 +6,8 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/profile_provider.dart';
 import 'package:knowledge/data/repositories/auth_repository.dart';
 // import 'package:knowledge/presentation/widgets/user_avatar.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+// import 'package:image_picker/image_picker.dart';
+// import 'dart:io';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -112,7 +112,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
     final selectedPronouns = useState<String>('');
     final selectedState = useState<String>('');
     final selectedLanguage = useState<String>('English');
-    final avatarFile = useState<XFile?>(null);
+    // final avatarFile = useState<XFile?>(null);
 
     // Function to check if all required fields are filled
     final isFormValid = useState(false);
@@ -148,15 +148,6 @@ class ProfileSetupScreen extends HookConsumerWidget {
       };
     }, [nicknameController, selectedPronouns.value, selectedState.value]);
 
-    // Handle image selection
-    Future<void> handleImageSelection() async {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        avatarFile.value = image;
-      }
-    }
-
     // Handle profile update
     Future<void> handleSave() async {
       if (!isFormValid.value) {
@@ -190,7 +181,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
           location: selectedState.value,
           languagePreference: selectedLanguage.value,
           personalizationQuestions: personalizationQuestions,
-          avatarUrl: avatarFile.value?.path,
+          avatarUrl: 'assets/images/avatars/default_owl.jpg',
         );
 
         // Verify profile completion status from backend and update auth state
@@ -251,69 +242,39 @@ class ProfileSetupScreen extends HookConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                spreadRadius: 2,
-                              ),
-                            ],
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
                           ),
-                          child: GestureDetector(
-                            onTap: handleImageSelection,
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor: AppColors.limeGreen,
-                              child: avatarFile.value != null
-                                  ? ClipOval(
-                                      child: Image.file(
-                                        File(avatarFile.value!.path),
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: AppColors.navyBlue,
-                                    ),
-                            ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: AppColors.limeGreen,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/avatars/default_owl.jpg',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                size: 50,
+                                color: AppColors.navyBlue,
+                              );
+                            },
                           ),
-                        ).animate().fadeIn().scale(
-                              duration: const Duration(milliseconds: 500),
-                            ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.limeGreen,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 18,
-                              color: AppColors.navyBlue,
-                            ),
-                          ),
-                        ).animate().fadeIn(
-                              delay: const Duration(milliseconds: 300),
-                            ),
-                      ],
-                    ),
+                        ),
+                      ),
+                    ).animate().fadeIn().scale(
+                          duration: const Duration(milliseconds: 500),
+                        ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

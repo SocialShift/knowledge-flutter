@@ -27,19 +27,31 @@ class UserAvatar extends ConsumerWidget {
           child: avatarUrl != null && avatarUrl.isNotEmpty
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(size / 2),
-                  child: CachedNetworkImage(
-                    imageUrl: avatarUrl,
-                    width: size,
-                    height: size,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.person,
-                      size: size * 0.6,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+                  child: avatarUrl.startsWith('assets/')
+                      ? Image.asset(
+                          avatarUrl,
+                          width: size,
+                          height: size,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.person,
+                            size: size * 0.6,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: avatarUrl,
+                          width: size,
+                          height: size,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.person,
+                            size: size * 0.6,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                 )
               : Icon(
                   Icons.person,

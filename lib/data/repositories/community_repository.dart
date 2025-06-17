@@ -1,5 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:knowledge/data/models/community.dart';
+import 'package:knowledge/core/network/api_service.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 
 part 'community_repository.g.dart';
 
@@ -15,157 +18,224 @@ class CommunityRepository extends _$CommunityRepository {
     return [
       const CommunityCategory(
         id: '1',
-        name: 'Ancient History',
+        name: 'Indigenous Histories',
         icon: '🏛️',
         color: '#8B4513',
       ),
       const CommunityCategory(
         id: '2',
-        name: 'Medieval Times',
-        icon: '⚔️',
+        name: 'African Diaspora',
+        icon: '🌍',
         color: '#4B0082',
       ),
       const CommunityCategory(
         id: '3',
-        name: 'Renaissance',
-        icon: '🎨',
+        name: 'LGBTQ+ Movements',
+        icon: '🏳️‍🌈',
         color: '#FFD700',
       ),
       const CommunityCategory(
         id: '4',
-        name: 'Modern Era',
-        icon: '🚂',
+        name: 'Women\'s History',
+        icon: '👩',
         color: '#DC143C',
       ),
       const CommunityCategory(
         id: '5',
-        name: 'World Wars',
-        icon: '✈️',
+        name: 'Civil Rights',
+        icon: '✊',
         color: '#556B2F',
       ),
       const CommunityCategory(
         id: '6',
-        name: 'Philosophy',
-        icon: '🤔',
+        name: 'Lesser-Known Figures',
+        icon: '📚',
         color: '#2E8B57',
       ),
     ];
   }
 
-  // Demo communities with gamification elements
-  List<Community> getCommunities() {
+  // Fetch communities from API
+  Future<List<Community>> getCommunities() async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.get('/community');
+
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Community.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching communities: $e');
+      // Return demo data as fallback
+      return _getDemoCommunities();
+    }
+  }
+
+  // Create a new community
+  Future<Community> createCommunity({
+    required String name,
+    String? description,
+    String? topics,
+    File? bannerFile,
+    File? iconFile,
+  }) async {
+    try {
+      final apiService = ApiService();
+
+      print('Creating community with:');
+      print('  - Name: $name');
+      print('  - Description: $description');
+      print('  - Topics: $topics');
+      print('  - Banner file: ${bannerFile?.path}');
+      print('  - Icon file: ${iconFile?.path}');
+
+      // Create FormData for multipart request
+      final formData = FormData();
+
+      // Add required name field
+      formData.fields.add(MapEntry('name', name));
+
+      // Add optional fields
+      if (description != null && description.isNotEmpty) {
+        formData.fields.add(MapEntry('description', description));
+      }
+
+      if (topics != null && topics.isNotEmpty) {
+        formData.fields.add(MapEntry('topics', topics));
+      }
+
+      // Add files if provided
+      if (bannerFile != null) {
+        formData.files.add(MapEntry(
+          'banner_file',
+          await MultipartFile.fromFile(bannerFile.path),
+        ));
+      }
+
+      if (iconFile != null) {
+        formData.files.add(MapEntry(
+          'icon_file',
+          await MultipartFile.fromFile(iconFile.path),
+        ));
+      }
+
+      print(
+          'FormData fields: ${formData.fields.map((e) => '${e.key}: ${e.value}').join(', ')}');
+      print('FormData files: ${formData.files.map((e) => e.key).join(', ')}');
+
+      final response =
+          await apiService.postFormData('/community/', formData: formData);
+
+      // Handle different response types
+      if (response.data is Map<String, dynamic>) {
+        return Community.fromJson(response.data as Map<String, dynamic>);
+      } else if (response.data is String) {
+        // If API returns a string (like success message), create a basic community object
+        return Community(
+          id: DateTime.now().millisecondsSinceEpoch, // Temporary ID
+          name: name,
+          description: description,
+          topics: topics,
+        );
+      } else {
+        // Fallback: create basic community object
+        return Community(
+          id: DateTime.now().millisecondsSinceEpoch,
+          name: name,
+          description: description,
+          topics: topics,
+        );
+      }
+    } catch (e) {
+      print('Error creating community: $e');
+      print('Error details: ${e.toString()}');
+      if (e.toString().contains('307')) {
+        print(
+            '307 Redirect detected - this usually means the API endpoint expects a different format');
+      }
+      rethrow;
+    }
+  }
+
+  // Demo communities fallback
+  List<Community> _getDemoCommunities() {
     return [
       const Community(
-        id: '1',
-        name: 'Roman Empire Explorers',
-        description: 'Dive deep into the glory and complexity of Ancient Rome',
-        imageUrl:
-            'https://images.unsplash.com/photo-1539650116574-75c0c6d73c6c?w=400',
-        categoryId: '1',
+        id: 1,
+        name: 'Indigenous Voices',
+        description:
+            'Exploring the rich histories and cultures of Indigenous peoples worldwide.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400',
         memberCount: 1247,
-        xpReward: 150,
-        isJoined: false,
-        tags: ['Caesar', 'Gladiators', 'Architecture'],
-        location: 'Global Community',
       ),
       const Community(
-        id: '2',
-        name: 'Greek Mythology Masters',
-        description: 'Uncover the epic tales of gods, heroes, and monsters',
-        imageUrl:
-            'https://images.unsplash.com/photo-1555991496-c0d7c68ea4c5?w=400',
-        categoryId: '1',
+        id: 2,
+        name: 'African Heritage',
+        description:
+            'Celebrating African diaspora stories and contributions to world history.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
         memberCount: 892,
-        xpReward: 120,
-        isJoined: true,
-        tags: ['Zeus', 'Olympus', 'Heroes'],
-        location: 'Ancient Greece Hub',
       ),
       const Community(
-        id: '3',
-        name: 'Knights & Castles Guild',
-        description: 'Experience the age of chivalry and feudalism',
-        imageUrl:
-            'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
-        categoryId: '2',
+        id: 3,
+        name: 'Pride Through Time',
+        description:
+            'LGBTQ+ milestones and movements that shaped our modern world.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
         memberCount: 756,
-        xpReward: 180,
-        isJoined: false,
-        tags: ['Crusades', 'Chivalry', 'Castles'],
-        location: 'Medieval Europe',
       ),
       const Community(
-        id: '4',
-        name: 'Renaissance Artists Circle',
-        description: 'Celebrate the rebirth of art, science, and culture',
-        imageUrl:
-            'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400',
-        categoryId: '3',
+        id: 4,
+        name: 'Women Who Changed History',
+        description:
+            'Uncovering the stories of remarkable women throughout the ages.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=400',
         memberCount: 634,
-        xpReward: 200,
-        isJoined: true,
-        tags: ['DaVinci', 'Michelangelo', 'Innovation'],
-        location: 'Florence & Beyond',
       ),
       const Community(
-        id: '5',
-        name: 'Industrial Revolution Society',
-        description: 'Witness the transformation that changed the world',
-        imageUrl:
-            'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400',
-        categoryId: '4',
-        memberCount: 543,
-        xpReward: 160,
-        isJoined: false,
-        tags: ['Steam Engine', 'Factory', 'Progress'],
-        location: 'Industrial Britain',
-      ),
-      const Community(
-        id: '6',
-        name: 'WWII History Buffs',
-        description: 'Study the most significant conflict in human history',
-        imageUrl:
-            'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400',
-        categoryId: '5',
+        id: 5,
+        name: 'Civil Rights Chronicles',
+        description:
+            'The ongoing fight for equality and justice across cultures and time.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
         memberCount: 2156,
-        xpReward: 250,
-        isJoined: false,
-        tags: ['Strategy', 'Heroes', 'Turning Points'],
-        location: 'Global Battlefield',
       ),
       const Community(
-        id: '7',
-        name: 'Philosophical Thinkers',
-        description: 'Explore the great minds that shaped human thought',
-        imageUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-        categoryId: '6',
-        memberCount: 418,
-        xpReward: 175,
-        isJoined: true,
-        tags: ['Socrates', 'Logic', 'Ethics'],
-        location: 'Academy of Minds',
+        id: 6,
+        name: 'Hidden Figures',
+        description:
+            'Bringing lesser-known historical figures into the spotlight they deserve.',
+        iconUrl:
+            'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
+        memberCount: 934,
       ),
     ];
   }
 
   Future<List<Community>> getCommunitiesByCategory(String categoryId) async {
-    await Future.delayed(
-        const Duration(milliseconds: 500)); // Simulate API call
-    return getCommunities()
-        .where((community) => community.categoryId == categoryId)
-        .toList();
+    // For now, return all communities since API doesn't support category filtering yet
+    final communities = await getCommunities();
+    return communities;
   }
 
   Future<void> joinCommunity(String communityId) async {
     await Future.delayed(
         const Duration(milliseconds: 800)); // Simulate API call
-    // In real implementation, this would make an API call
+    // TODO: Implement join community API call
   }
 
   Future<void> leaveCommunity(String communityId) async {
     await Future.delayed(
         const Duration(milliseconds: 800)); // Simulate API call
-    // In real implementation, this would make an API call
+    // TODO: Implement leave community API call
   }
 }

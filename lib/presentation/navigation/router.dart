@@ -29,7 +29,9 @@ import 'package:knowledge/presentation/screens/socials/user_profile_screen.dart'
 import 'package:knowledge/presentation/screens/socials/followers_screen.dart';
 import 'package:knowledge/presentation/screens/socials/following_screen.dart';
 import 'package:knowledge/presentation/screens/community/community_screen.dart';
+import 'package:knowledge/presentation/screens/community/create_community_screen.dart';
 import 'package:knowledge/core/utils/debug_utils.dart';
+import 'package:knowledge/core/utils/sharing_utils.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -224,6 +226,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           state: state,
           child: const OnboardingScreen(),
         ),
+      ),
+
+      // Deep link routes for shared content (without bottom navigation)
+      GoRoute(
+        path: '/shared/profile/:profileId',
+        pageBuilder: (context, state) {
+          final profileIdStr = state.pathParameters['profileId']!;
+          final profileId = int.tryParse(profileIdStr) ?? 0;
+          return buildCupertinoPageTransition(
+            context: context,
+            state: state,
+            child: UserProfileScreen(userId: profileId),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/shared/story/:storyId',
+        pageBuilder: (context, state) {
+          final storyId = state.pathParameters['storyId']!;
+          return buildCupertinoPageTransition(
+            context: context,
+            state: state,
+            child: StoryDetailScreen(storyId: storyId),
+          );
+        },
       ),
 
       // Detail routes with slide-up transition for modal-style pages
@@ -524,6 +551,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           context: context,
           state: state,
           child: const ProfileSetupScreen(),
+        ),
+      ),
+      // Create community route (outside main navigation - no bottom nav)
+      GoRoute(
+        path: '/create-community',
+        pageBuilder: (context, state) => buildSlideUpTransition(
+          context: context,
+          state: state,
+          child: const CreateCommunityScreen(),
         ),
       ),
     ],
