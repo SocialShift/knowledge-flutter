@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -7,6 +8,8 @@ import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/community_provider.dart';
 import 'package:knowledge/presentation/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui';
 
 class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key});
@@ -303,7 +306,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           // Communities grid
           AnimationLimiter(
@@ -312,9 +315,9 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.9,
               ),
               itemCount: communities.length,
               itemBuilder: (context, index) {
@@ -374,16 +377,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           // Loading grid
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.85,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
             ),
             itemCount: 6,
             itemBuilder: (context, index) {
@@ -464,82 +467,376 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
 
   Widget _buildCommunityCard(
       BuildContext context, dynamic community, bool isDarkMode) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
+    // Use real member count from API instead of generating fake data
+    final memberCount = community.memberCount ?? 0;
+    final isActive =
+        (community.hashCode % 10) > 3; // 70% chance of being active
+
+    // Get current user ID from auth state
+    final authState = ref.watch(authNotifierProvider);
+    final currentUserId = authState.maybeWhen(
+      authenticated: (user, _, __) => user.id,
+      orElse: () => null,
+    );
+
+    // Check if current user is the creator of this community
+    final isCreatedByCurrentUser = currentUserId != null &&
+        community.createdBy != null &&
+        currentUserId == community.createdBy.toString();
+
+    return GestureDetector(
+      onTap: () {
+        // Navigate to community detail screen
+        context.push('/community/${community.id}');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDarkMode ? AppColors.darkCard : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: Border.all(
+            color: isDarkMode
+                ? Colors.white.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.1),
+            width: 1,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Community icon at the top
+            // Top section with blurred banner background and icon
             Container(
-              width: 60,
-              height: 60,
+              height: 80,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: CachedNetworkImage(
-                  imageUrl: community.iconUrl ?? '',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.limeGreen.withOpacity(0.1),
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      color: AppColors.navyBlue,
-                      size: 24,
-                    ),
-                  ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            // Community name
-            Text(
-              community.name,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: isDarkMode ? Colors.white : AppColors.navyBlue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-
-            // Community description
-            Expanded(
-              child: Text(
-                community.description ?? 'No description available',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
-                      fontSize: 11,
-                      height: 1.3,
+              child: Stack(
+                children: [
+                  // Blurred banner background
+                  if (community.bannerUrl != null &&
+                      community.bannerUrl!.isNotEmpty)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        child: Stack(
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: community.bannerUrl!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              placeholder: (context, url) => Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.limeGreen.withOpacity(0.1),
+                                      AppColors.navyBlue.withOpacity(0.05),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.limeGreen.withOpacity(0.1),
+                                      AppColors.navyBlue.withOpacity(0.05),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Blur effect
+                            BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                              child: Container(
+                                color: Colors.black.withOpacity(0.2),
+                              ),
+                            ),
+                            // Additional gradient overlay
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.3),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    // Fallback gradient background
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.limeGreen.withOpacity(0.1),
+                            AppColors.navyBlue.withOpacity(0.05),
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
                     ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+
+                  // Community icon centered
+                  Center(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.8),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: community.iconUrl ?? '',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppColors.limeGreen.withOpacity(0.2),
+                            child: Icon(
+                              Icons.groups,
+                              color: AppColors.navyBlue,
+                              size: 20,
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: AppColors.limeGreen.withOpacity(0.2),
+                            child: Icon(
+                              Icons.groups,
+                              color: AppColors.navyBlue,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Active status indicator
+                  if (isActive)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.3),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  // Creator badge for communities created by current user
+                  if (isCreatedByCurrentUser)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.limeGreen,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Owner',
+                          style: TextStyle(
+                            color: AppColors.navyBlue,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Content section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Community name
+                    Text(
+                      community.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color:
+                                isDarkMode ? Colors.white : AppColors.navyBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Community description
+                    Expanded(
+                      child: Text(
+                        community.description ??
+                            'Join our community to explore and discuss historical topics together.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : Colors.grey.shade600,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Bottom info row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Member count
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.limeGreen.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 12,
+                                color: AppColors.navyBlue,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatMemberCount(memberCount),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppColors.navyBlue,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Join button or Owner indicator
+                        if (isCreatedByCurrentUser)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              'Owner',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.orange.shade700,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                  ),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () =>
+                                _handleJoinCommunity(context, community),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: community.isMember
+                                    ? Colors.grey.shade300
+                                    : AppColors.navyBlue,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                community.isMember ? 'Leave' : 'Join',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: community.isMember
+                                          ? Colors.black87
+                                          : Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -553,5 +850,49 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       return '${(count / 1000).toStringAsFixed(1)}k';
     }
     return count.toString();
+  }
+
+  void _handleJoinCommunity(BuildContext context, dynamic community) async {
+    try {
+      final communityActions = ref.read(communityActionsProvider.notifier);
+
+      if (community.isMember) {
+        // Leave the community
+        await communityActions.leaveCommunity(community.id);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Left ${community.name}'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        // Join the community
+        await communityActions.joinCommunity(community.id);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Joined ${community.name}!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }

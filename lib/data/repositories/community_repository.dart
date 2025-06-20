@@ -75,6 +75,24 @@ class CommunityRepository extends _$CommunityRepository {
     }
   }
 
+  // Fetch community details by ID from API
+  Future<Community> getCommunityDetails(int communityId) async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.get('/community/$communityId');
+
+      if (response.data is Map<String, dynamic>) {
+        return Community.fromApiResponse(response.data as Map<String, dynamic>);
+      }
+
+      throw Exception('Invalid response format');
+    } catch (e) {
+      print('Error fetching community details: $e');
+      // Return demo data as fallback
+      return _getDemoCommunityDetails(communityId);
+    }
+  }
+
   // Create a new community
   Future<Community> createCommunity({
     required String name,
@@ -171,7 +189,12 @@ class CommunityRepository extends _$CommunityRepository {
             'Exploring the rich histories and cultures of Indigenous peoples worldwide.',
         iconUrl:
             'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800',
         memberCount: 1247,
+        topics: 'Indigenous History, Culture, Oral Traditions',
+        createdAt: '2024-01-15T10:30:00Z',
+        isMember: false,
       ),
       const Community(
         id: 2,
@@ -180,7 +203,12 @@ class CommunityRepository extends _$CommunityRepository {
             'Celebrating African diaspora stories and contributions to world history.',
         iconUrl:
             'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800',
         memberCount: 892,
+        topics: 'African History, Diaspora, Cultural Heritage',
+        createdAt: '2024-01-20T14:45:00Z',
+        isMember: true,
       ),
       const Community(
         id: 3,
@@ -189,7 +217,12 @@ class CommunityRepository extends _$CommunityRepository {
             'LGBTQ+ milestones and movements that shaped our modern world.',
         iconUrl:
             'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800',
         memberCount: 756,
+        topics: 'LGBTQ+ Rights, Pride History, Social Movements',
+        createdAt: '2024-02-01T09:15:00Z',
+        isMember: false,
       ),
       const Community(
         id: 4,
@@ -198,7 +231,12 @@ class CommunityRepository extends _$CommunityRepository {
             'Uncovering the stories of remarkable women throughout the ages.',
         iconUrl:
             'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800',
         memberCount: 634,
+        topics: 'Women\'s History, Feminism, Notable Figures',
+        createdAt: '2024-02-10T16:20:00Z',
+        isMember: true,
       ),
       const Community(
         id: 5,
@@ -207,7 +245,12 @@ class CommunityRepository extends _$CommunityRepository {
             'The ongoing fight for equality and justice across cultures and time.',
         iconUrl:
             'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
         memberCount: 2156,
+        topics: 'Civil Rights, Social Justice, Equality Movements',
+        createdAt: '2024-01-25T11:10:00Z',
+        isMember: false,
       ),
       const Community(
         id: 6,
@@ -216,9 +259,23 @@ class CommunityRepository extends _$CommunityRepository {
             'Bringing lesser-known historical figures into the spotlight they deserve.',
         iconUrl:
             'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800',
         memberCount: 934,
+        topics: 'Hidden History, Unsung Heroes, Research',
+        createdAt: '2024-02-05T13:30:00Z',
+        isMember: false,
       ),
     ];
+  }
+
+  // Demo community details fallback
+  Community _getDemoCommunityDetails(int communityId) {
+    final communities = _getDemoCommunities();
+    return communities.firstWhere(
+      (community) => community.id == communityId,
+      orElse: () => communities.first,
+    );
   }
 
   Future<List<Community>> getCommunitiesByCategory(String categoryId) async {
@@ -227,15 +284,149 @@ class CommunityRepository extends _$CommunityRepository {
     return communities;
   }
 
-  Future<void> joinCommunity(String communityId) async {
-    await Future.delayed(
-        const Duration(milliseconds: 800)); // Simulate API call
-    // TODO: Implement join community API call
+  Future<void> joinCommunity(int communityId) async {
+    try {
+      final apiService = ApiService();
+
+      // POST /community/{community_id}/join with community_id in payload
+      await apiService.post(
+        '/community/$communityId/join',
+        data: {
+          'community_id': communityId,
+        },
+      );
+    } catch (e) {
+      print('Error joining community: $e');
+      rethrow;
+    }
   }
 
-  Future<void> leaveCommunity(String communityId) async {
-    await Future.delayed(
-        const Duration(milliseconds: 800)); // Simulate API call
-    // TODO: Implement leave community API call
+  Future<void> leaveCommunity(int communityId) async {
+    try {
+      final apiService = ApiService();
+
+      // DELETE /community/{community_id}/leave with community_id in payload
+      await apiService.delete(
+        '/community/$communityId/leave',
+        data: {
+          'community_id': communityId,
+        },
+      );
+    } catch (e) {
+      print('Error leaving community: $e');
+      rethrow;
+    }
+  }
+
+  // Create a new post in a community
+  Future<Post> createPost({
+    required String title,
+    String? body,
+    required int communityId,
+    File? imageFile,
+  }) async {
+    try {
+      final apiService = ApiService();
+
+      // Create FormData for multipart request
+      final formData = FormData();
+
+      // Add required fields
+      formData.fields.add(MapEntry('title', title));
+      formData.fields.add(MapEntry('community_id', communityId.toString()));
+
+      // Add optional fields
+      if (body != null && body.isNotEmpty) {
+        formData.fields.add(MapEntry('body', body));
+      }
+
+      // Add image file if provided
+      if (imageFile != null) {
+        formData.files.add(MapEntry(
+          'image_file',
+          await MultipartFile.fromFile(imageFile.path),
+        ));
+      }
+
+      final response =
+          await apiService.postFormData('/community/post/', formData: formData);
+
+      if (response.data is Map<String, dynamic>) {
+        return Post.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        // Fallback: create basic post object
+        return Post(
+          id: DateTime.now().millisecondsSinceEpoch,
+          title: title,
+          body: body,
+          communityId: communityId,
+        );
+      }
+    } catch (e) {
+      print('Error creating post: $e');
+      rethrow;
+    }
+  }
+
+  // Fetch posts for a community
+  Future<List<Post>> getCommunityPosts(int communityId) async {
+    try {
+      final apiService = ApiService();
+      final response =
+          await apiService.get('/community/post/?community_id=$communityId');
+
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => Post.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching community posts: $e');
+      // Return demo data as fallback
+      return _getDemoPosts(communityId);
+    }
+  }
+
+  // Demo posts fallback
+  List<Post> _getDemoPosts(int communityId) {
+    return [
+      Post(
+        id: 1,
+        title: 'Welcome to our community!',
+        body:
+            'Hello everyone! Welcome to this amazing community where we explore and discuss fascinating historical topics together.',
+        communityId: communityId,
+        upvote: 15,
+        downvote: 2,
+        createdAt: '2024-01-20T10:30:00Z',
+        createdBy: 123,
+        imageUrl:
+            'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600',
+      ),
+      Post(
+        id: 2,
+        title: 'Interesting historical facts',
+        body:
+            'Did you know that the Library of Alexandria was not destroyed in a single event, but gradually declined over several centuries?',
+        communityId: communityId,
+        upvote: 28,
+        downvote: 1,
+        createdAt: '2024-01-19T14:45:00Z',
+        createdBy: 456,
+      ),
+      Post(
+        id: 3,
+        title: 'Discussion: Women in Ancient Rome',
+        body:
+            'Let\'s discuss the roles and rights of women in ancient Roman society. What aspects would you like to explore?',
+        communityId: communityId,
+        upvote: 12,
+        downvote: 0,
+        createdAt: '2024-01-18T09:15:00Z',
+        createdBy: 789,
+      ),
+    ];
   }
 }

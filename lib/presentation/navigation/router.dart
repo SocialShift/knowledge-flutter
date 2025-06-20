@@ -30,6 +30,8 @@ import 'package:knowledge/presentation/screens/socials/followers_screen.dart';
 import 'package:knowledge/presentation/screens/socials/following_screen.dart';
 import 'package:knowledge/presentation/screens/community/community_screen.dart';
 import 'package:knowledge/presentation/screens/community/create_community_screen.dart';
+import 'package:knowledge/presentation/screens/community/community_detail_screen.dart';
+import 'package:knowledge/presentation/screens/community/create_post_screen.dart';
 import 'package:knowledge/core/utils/debug_utils.dart';
 import 'package:knowledge/core/utils/sharing_utils.dart';
 
@@ -109,6 +111,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.uri.path.startsWith('/story/') ||
           state.uri.path.startsWith('/quiz/') ||
           state.uri.path.startsWith('/games/') ||
+          state.uri.path.startsWith('/community/') ||
           state.uri.path == '/home' ||
           state.uri.path == '/profile' ||
           state.uri.path == '/profile/edit' ||
@@ -394,6 +397,71 @@ final routerProvider = Provider<GoRouter>((ref) {
               state: state,
               child: const CommunityScreen(),
             ),
+          ),
+          // Community detail route
+          GoRoute(
+            path: '/community/:communityId',
+            pageBuilder: (context, state) {
+              final communityIdStr = state.pathParameters['communityId'];
+              if (communityIdStr == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final communityId = int.tryParse(communityIdStr);
+              if (communityId == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              return buildCupertinoPageTransition(
+                context: context,
+                state: state,
+                child: CommunityDetailScreen(communityId: communityId),
+              );
+            },
+          ),
+          // Create post route
+          GoRoute(
+            path: '/community/:communityId/create-post',
+            pageBuilder: (context, state) {
+              final communityIdStr = state.pathParameters['communityId'];
+              if (communityIdStr == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final communityId = int.tryParse(communityIdStr);
+              if (communityId == null) {
+                return buildCupertinoPageTransition(
+                  context: context,
+                  state: state,
+                  child: const SizedBox.shrink(),
+                );
+              }
+
+              final extra = state.extra as Map<String, dynamic>?;
+              final communityName =
+                  extra?['communityName'] as String? ?? 'Community';
+
+              return buildSlideUpTransition(
+                context: context,
+                state: state,
+                child: CreatePostScreen(
+                  communityId: communityId,
+                  communityName: communityName,
+                ),
+              );
+            },
           ),
           // Add games center route
           GoRoute(

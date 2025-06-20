@@ -220,6 +220,334 @@ abstract class _CommunityCategory implements CommunityCategory {
       throw _privateConstructorUsedError;
 }
 
+Post _$PostFromJson(Map<String, dynamic> json) {
+  return _Post.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Post {
+  int get id => throw _privateConstructorUsedError;
+  String get title => throw _privateConstructorUsedError;
+  String? get body => throw _privateConstructorUsedError;
+  @JsonKey(name: 'community_id')
+  int get communityId => throw _privateConstructorUsedError;
+  int get upvote => throw _privateConstructorUsedError;
+  int get downvote => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_by')
+  int? get createdBy => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
+  String? get imageUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this Post to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of Post
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PostCopyWith<Post> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PostCopyWith<$Res> {
+  factory $PostCopyWith(Post value, $Res Function(Post) then) =
+      _$PostCopyWithImpl<$Res, Post>;
+  @useResult
+  $Res call(
+      {int id,
+      String title,
+      String? body,
+      @JsonKey(name: 'community_id') int communityId,
+      int upvote,
+      int downvote,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') int? createdBy,
+      @JsonKey(name: 'image_url') String? imageUrl});
+}
+
+/// @nodoc
+class _$PostCopyWithImpl<$Res, $Val extends Post>
+    implements $PostCopyWith<$Res> {
+  _$PostCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Post
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+    Object? body = freezed,
+    Object? communityId = null,
+    Object? upvote = null,
+    Object? downvote = null,
+    Object? createdAt = freezed,
+    Object? createdBy = freezed,
+    Object? imageUrl = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      body: freezed == body
+          ? _value.body
+          : body // ignore: cast_nullable_to_non_nullable
+              as String?,
+      communityId: null == communityId
+          ? _value.communityId
+          : communityId // ignore: cast_nullable_to_non_nullable
+              as int,
+      upvote: null == upvote
+          ? _value.upvote
+          : upvote // ignore: cast_nullable_to_non_nullable
+              as int,
+      downvote: null == downvote
+          ? _value.downvote
+          : downvote // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as int?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$PostImplCopyWith<$Res> implements $PostCopyWith<$Res> {
+  factory _$$PostImplCopyWith(
+          _$PostImpl value, $Res Function(_$PostImpl) then) =
+      __$$PostImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      String title,
+      String? body,
+      @JsonKey(name: 'community_id') int communityId,
+      int upvote,
+      int downvote,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'created_by') int? createdBy,
+      @JsonKey(name: 'image_url') String? imageUrl});
+}
+
+/// @nodoc
+class __$$PostImplCopyWithImpl<$Res>
+    extends _$PostCopyWithImpl<$Res, _$PostImpl>
+    implements _$$PostImplCopyWith<$Res> {
+  __$$PostImplCopyWithImpl(_$PostImpl _value, $Res Function(_$PostImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Post
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+    Object? body = freezed,
+    Object? communityId = null,
+    Object? upvote = null,
+    Object? downvote = null,
+    Object? createdAt = freezed,
+    Object? createdBy = freezed,
+    Object? imageUrl = freezed,
+  }) {
+    return _then(_$PostImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      body: freezed == body
+          ? _value.body
+          : body // ignore: cast_nullable_to_non_nullable
+              as String?,
+      communityId: null == communityId
+          ? _value.communityId
+          : communityId // ignore: cast_nullable_to_non_nullable
+              as int,
+      upvote: null == upvote
+          ? _value.upvote
+          : upvote // ignore: cast_nullable_to_non_nullable
+              as int,
+      downvote: null == downvote
+          ? _value.downvote
+          : downvote // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as int?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PostImpl implements _Post {
+  const _$PostImpl(
+      {required this.id,
+      required this.title,
+      this.body,
+      @JsonKey(name: 'community_id') required this.communityId,
+      this.upvote = 0,
+      this.downvote = 0,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'created_by') this.createdBy,
+      @JsonKey(name: 'image_url') this.imageUrl});
+
+  factory _$PostImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PostImplFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final String title;
+  @override
+  final String? body;
+  @override
+  @JsonKey(name: 'community_id')
+  final int communityId;
+  @override
+  @JsonKey()
+  final int upvote;
+  @override
+  @JsonKey()
+  final int downvote;
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @override
+  @JsonKey(name: 'created_by')
+  final int? createdBy;
+  @override
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
+
+  @override
+  String toString() {
+    return 'Post(id: $id, title: $title, body: $body, communityId: $communityId, upvote: $upvote, downvote: $downvote, createdAt: $createdAt, createdBy: $createdBy, imageUrl: $imageUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PostImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.body, body) || other.body == body) &&
+            (identical(other.communityId, communityId) ||
+                other.communityId == communityId) &&
+            (identical(other.upvote, upvote) || other.upvote == upvote) &&
+            (identical(other.downvote, downvote) ||
+                other.downvote == downvote) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, title, body, communityId,
+      upvote, downvote, createdAt, createdBy, imageUrl);
+
+  /// Create a copy of Post
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PostImplCopyWith<_$PostImpl> get copyWith =>
+      __$$PostImplCopyWithImpl<_$PostImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PostImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Post implements Post {
+  const factory _Post(
+      {required final int id,
+      required final String title,
+      final String? body,
+      @JsonKey(name: 'community_id') required final int communityId,
+      final int upvote,
+      final int downvote,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'created_by') final int? createdBy,
+      @JsonKey(name: 'image_url') final String? imageUrl}) = _$PostImpl;
+
+  factory _Post.fromJson(Map<String, dynamic> json) = _$PostImpl.fromJson;
+
+  @override
+  int get id;
+  @override
+  String get title;
+  @override
+  String? get body;
+  @override
+  @JsonKey(name: 'community_id')
+  int get communityId;
+  @override
+  int get upvote;
+  @override
+  int get downvote;
+  @override
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+  @JsonKey(name: 'created_by')
+  int? get createdBy;
+  @override
+  @JsonKey(name: 'image_url')
+  String? get imageUrl;
+
+  /// Create a copy of Post
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PostImplCopyWith<_$PostImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 Community _$CommunityFromJson(Map<String, dynamic> json) {
   return _Community.fromJson(json);
 }
@@ -238,9 +566,10 @@ mixin _$Community {
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
   int? get createdBy => throw _privateConstructorUsedError;
-  int get memberCount =>
-      throw _privateConstructorUsedError; // For local use, not from API
-  bool get isJoined => throw _privateConstructorUsedError;
+  @JsonKey(name: 'member_count')
+  int get memberCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_member')
+  bool get isMember => throw _privateConstructorUsedError;
 
   /// Serializes this Community to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -266,8 +595,8 @@ abstract class $CommunityCopyWith<$Res> {
       @JsonKey(name: 'icon_url') String? iconUrl,
       @JsonKey(name: 'created_at') String? createdAt,
       @JsonKey(name: 'created_by') int? createdBy,
-      int memberCount,
-      bool isJoined});
+      @JsonKey(name: 'member_count') int memberCount,
+      @JsonKey(name: 'is_member') bool isMember});
 }
 
 /// @nodoc
@@ -294,7 +623,7 @@ class _$CommunityCopyWithImpl<$Res, $Val extends Community>
     Object? createdAt = freezed,
     Object? createdBy = freezed,
     Object? memberCount = null,
-    Object? isJoined = null,
+    Object? isMember = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -333,9 +662,9 @@ class _$CommunityCopyWithImpl<$Res, $Val extends Community>
           ? _value.memberCount
           : memberCount // ignore: cast_nullable_to_non_nullable
               as int,
-      isJoined: null == isJoined
-          ? _value.isJoined
-          : isJoined // ignore: cast_nullable_to_non_nullable
+      isMember: null == isMember
+          ? _value.isMember
+          : isMember // ignore: cast_nullable_to_non_nullable
               as bool,
     ) as $Val);
   }
@@ -358,8 +687,8 @@ abstract class _$$CommunityImplCopyWith<$Res>
       @JsonKey(name: 'icon_url') String? iconUrl,
       @JsonKey(name: 'created_at') String? createdAt,
       @JsonKey(name: 'created_by') int? createdBy,
-      int memberCount,
-      bool isJoined});
+      @JsonKey(name: 'member_count') int memberCount,
+      @JsonKey(name: 'is_member') bool isMember});
 }
 
 /// @nodoc
@@ -384,7 +713,7 @@ class __$$CommunityImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? createdBy = freezed,
     Object? memberCount = null,
-    Object? isJoined = null,
+    Object? isMember = null,
   }) {
     return _then(_$CommunityImpl(
       id: null == id
@@ -423,9 +752,9 @@ class __$$CommunityImplCopyWithImpl<$Res>
           ? _value.memberCount
           : memberCount // ignore: cast_nullable_to_non_nullable
               as int,
-      isJoined: null == isJoined
-          ? _value.isJoined
-          : isJoined // ignore: cast_nullable_to_non_nullable
+      isMember: null == isMember
+          ? _value.isMember
+          : isMember // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }
@@ -443,8 +772,8 @@ class _$CommunityImpl implements _Community {
       @JsonKey(name: 'icon_url') this.iconUrl,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'created_by') this.createdBy,
-      this.memberCount = 0,
-      this.isJoined = false});
+      @JsonKey(name: 'member_count') this.memberCount = 0,
+      @JsonKey(name: 'is_member') this.isMember = false});
 
   factory _$CommunityImpl.fromJson(Map<String, dynamic> json) =>
       _$$CommunityImplFromJson(json);
@@ -470,16 +799,15 @@ class _$CommunityImpl implements _Community {
   @JsonKey(name: 'created_by')
   final int? createdBy;
   @override
-  @JsonKey()
+  @JsonKey(name: 'member_count')
   final int memberCount;
-// For local use, not from API
   @override
-  @JsonKey()
-  final bool isJoined;
+  @JsonKey(name: 'is_member')
+  final bool isMember;
 
   @override
   String toString() {
-    return 'Community(id: $id, name: $name, description: $description, topics: $topics, bannerUrl: $bannerUrl, iconUrl: $iconUrl, createdAt: $createdAt, createdBy: $createdBy, memberCount: $memberCount, isJoined: $isJoined)';
+    return 'Community(id: $id, name: $name, description: $description, topics: $topics, bannerUrl: $bannerUrl, iconUrl: $iconUrl, createdAt: $createdAt, createdBy: $createdBy, memberCount: $memberCount, isMember: $isMember)';
   }
 
   @override
@@ -501,14 +829,14 @@ class _$CommunityImpl implements _Community {
                 other.createdBy == createdBy) &&
             (identical(other.memberCount, memberCount) ||
                 other.memberCount == memberCount) &&
-            (identical(other.isJoined, isJoined) ||
-                other.isJoined == isJoined));
+            (identical(other.isMember, isMember) ||
+                other.isMember == isMember));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, description, topics,
-      bannerUrl, iconUrl, createdAt, createdBy, memberCount, isJoined);
+      bannerUrl, iconUrl, createdAt, createdBy, memberCount, isMember);
 
   /// Create a copy of Community
   /// with the given fields replaced by the non-null parameter values.
@@ -536,8 +864,8 @@ abstract class _Community implements Community {
       @JsonKey(name: 'icon_url') final String? iconUrl,
       @JsonKey(name: 'created_at') final String? createdAt,
       @JsonKey(name: 'created_by') final int? createdBy,
-      final int memberCount,
-      final bool isJoined}) = _$CommunityImpl;
+      @JsonKey(name: 'member_count') final int memberCount,
+      @JsonKey(name: 'is_member') final bool isMember}) = _$CommunityImpl;
 
   factory _Community.fromJson(Map<String, dynamic> json) =
       _$CommunityImpl.fromJson;
@@ -563,9 +891,11 @@ abstract class _Community implements Community {
   @JsonKey(name: 'created_by')
   int? get createdBy;
   @override
-  int get memberCount; // For local use, not from API
+  @JsonKey(name: 'member_count')
+  int get memberCount;
   @override
-  bool get isJoined;
+  @JsonKey(name: 'is_member')
+  bool get isMember;
 
   /// Create a copy of Community
   /// with the given fields replaced by the non-null parameter values.

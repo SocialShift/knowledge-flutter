@@ -7,30 +7,35 @@ part 'community_provider.g.dart';
 
 // Provider for community categories
 @riverpod
-List<CommunityCategory> communityCategories(ref) {
+Future<List<CommunityCategory>> communityCategories(
+  CommunityCategoriesRef ref,
+) async {
   final repository = ref.watch(communityRepositoryProvider.notifier);
   return repository.getCategories();
 }
 
 // Provider for all communities (now async)
 @riverpod
-Future<List<Community>> allCommunities(ref) async {
+Future<List<Community>> allCommunities(AllCommunitiesRef ref) async {
   final repository = ref.watch(communityRepositoryProvider.notifier);
-  return await repository.getCommunities();
+  return repository.getCommunities();
 }
 
 // Provider for communities filtered by category
 @riverpod
-Future<List<Community>> communitiesByCategory(ref, String categoryId) async {
+Future<List<Community>> communitiesByCategory(
+  CommunitiesByCategoryRef ref,
+  String categoryId,
+) async {
   final repository = ref.watch(communityRepositoryProvider.notifier);
-  return await repository.getCommunitiesByCategory(categoryId);
+  return repository.getCommunitiesByCategory(categoryId);
 }
 
 // Provider for joined communities
 @riverpod
 Future<List<Community>> joinedCommunities(ref) async {
-  final allCommunities = await ref.watch(allCommunitiesProvider);
-  return allCommunities.where((community) => community.isJoined).toList();
+  final allCommunities = await ref.watch(allCommunitiesProvider.future);
+  return allCommunities.where((community) => community.isMember).toList();
 }
 
 // Provider for community actions
@@ -41,22 +46,24 @@ class CommunityActions extends _$CommunityActions {
     // Initialize
   }
 
-  Future<void> joinCommunity(String communityId) async {
+  Future<void> joinCommunity(int communityId) async {
     final repository = ref.read(communityRepositoryProvider.notifier);
     await repository.joinCommunity(communityId);
 
     // Invalidate providers to refresh data
     ref.invalidate(allCommunitiesProvider);
     ref.invalidate(joinedCommunitiesProvider);
+    ref.invalidate(communityDetailsProvider(communityId));
   }
 
-  Future<void> leaveCommunity(String communityId) async {
+  Future<void> leaveCommunity(int communityId) async {
     final repository = ref.read(communityRepositoryProvider.notifier);
     await repository.leaveCommunity(communityId);
 
     // Invalidate providers to refresh data
     ref.invalidate(allCommunitiesProvider);
     ref.invalidate(joinedCommunitiesProvider);
+    ref.invalidate(communityDetailsProvider(communityId));
   }
 
   Future<Community> createCommunity({
@@ -79,5 +86,77 @@ class CommunityActions extends _$CommunityActions {
     ref.invalidate(allCommunitiesProvider);
 
     return community;
+  }
+}
+
+@riverpod
+Future<Community> communityDetails(
+  CommunityDetailsRef ref,
+  int communityId,
+) async {
+  final repository = ref.watch(communityRepositoryProvider.notifier);
+  return repository.getCommunityDetails(communityId);
+}
+
+@riverpod
+Future<void> joinCommunityAction(
+  JoinCommunityActionRef ref,
+  int communityId,
+) async {
+  final repository = ref.watch(communityRepositoryProvider.notifier);
+  await repository.joinCommunity(communityId);
+
+  // Invalidate related providers to refresh data
+  ref.invalidate(allCommunitiesProvider);
+  ref.invalidate(communityDetailsProvider(communityId));
+}
+
+@riverpod
+Future<void> leaveCommunityAction(
+  LeaveCommunityActionRef ref,
+  int communityId,
+) async {
+  final repository = ref.watch(communityRepositoryProvider.notifier);
+  await repository.leaveCommunity(communityId);
+
+  // Invalidate related providers to refresh data
+  ref.invalidate(allCommunitiesProvider);
+  ref.invalidate(communityDetailsProvider(communityId));
+}
+
+@riverpod
+Future<List<Post>> communityPosts(
+  CommunityPostsRef ref,
+  int communityId,
+) async {
+  final repository = ref.watch(communityRepositoryProvider.notifier);
+  return repository.getCommunityPosts(communityId);
+}
+
+@riverpod
+class PostActions extends _$PostActions {
+  @override
+  void build() {
+    // Initialize
+  }
+
+  Future<Post> createPost({
+    required String title,
+    String? body,
+    required int communityId,
+    File? imageFile,
+  }) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    final post = await repository.createPost(
+      title: title,
+      body: body,
+      communityId: communityId,
+      imageFile: imageFile,
+    );
+
+    // Invalidate posts provider to refresh data
+    ref.invalidate(communityPostsProvider(communityId));
+
+    return post;
   }
 }

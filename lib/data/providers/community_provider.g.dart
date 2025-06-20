@@ -7,12 +7,12 @@ part of 'community_provider.dart';
 // **************************************************************************
 
 String _$communityCategoriesHash() =>
-    r'ce226b0b59b28fa35334b16cd357fb20a20a4a83';
+    r'4a0749b6b5d08517da46bb5df729227d9f576c31';
 
 /// See also [communityCategories].
 @ProviderFor(communityCategories)
 final communityCategoriesProvider =
-    AutoDisposeProvider<List<CommunityCategory>>.internal(
+    AutoDisposeFutureProvider<List<CommunityCategory>>.internal(
   communityCategories,
   name: r'communityCategoriesProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -25,8 +25,8 @@ final communityCategoriesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CommunityCategoriesRef
-    = AutoDisposeProviderRef<List<CommunityCategory>>;
-String _$allCommunitiesHash() => r'd991c3928bd59808326fd41bb7035e9b311a2aa7';
+    = AutoDisposeFutureProviderRef<List<CommunityCategory>>;
+String _$allCommunitiesHash() => r'02753262d02264bc3cebd972add6f2b14ea9a204';
 
 /// See also [allCommunities].
 @ProviderFor(allCommunities)
@@ -45,7 +45,7 @@ final allCommunitiesProvider =
 // ignore: unused_element
 typedef AllCommunitiesRef = AutoDisposeFutureProviderRef<List<Community>>;
 String _$communitiesByCategoryHash() =>
-    r'03598b98e95b00699d7f64602906478148057a0f';
+    r'edbc6244d9cb8c9f8fed5585dffbae2a5e7edc62';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -201,7 +201,7 @@ class _CommunitiesByCategoryProviderElement
   String get categoryId => (origin as CommunitiesByCategoryProvider).categoryId;
 }
 
-String _$joinedCommunitiesHash() => r'08933c7205532ec381d5e03cc0b7160615245f68';
+String _$joinedCommunitiesHash() => r'81904c31d09c0dc2d0c48a8338ce8edacb031872';
 
 /// See also [joinedCommunities].
 @ProviderFor(joinedCommunities)
@@ -219,7 +219,535 @@ final joinedCommunitiesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef JoinedCommunitiesRef = AutoDisposeFutureProviderRef<List<Community>>;
-String _$communityActionsHash() => r'8789493cdb07e8569683b4a32e665b95d724c091';
+String _$communityDetailsHash() => r'8b8574fa403050d7682469cb26d8f11e84f48651';
+
+/// See also [communityDetails].
+@ProviderFor(communityDetails)
+const communityDetailsProvider = CommunityDetailsFamily();
+
+/// See also [communityDetails].
+class CommunityDetailsFamily extends Family<AsyncValue<Community>> {
+  /// See also [communityDetails].
+  const CommunityDetailsFamily();
+
+  /// See also [communityDetails].
+  CommunityDetailsProvider call(
+    int communityId,
+  ) {
+    return CommunityDetailsProvider(
+      communityId,
+    );
+  }
+
+  @override
+  CommunityDetailsProvider getProviderOverride(
+    covariant CommunityDetailsProvider provider,
+  ) {
+    return call(
+      provider.communityId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'communityDetailsProvider';
+}
+
+/// See also [communityDetails].
+class CommunityDetailsProvider extends AutoDisposeFutureProvider<Community> {
+  /// See also [communityDetails].
+  CommunityDetailsProvider(
+    int communityId,
+  ) : this._internal(
+          (ref) => communityDetails(
+            ref as CommunityDetailsRef,
+            communityId,
+          ),
+          from: communityDetailsProvider,
+          name: r'communityDetailsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$communityDetailsHash,
+          dependencies: CommunityDetailsFamily._dependencies,
+          allTransitiveDependencies:
+              CommunityDetailsFamily._allTransitiveDependencies,
+          communityId: communityId,
+        );
+
+  CommunityDetailsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.communityId,
+  }) : super.internal();
+
+  final int communityId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Community> Function(CommunityDetailsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CommunityDetailsProvider._internal(
+        (ref) => create(ref as CommunityDetailsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        communityId: communityId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Community> createElement() {
+    return _CommunityDetailsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CommunityDetailsProvider &&
+        other.communityId == communityId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, communityId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CommunityDetailsRef on AutoDisposeFutureProviderRef<Community> {
+  /// The parameter `communityId` of this provider.
+  int get communityId;
+}
+
+class _CommunityDetailsProviderElement
+    extends AutoDisposeFutureProviderElement<Community>
+    with CommunityDetailsRef {
+  _CommunityDetailsProviderElement(super.provider);
+
+  @override
+  int get communityId => (origin as CommunityDetailsProvider).communityId;
+}
+
+String _$joinCommunityActionHash() =>
+    r'4cfa02c82b9e9283ec2e0ce3a4e6aca564e990c4';
+
+/// See also [joinCommunityAction].
+@ProviderFor(joinCommunityAction)
+const joinCommunityActionProvider = JoinCommunityActionFamily();
+
+/// See also [joinCommunityAction].
+class JoinCommunityActionFamily extends Family<AsyncValue<void>> {
+  /// See also [joinCommunityAction].
+  const JoinCommunityActionFamily();
+
+  /// See also [joinCommunityAction].
+  JoinCommunityActionProvider call(
+    int communityId,
+  ) {
+    return JoinCommunityActionProvider(
+      communityId,
+    );
+  }
+
+  @override
+  JoinCommunityActionProvider getProviderOverride(
+    covariant JoinCommunityActionProvider provider,
+  ) {
+    return call(
+      provider.communityId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'joinCommunityActionProvider';
+}
+
+/// See also [joinCommunityAction].
+class JoinCommunityActionProvider extends AutoDisposeFutureProvider<void> {
+  /// See also [joinCommunityAction].
+  JoinCommunityActionProvider(
+    int communityId,
+  ) : this._internal(
+          (ref) => joinCommunityAction(
+            ref as JoinCommunityActionRef,
+            communityId,
+          ),
+          from: joinCommunityActionProvider,
+          name: r'joinCommunityActionProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$joinCommunityActionHash,
+          dependencies: JoinCommunityActionFamily._dependencies,
+          allTransitiveDependencies:
+              JoinCommunityActionFamily._allTransitiveDependencies,
+          communityId: communityId,
+        );
+
+  JoinCommunityActionProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.communityId,
+  }) : super.internal();
+
+  final int communityId;
+
+  @override
+  Override overrideWith(
+    FutureOr<void> Function(JoinCommunityActionRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: JoinCommunityActionProvider._internal(
+        (ref) => create(ref as JoinCommunityActionRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        communityId: communityId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<void> createElement() {
+    return _JoinCommunityActionProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is JoinCommunityActionProvider &&
+        other.communityId == communityId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, communityId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin JoinCommunityActionRef on AutoDisposeFutureProviderRef<void> {
+  /// The parameter `communityId` of this provider.
+  int get communityId;
+}
+
+class _JoinCommunityActionProviderElement
+    extends AutoDisposeFutureProviderElement<void> with JoinCommunityActionRef {
+  _JoinCommunityActionProviderElement(super.provider);
+
+  @override
+  int get communityId => (origin as JoinCommunityActionProvider).communityId;
+}
+
+String _$leaveCommunityActionHash() =>
+    r'bddf32a5cff008ba3b00f40e8f133b005cad7357';
+
+/// See also [leaveCommunityAction].
+@ProviderFor(leaveCommunityAction)
+const leaveCommunityActionProvider = LeaveCommunityActionFamily();
+
+/// See also [leaveCommunityAction].
+class LeaveCommunityActionFamily extends Family<AsyncValue<void>> {
+  /// See also [leaveCommunityAction].
+  const LeaveCommunityActionFamily();
+
+  /// See also [leaveCommunityAction].
+  LeaveCommunityActionProvider call(
+    int communityId,
+  ) {
+    return LeaveCommunityActionProvider(
+      communityId,
+    );
+  }
+
+  @override
+  LeaveCommunityActionProvider getProviderOverride(
+    covariant LeaveCommunityActionProvider provider,
+  ) {
+    return call(
+      provider.communityId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'leaveCommunityActionProvider';
+}
+
+/// See also [leaveCommunityAction].
+class LeaveCommunityActionProvider extends AutoDisposeFutureProvider<void> {
+  /// See also [leaveCommunityAction].
+  LeaveCommunityActionProvider(
+    int communityId,
+  ) : this._internal(
+          (ref) => leaveCommunityAction(
+            ref as LeaveCommunityActionRef,
+            communityId,
+          ),
+          from: leaveCommunityActionProvider,
+          name: r'leaveCommunityActionProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$leaveCommunityActionHash,
+          dependencies: LeaveCommunityActionFamily._dependencies,
+          allTransitiveDependencies:
+              LeaveCommunityActionFamily._allTransitiveDependencies,
+          communityId: communityId,
+        );
+
+  LeaveCommunityActionProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.communityId,
+  }) : super.internal();
+
+  final int communityId;
+
+  @override
+  Override overrideWith(
+    FutureOr<void> Function(LeaveCommunityActionRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: LeaveCommunityActionProvider._internal(
+        (ref) => create(ref as LeaveCommunityActionRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        communityId: communityId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<void> createElement() {
+    return _LeaveCommunityActionProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LeaveCommunityActionProvider &&
+        other.communityId == communityId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, communityId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin LeaveCommunityActionRef on AutoDisposeFutureProviderRef<void> {
+  /// The parameter `communityId` of this provider.
+  int get communityId;
+}
+
+class _LeaveCommunityActionProviderElement
+    extends AutoDisposeFutureProviderElement<void>
+    with LeaveCommunityActionRef {
+  _LeaveCommunityActionProviderElement(super.provider);
+
+  @override
+  int get communityId => (origin as LeaveCommunityActionProvider).communityId;
+}
+
+String _$communityPostsHash() => r'85bf12a82952a091bd2896a0e78653d1497ac729';
+
+/// See also [communityPosts].
+@ProviderFor(communityPosts)
+const communityPostsProvider = CommunityPostsFamily();
+
+/// See also [communityPosts].
+class CommunityPostsFamily extends Family<AsyncValue<List<Post>>> {
+  /// See also [communityPosts].
+  const CommunityPostsFamily();
+
+  /// See also [communityPosts].
+  CommunityPostsProvider call(
+    int communityId,
+  ) {
+    return CommunityPostsProvider(
+      communityId,
+    );
+  }
+
+  @override
+  CommunityPostsProvider getProviderOverride(
+    covariant CommunityPostsProvider provider,
+  ) {
+    return call(
+      provider.communityId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'communityPostsProvider';
+}
+
+/// See also [communityPosts].
+class CommunityPostsProvider extends AutoDisposeFutureProvider<List<Post>> {
+  /// See also [communityPosts].
+  CommunityPostsProvider(
+    int communityId,
+  ) : this._internal(
+          (ref) => communityPosts(
+            ref as CommunityPostsRef,
+            communityId,
+          ),
+          from: communityPostsProvider,
+          name: r'communityPostsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$communityPostsHash,
+          dependencies: CommunityPostsFamily._dependencies,
+          allTransitiveDependencies:
+              CommunityPostsFamily._allTransitiveDependencies,
+          communityId: communityId,
+        );
+
+  CommunityPostsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.communityId,
+  }) : super.internal();
+
+  final int communityId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Post>> Function(CommunityPostsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CommunityPostsProvider._internal(
+        (ref) => create(ref as CommunityPostsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        communityId: communityId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Post>> createElement() {
+    return _CommunityPostsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CommunityPostsProvider && other.communityId == communityId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, communityId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CommunityPostsRef on AutoDisposeFutureProviderRef<List<Post>> {
+  /// The parameter `communityId` of this provider.
+  int get communityId;
+}
+
+class _CommunityPostsProviderElement
+    extends AutoDisposeFutureProviderElement<List<Post>>
+    with CommunityPostsRef {
+  _CommunityPostsProviderElement(super.provider);
+
+  @override
+  int get communityId => (origin as CommunityPostsProvider).communityId;
+}
+
+String _$communityActionsHash() => r'c3ca752d49f53711785e1ee22908466107aaa62b';
 
 /// See also [CommunityActions].
 @ProviderFor(CommunityActions)
@@ -235,5 +763,20 @@ final communityActionsProvider =
 );
 
 typedef _$CommunityActions = AutoDisposeNotifier<void>;
+String _$postActionsHash() => r'2f89595f311c994e70b0228546a058e26d80f045';
+
+/// See also [PostActions].
+@ProviderFor(PostActions)
+final postActionsProvider =
+    AutoDisposeNotifierProvider<PostActions, void>.internal(
+  PostActions.new,
+  name: r'postActionsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$postActionsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$PostActions = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
