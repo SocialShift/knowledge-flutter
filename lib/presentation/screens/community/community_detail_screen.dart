@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:knowledge/core/themes/app_theme.dart';
 import 'package:knowledge/data/models/community.dart';
 import 'package:knowledge/data/providers/community_provider.dart';
+import 'package:knowledge/data/repositories/social_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import 'package:knowledge/data/providers/auth_provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:knowledge/presentation/screens/community/post_comments_screen.dart';
 // import 'package:knowledge/data/providers/post_provider.dart';
 
-class CommunityDetailScreen extends ConsumerWidget {
+class CommunityDetailScreen extends HookConsumerWidget {
   final int communityId;
 
   const CommunityDetailScreen({
@@ -34,12 +38,152 @@ class CommunityDetailScreen extends ConsumerWidget {
     final communityAsync = ref.watch(communityDetailsProvider(communityId));
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    // Scroll controller to detect when banner disappears
+    final scrollController = useScrollController();
+    final showTopNotification = useState(false);
+
+    // Listen to scroll changes
+    useEffect(() {
+      void scrollListener() {
+        // Calculate when posts section (white area) touches the top
+        // This should be when the SliverAppBar's expanded height is fully scrolled
+        final postsThreshold =
+            320.0; // Match the expandedHeight from SliverAppBar
+        final isPostsTouchingTop = scrollController.hasClients &&
+            scrollController.offset >= postsThreshold;
+
+        if (isPostsTouchingTop != showTopNotification.value) {
+          showTopNotification.value = isPostsTouchingTop;
+        }
+      }
+
+      scrollController.addListener(scrollListener);
+      return () => scrollController.removeListener(scrollListener);
+    }, [scrollController]);
+
     return Scaffold(
-      backgroundColor:
-          isDarkMode ? AppColors.darkBackground : Colors.grey.shade50,
+      backgroundColor: isDarkMode ? Colors.black : AppColors.offWhite,
       body: communityAsync.when(
-        data: (community) =>
-            _buildCommunityDetail(context, ref, community, isDarkMode),
+        data: (community) => Stack(
+          children: [
+            _buildCommunityDetail(
+                context, ref, community, isDarkMode, scrollController),
+
+            // Top Notification Bar (appears when scrolled past banner)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              top: showTopNotification.value ? 0 : -200,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: showTopNotification.value ? 1.0 : 0.0,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                      20, MediaQuery.of(context).padding.top + 8, 20, 12),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? AppColors.darkSurface.withOpacity(0.95)
+                        : Colors.white.withOpacity(0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Back button
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              community.name,
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : AppColors.navyBlue,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${_formatMemberCount(community.memberCount)} members',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Create post button in notification bar
+                      GestureDetector(
+                        onTap: () {
+                          context.push('/community/${community.id}/create-post',
+                              extra: {
+                                'communityName': community.name,
+                              });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.limeGreen,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Post',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         loading: () => _buildLoadingState(context, isDarkMode),
         error: (error, stack) =>
             _buildErrorState(context, ref, communityId, error, isDarkMode),
@@ -48,8 +192,9 @@ class CommunityDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildCommunityDetail(BuildContext context, WidgetRef ref,
-      Community community, bool isDarkMode) {
+      Community community, bool isDarkMode, ScrollController scrollController) {
     return CustomScrollView(
+      controller: scrollController,
       slivers: [
         // Enhanced SliverAppBar with integrated community info
         _buildEnhancedHeader(context, ref, community, isDarkMode),
@@ -57,11 +202,6 @@ class CommunityDetailScreen extends ConsumerWidget {
         // Posts Section
         SliverToBoxAdapter(
           child: _buildPostsSection(context, ref, community, isDarkMode),
-        ),
-
-        // Add some bottom padding
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 100),
         ),
       ],
     );
@@ -491,52 +631,75 @@ class CommunityDetailScreen extends ConsumerWidget {
       Community community, bool isDarkMode) {
     final postsAsync = ref.watch(communityPostsProvider(community.id));
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Community Posts',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: isDarkMode ? Colors.white : AppColors.navyBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-              ),
-              Icon(
-                Icons.forum,
-                color: isDarkMode ? Colors.white70 : AppColors.navyBlue,
-                size: 20,
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(32),
+        topRight: Radius.circular(32),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(top: 0),
+          decoration: BoxDecoration(
+            color: isDarkMode
+                ? AppColors.darkSurface.withOpacity(0.85)
+                : Colors.white.withOpacity(0.85),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                    height: 24), // Slightly more space to see banner curves
 
-          // Posts Content
-          postsAsync.when(
-            data: (posts) => posts.isEmpty
-                ? _buildEmptyPosts(context, isDarkMode)
-                : _buildPostsList(context, ref, posts, isDarkMode),
-            loading: () => _buildPostsLoading(context, isDarkMode),
-            error: (error, stack) =>
-                _buildPostsError(context, ref, community.id, error, isDarkMode),
+                // Posts Content
+                postsAsync.when(
+                  data: (posts) => posts.isEmpty
+                      ? _buildEmptyPosts(context, isDarkMode)
+                      : _buildPostsList(
+                          context, ref, posts, isDarkMode, community),
+                  loading: () => _buildPostsLoading(context, isDarkMode),
+                  error: (error, stack) => _buildPostsError(
+                      context, ref, community.id, error, isDarkMode),
+                ),
+
+                const SizedBox(height: 100), // Bottom padding
+              ],
+            ),
           ),
-        ],
+        ),
       ),
-    );
+    )
+        .animate()
+        .slideY(
+            begin: 1.0,
+            duration: 1000.ms,
+            curve: Curves.easeOutCubic,
+            delay: 300.ms)
+        .fadeIn(duration: 800.ms, delay: 300.ms);
   }
 
   Widget _buildEmptyPosts(BuildContext context, bool isDarkMode) {
     return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 0, 0), // Consistent left margin
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDarkMode
+            ? Colors.white.withOpacity(0.05)
+            : Colors.grey.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDarkMode ? Colors.white10 : Colors.grey.shade200,
         ),
@@ -569,94 +732,73 @@ class CommunityDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPostsList(
-      BuildContext context, WidgetRef ref, List<Post> posts, bool isDarkMode) {
+  Widget _buildPostsList(BuildContext context, WidgetRef ref, List<Post> posts,
+      bool isDarkMode, Community community) {
     return Column(
-      children: posts
-          .map((post) => _buildPostCard(context, ref, post, isDarkMode))
-          .toList(),
+      children: posts.asMap().entries.map((entry) {
+        final index = entry.key;
+        final post = entry.value;
+        return _buildPostCard(context, ref, post, isDarkMode, community)
+            .animate()
+            .fadeIn(duration: 600.ms, delay: (index * 150).ms)
+            .slideY(
+              begin: 0.3,
+              duration: 800.ms,
+              curve: Curves.easeOutCubic,
+            );
+      }).toList(),
     );
   }
 
-  Widget _buildPostCard(
-      BuildContext context, WidgetRef ref, Post post, bool isDarkMode) {
+  Widget _buildPostCard(BuildContext context, WidgetRef ref, Post post,
+      bool isDarkMode, Community community) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDarkMode ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Post Header
+          // Post Header with User Info
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Author Avatar (placeholder for now)
-                CircleAvatar(
-                  backgroundColor: AppColors.limeGreen.withOpacity(0.2),
-                  child: Icon(
-                    Icons.person,
-                    color: AppColors.navyBlue,
-                    size: 20,
-                  ),
-                ),
+                // Author Avatar with actual user data
+                _buildUserAvatar(ref, post.createdBy, isDarkMode),
                 const SizedBox(width: 12),
 
-                // Author Info
+                // Author Info with actual user data
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          // Navigate to user profile
-                          if (post.createdBy != null) {
-                            context.push('/profile/${post.createdBy}');
-                          }
-                        },
-                        child: Text(
-                          'User ${post.createdBy ?? 'Unknown'}',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : AppColors.navyBlue,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                      ),
-                      Text(
-                        _formatDate(post.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDarkMode
-                                  ? Colors.white60
-                                  : Colors.grey.shade500,
-                              fontSize: 12,
-                            ),
-                      ),
-                    ],
-                  ),
+                  child: _buildUserInfo(context, ref, post, isDarkMode),
                 ),
 
                 // Post Menu
-                IconButton(
-                  onPressed: () {
-                    // Show post options menu
-                  },
-                  icon: Icon(
-                    Icons.more_vert,
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.more_horiz,
                     color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
               ],
@@ -665,7 +807,8 @@ class CommunityDetailScreen extends ConsumerWidget {
 
           // Post Content
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(
+                32, 0, 20, 0), // Increased left margin
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -675,19 +818,21 @@ class CommunityDetailScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: isDarkMode ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
                 ),
 
                 // Post Body
                 if (post.body != null && post.body!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     post.body!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isDarkMode
                               ? Colors.white70
                               : Colors.grey.shade700,
-                          height: 1.4,
+                          height: 1.5,
+                          fontSize: 15,
                         ),
                   ),
                 ],
@@ -729,56 +874,44 @@ class CommunityDetailScreen extends ConsumerWidget {
           ],
 
           // Post Actions (Upvote, Downvote, Comments)
-          Padding(
-            padding: const EdgeInsets.all(16),
+          Container(
+            margin:
+                const EdgeInsets.fromLTRB(32, 16, 20, 16), // Match left margin
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDarkMode
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
                 // Upvote
                 _buildVoteButton(
                   context,
-                  Icons.keyboard_arrow_up,
+                  Icons.keyboard_arrow_up_rounded,
                   post.upvote,
                   Colors.green,
                   isDarkMode,
-                  () {
-                    // Handle upvote
-                  },
+                  () => _handleVote(ref, post.id, 1, community.id),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
 
                 // Downvote
                 _buildVoteButton(
                   context,
-                  Icons.keyboard_arrow_down,
+                  Icons.keyboard_arrow_down_rounded,
                   post.downvote,
                   Colors.red,
                   isDarkMode,
-                  () {
-                    // Handle downvote
-                  },
+                  () => _handleVote(ref, post.id, -1, community.id),
                 ),
 
                 const Spacer(),
 
-                // Comments (placeholder)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.comment_outlined,
-                      size: 18,
-                      color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Comment',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDarkMode
-                                ? Colors.white60
-                                : Colors.grey.shade500,
-                          ),
-                    ),
-                  ],
-                ),
+                // Comments with count
+                _buildCommentButton(
+                    context, ref, post, community.name, isDarkMode),
               ],
             ),
           ),
@@ -797,22 +930,35 @@ class CommunityDetailScreen extends ConsumerWidget {
   ) {
     return GestureDetector(
       onTap: onTap,
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 20,
-            color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
           ),
-          const SizedBox(width: 4),
-          Text(
-            count.toString(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: color,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              count.toString(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1106,5 +1252,309 @@ class CommunityDetailScreen extends ConsumerWidget {
     } catch (e) {
       return 'Unknown';
     }
+  }
+
+  // Helper method to build user avatar with actual user data
+  Widget _buildUserAvatar(WidgetRef ref, int? userId, bool isDarkMode) {
+    if (userId == null) {
+      return CircleAvatar(
+        radius: 22,
+        backgroundColor: AppColors.limeGreen.withOpacity(0.2),
+        child: Icon(
+          Icons.person,
+          color: AppColors.navyBlue,
+          size: 20,
+        ),
+      );
+    }
+
+    final userProfileAsync = ref.watch(userProfileByIdProvider(userId));
+
+    return userProfileAsync.when(
+      data: (profile) => Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.limeGreen.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: ClipOval(
+          child: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: profile.avatarUrl!,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: AppColors.limeGreen.withOpacity(0.2),
+                    child: Icon(
+                      Icons.person,
+                      color: AppColors.navyBlue,
+                      size: 20,
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: AppColors.limeGreen.withOpacity(0.2),
+                    child: Icon(
+                      Icons.person,
+                      color: AppColors.navyBlue,
+                      size: 20,
+                    ),
+                  ),
+                )
+              : Container(
+                  color: AppColors.limeGreen.withOpacity(0.2),
+                  child: Icon(
+                    Icons.person,
+                    color: AppColors.navyBlue,
+                    size: 20,
+                  ),
+                ),
+        ),
+      ),
+      loading: () => Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey.withOpacity(0.3),
+        ),
+        child: const CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.limeGreen),
+        ),
+      ),
+      error: (_, __) => CircleAvatar(
+        radius: 22,
+        backgroundColor: AppColors.limeGreen.withOpacity(0.2),
+        child: Icon(
+          Icons.person,
+          color: AppColors.navyBlue,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build user info with actual user data
+  Widget _buildUserInfo(
+      BuildContext context, WidgetRef ref, Post post, bool isDarkMode) {
+    if (post.createdBy == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unknown User',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          Text(
+            _formatDate(post.createdAt),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                  fontSize: 12,
+                ),
+          ),
+        ],
+      );
+    }
+
+    final userProfileAsync =
+        ref.watch(userProfileByIdProvider(post.createdBy!));
+
+    return userProfileAsync.when(
+      data: (profile) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              context.push('/profile/${post.createdBy}');
+            },
+            child: Text(
+              profile.nickname ?? 'Unknown User',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          Text(
+            _formatDate(post.createdAt),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                  fontSize: 12,
+                ),
+          ),
+        ],
+      ),
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 16,
+            width: 80,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            height: 12,
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+      error: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unknown User',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          Text(
+            _formatDate(post.createdAt),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                  fontSize: 12,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Handle voting on posts
+  Future<void> _handleVote(
+      WidgetRef ref, int postId, int voteType, int communityId) async {
+    try {
+      await ref.read(postActionsProvider.notifier).votePost(
+            postId: postId,
+            voteType: voteType,
+            communityId: communityId,
+          );
+    } catch (e) {
+      // Handle error silently or show a snackbar
+      print('Error voting on post: $e');
+    }
+  }
+
+  // Navigate to comments screen
+  void _navigateToComments(
+      BuildContext context, Post post, String communityName) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PostCommentsScreen(
+          post: post,
+          communityName: communityName,
+        ),
+      ),
+    );
+  }
+
+  // Build comment button with actual comment count
+  Widget _buildCommentButton(BuildContext context, WidgetRef ref, Post post,
+      String communityName, bool isDarkMode) {
+    final commentsAsync = ref.watch(postCommentsProvider(post.id));
+
+    return commentsAsync.when(
+      data: (comments) => GestureDetector(
+        onTap: () => _navigateToComments(context, post, communityName),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 16,
+                color: AppColors.navyBlue,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${comments.length}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.navyBlue,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      loading: () => GestureDetector(
+        onTap: () => _navigateToComments(context, post, communityName),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 16,
+                color: AppColors.navyBlue,
+              ),
+              const SizedBox(width: 6),
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.navyBlue),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      error: (_, __) => GestureDetector(
+        onTap: () => _navigateToComments(context, post, communityName),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 16,
+                color: AppColors.navyBlue,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '0',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.navyBlue,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

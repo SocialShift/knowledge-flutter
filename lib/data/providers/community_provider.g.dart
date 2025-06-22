@@ -747,6 +747,141 @@ class _CommunityPostsProviderElement
   int get communityId => (origin as CommunityPostsProvider).communityId;
 }
 
+String _$postCommentsHash() => r'e30f894914b28f705e4174362b7c445c2740f3db';
+
+/// See also [postComments].
+@ProviderFor(postComments)
+const postCommentsProvider = PostCommentsFamily();
+
+/// See also [postComments].
+class PostCommentsFamily
+    extends Family<AsyncValue<List<Map<String, dynamic>>>> {
+  /// See also [postComments].
+  const PostCommentsFamily();
+
+  /// See also [postComments].
+  PostCommentsProvider call(
+    int postId,
+  ) {
+    return PostCommentsProvider(
+      postId,
+    );
+  }
+
+  @override
+  PostCommentsProvider getProviderOverride(
+    covariant PostCommentsProvider provider,
+  ) {
+    return call(
+      provider.postId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'postCommentsProvider';
+}
+
+/// See also [postComments].
+class PostCommentsProvider
+    extends AutoDisposeFutureProvider<List<Map<String, dynamic>>> {
+  /// See also [postComments].
+  PostCommentsProvider(
+    int postId,
+  ) : this._internal(
+          (ref) => postComments(
+            ref as PostCommentsRef,
+            postId,
+          ),
+          from: postCommentsProvider,
+          name: r'postCommentsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$postCommentsHash,
+          dependencies: PostCommentsFamily._dependencies,
+          allTransitiveDependencies:
+              PostCommentsFamily._allTransitiveDependencies,
+          postId: postId,
+        );
+
+  PostCommentsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.postId,
+  }) : super.internal();
+
+  final int postId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Map<String, dynamic>>> Function(PostCommentsRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PostCommentsProvider._internal(
+        (ref) => create(ref as PostCommentsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        postId: postId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Map<String, dynamic>>> createElement() {
+    return _PostCommentsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PostCommentsProvider && other.postId == postId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, postId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PostCommentsRef
+    on AutoDisposeFutureProviderRef<List<Map<String, dynamic>>> {
+  /// The parameter `postId` of this provider.
+  int get postId;
+}
+
+class _PostCommentsProviderElement
+    extends AutoDisposeFutureProviderElement<List<Map<String, dynamic>>>
+    with PostCommentsRef {
+  _PostCommentsProviderElement(super.provider);
+
+  @override
+  int get postId => (origin as PostCommentsProvider).postId;
+}
+
 String _$communityActionsHash() => r'c3ca752d49f53711785e1ee22908466107aaa62b';
 
 /// See also [CommunityActions].
@@ -763,7 +898,7 @@ final communityActionsProvider =
 );
 
 typedef _$CommunityActions = AutoDisposeNotifier<void>;
-String _$postActionsHash() => r'2f89595f311c994e70b0228546a058e26d80f045';
+String _$postActionsHash() => r'14527f30361866956cb326de53a2ebd0ec4ffd40';
 
 /// See also [PostActions].
 @ProviderFor(PostActions)
@@ -778,5 +913,21 @@ final postActionsProvider =
 );
 
 typedef _$PostActions = AutoDisposeNotifier<void>;
+String _$commentActionsHash() => r'704c97ec30e3f2a061673a423277de8198ecb9e4';
+
+/// See also [CommentActions].
+@ProviderFor(CommentActions)
+final commentActionsProvider =
+    AutoDisposeNotifierProvider<CommentActions, void>.internal(
+  CommentActions.new,
+  name: r'commentActionsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$commentActionsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$CommentActions = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

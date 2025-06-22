@@ -389,6 +389,99 @@ class CommunityRepository extends _$CommunityRepository {
     }
   }
 
+  // Vote on a post
+  Future<void> votePost({
+    required int postId,
+    required int voteType, // 1 for upvote, -1 for downvote, 0 for remove vote
+  }) async {
+    try {
+      final apiService = ApiService();
+      await apiService.post(
+        '/community/post/vote',
+        data: {
+          'vote_type': voteType,
+          'post_id': postId,
+        },
+      );
+    } catch (e) {
+      print('Error voting on post: $e');
+      rethrow;
+    }
+  }
+
+  // Create a comment on a post
+  Future<void> createComment({
+    required String comment,
+    required int postId,
+  }) async {
+    try {
+      final apiService = ApiService();
+      await apiService.post(
+        '/community/comment/',
+        data: {
+          'comment': comment,
+          'post_id': postId,
+        },
+      );
+    } catch (e) {
+      print('Error creating comment: $e');
+      rethrow;
+    }
+  }
+
+  // Get comments for a post
+  Future<List<Map<String, dynamic>>> getPostComments(int postId) async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.get('/community/post/$postId/comments');
+
+      if (response.data is List) {
+        return (response.data as List)
+            .map((json) => json as Map<String, dynamic>)
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching comments: $e');
+      // Return demo comments as fallback
+      return _getDemoComments(postId);
+    }
+  }
+
+  // Demo comments fallback
+  List<Map<String, dynamic>> _getDemoComments(int postId) {
+    return [
+      {
+        'id': 1,
+        'comment': 'Great post! Very informative.',
+        'post_id': postId,
+        'commented_by': 456,
+        'upvote': 5,
+        'downvote': 0,
+        'created_at': '2024-01-20T11:30:00Z',
+      },
+      {
+        'id': 2,
+        'comment': 'Thanks for sharing this!',
+        'post_id': postId,
+        'commented_by': 789,
+        'upvote': 3,
+        'downvote': 0,
+        'created_at': '2024-01-20T12:15:00Z',
+      },
+      {
+        'id': 3,
+        'comment': 'I have a different perspective on this topic...',
+        'post_id': postId,
+        'commented_by': 123,
+        'upvote': 2,
+        'downvote': 1,
+        'created_at': '2024-01-20T13:45:00Z',
+      },
+    ];
+  }
+
   // Demo posts fallback
   List<Post> _getDemoPosts(int communityId) {
     return [

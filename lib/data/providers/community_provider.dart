@@ -159,4 +159,45 @@ class PostActions extends _$PostActions {
 
     return post;
   }
+
+  Future<void> votePost({
+    required int postId,
+    required int voteType,
+    required int communityId,
+  }) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    await repository.votePost(postId: postId, voteType: voteType);
+
+    // Invalidate posts provider to refresh data
+    ref.invalidate(communityPostsProvider(communityId));
+  }
+}
+
+// Provider for post comments
+@riverpod
+Future<List<Map<String, dynamic>>> postComments(
+  PostCommentsRef ref,
+  int postId,
+) async {
+  final repository = ref.watch(communityRepositoryProvider.notifier);
+  return await repository.getPostComments(postId);
+}
+
+@riverpod
+class CommentActions extends _$CommentActions {
+  @override
+  void build() {
+    // Initialize
+  }
+
+  Future<void> createComment({
+    required String comment,
+    required int postId,
+  }) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    await repository.createComment(comment: comment, postId: postId);
+
+    // Invalidate comments provider to refresh data
+    ref.invalidate(postCommentsProvider(postId));
+  }
 }
