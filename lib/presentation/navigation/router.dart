@@ -12,6 +12,7 @@ import 'package:knowledge/presentation/screens/auth/forgot_password_screen.dart'
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:knowledge/data/providers/onboarding_provider.dart';
 import 'package:knowledge/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:knowledge/presentation/screens/onboarding/pro_onboarding_screen.dart';
 import 'package:knowledge/presentation/screens/timeline/timeline_detail_screen.dart';
 import 'package:knowledge/presentation/screens/story/story_detail_screen.dart';
 import 'package:knowledge/presentation/screens/profile/edit_profile_screen.dart';
@@ -228,6 +229,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           context: context,
           state: state,
           child: const OnboardingScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/pro-onboarding',
+        pageBuilder: (context, state) => buildFadeThroughTransition(
+          context: context,
+          state: state,
+          child: const ProOnboardingScreen(),
         ),
       ),
 

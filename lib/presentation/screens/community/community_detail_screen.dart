@@ -11,6 +11,7 @@ import 'dart:ui';
 import 'package:knowledge/data/providers/auth_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/presentation/screens/community/post_comments_screen.dart';
+import 'package:knowledge/presentation/widgets/report_dialog.dart';
 // import 'package:knowledge/data/providers/post_provider.dart';
 
 class CommunityDetailScreen extends HookConsumerWidget {
@@ -240,6 +241,14 @@ class CommunityDetailScreen extends HookConsumerWidget {
             if (value == 'about') {
               // Scroll to about section or show about dialog
               _showAboutDialog(context, community, isDarkMode);
+            } else if (value == 'report') {
+              // Show report dialog for community
+              _showReportDialog(
+                context,
+                'community',
+                community.id,
+                community.name,
+              );
             }
           },
           itemBuilder: (context) => [
@@ -250,6 +259,16 @@ class CommunityDetailScreen extends HookConsumerWidget {
                   Icon(Icons.info_outline),
                   SizedBox(width: 8),
                   Text('About'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'report',
+              child: Row(
+                children: [
+                  Icon(Icons.flag, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Report', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -627,6 +646,20 @@ class CommunityDetailScreen extends HookConsumerWidget {
     );
   }
 
+  void _showReportDialog(
+      BuildContext context, String reportType, int itemId, String itemName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ReportDialog(
+          reportType: reportType,
+          reportedItemId: itemId,
+          itemName: itemName,
+        );
+      },
+    );
+  }
+
   Widget _buildPostsSection(BuildContext context, WidgetRef ref,
       Community community, bool isDarkMode) {
     final postsAsync = ref.watch(communityPostsProvider(community.id));
@@ -789,17 +822,41 @@ class CommunityDetailScreen extends HookConsumerWidget {
                 ),
 
                 // Post Menu
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                PopupMenuButton<String>(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.more_horiz,
+                      color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                      size: 18,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.more_horiz,
-                    color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
-                    size: 18,
-                  ),
+                  onSelected: (value) {
+                    if (value == 'report') {
+                      _showReportDialog(
+                        context,
+                        'post',
+                        post.id,
+                        post.title,
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'report',
+                      child: Row(
+                        children: [
+                          Icon(Icons.flag, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Report', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

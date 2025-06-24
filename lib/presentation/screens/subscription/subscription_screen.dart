@@ -394,7 +394,8 @@ class SubscriptionScreen extends HookConsumerWidget {
                               margin: const EdgeInsets.all(12),
                             ),
                           );
-                          context.pop();
+                          // Navigate to pro onboarding instead of popping
+                          context.go('/pro-onboarding');
                         }
                       },
                       child: Row(

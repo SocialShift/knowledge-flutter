@@ -161,6 +161,42 @@ class ProfileRepository {
       return false;
     }
   }
+
+  // Update pro onboarding data
+  Future<void> updateProOnboardingData({
+    required List<String> interests,
+    required Map<String, String> quizAnswers,
+  }) async {
+    try {
+      // Get current profile first
+      final currentProfile = await getUserProfile();
+      final currentPersonalizationQuestions =
+          currentProfile.personalizationQuestions ?? {};
+
+      // Update with new pro onboarding data
+      final updatedPersonalizationQuestions = {
+        ...currentPersonalizationQuestions,
+        'interests': interests,
+        'pro_onboarding_quiz_answers': quizAnswers,
+        'pro_onboarding_completed': true,
+        'pro_onboarding_completed_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await _apiService.patch(
+        '/auth/user/profile',
+        data: {
+          'personalization_questions': updatedPersonalizationQuestions,
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw response.data['detail'] ?? 'Failed to update pro onboarding data';
+      }
+    } catch (e) {
+      print('Error updating pro onboarding data: $e');
+      throw 'Failed to update pro onboarding data: $e';
+    }
+  }
 }
 
 @riverpod

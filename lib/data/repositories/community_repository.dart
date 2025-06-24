@@ -522,4 +522,39 @@ class CommunityRepository extends _$CommunityRepository {
       ),
     ];
   }
+
+  // Report a community or post
+  Future<void> reportItem({
+    required String reportType, // "community" or "post"
+    required int reportedItemId,
+    required String reason,
+    required String description,
+  }) async {
+    try {
+      final apiService = ApiService();
+
+      print('Reporting $reportType with ID: $reportedItemId');
+      print('Reason: $reason');
+      print('Description: $description');
+
+      final response = await apiService.post(
+        '/community/report',
+        data: {
+          'report_type': reportType,
+          'reported_item_id': reportedItemId,
+          'reason': reason,
+          'description': description,
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw response.data['detail'] ?? 'Failed to submit report';
+      }
+
+      print('Report submitted successfully');
+    } catch (e) {
+      print('Error submitting report: $e');
+      rethrow;
+    }
+  }
 }
