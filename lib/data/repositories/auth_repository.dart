@@ -199,15 +199,81 @@ class AuthRepository {
     }
   }
 
-  Future<void> forgotPassword(String email) async {
-    final response = await _apiService.post(
-      '/auth/forgot-password',
-      data: {'email': email},
-    );
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/request-password-reset',
+        data: {
+          'email': email,
+        },
+      );
 
-    if (response.statusCode != 200) {
-      final message = response.data['detail'] ?? 'Password reset failed';
-      throw message.toString();
+      DebugUtils.debugLog('Password reset request response: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return; // Successful password reset request
+      } else {
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Failed to request password reset';
+        throw message.toString();
+      }
+    } on DioException catch (e) {
+      DebugUtils.debugError(
+          'DioException in requestPasswordReset: ${e.response?.data}');
+
+      if (e.response?.data != null) {
+        final message =
+            e.response?.data['detail'] ?? e.response?.data['message'];
+        if (message != null) throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    } catch (e) {
+      DebugUtils.debugError('Password reset request error: $e');
+      throw 'Failed to request password reset: ${e.toString()}';
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/reset-password',
+        data: {
+          'email': email,
+          'otp': otp,
+          'new_password': newPassword,
+          'confirm_password': confirmPassword,
+        },
+      );
+
+      DebugUtils.debugLog('Password reset response: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return; // Successful password reset
+      } else {
+        final message = response.data['detail'] ??
+            response.data['message'] ??
+            'Failed to reset password';
+        throw message.toString();
+      }
+    } on DioException catch (e) {
+      DebugUtils.debugError(
+          'DioException in resetPassword: ${e.response?.data}');
+
+      if (e.response?.data != null) {
+        final message =
+            e.response?.data['detail'] ?? e.response?.data['message'];
+        if (message != null) throw message.toString();
+      }
+      throw 'Connection error. Please try again.';
+    } catch (e) {
+      DebugUtils.debugError('Password reset error: $e');
+      throw 'Failed to reset password: ${e.toString()}';
     }
   }
 

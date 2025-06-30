@@ -25,7 +25,11 @@ mixin _$ProOnboardingState {
   List<String> get selectedInterests => throw _privateConstructorUsedError;
   bool get isUpdateMode => throw _privateConstructorUsedError;
   Map<String, String> get quizAnswers => throw _privateConstructorUsedError;
+  Map<String, bool> get quizResults => throw _privateConstructorUsedError;
   bool get isCompleted => throw _privateConstructorUsedError;
+  bool get showQuizFeedback => throw _privateConstructorUsedError;
+  String get currentQuestionId => throw _privateConstructorUsedError;
+  bool get isSubmittingAnswer => throw _privateConstructorUsedError;
 
   /// Serializes this ProOnboardingState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,7 +53,11 @@ abstract class $ProOnboardingStateCopyWith<$Res> {
       List<String> selectedInterests,
       bool isUpdateMode,
       Map<String, String> quizAnswers,
-      bool isCompleted});
+      Map<String, bool> quizResults,
+      bool isCompleted,
+      bool showQuizFeedback,
+      String currentQuestionId,
+      bool isSubmittingAnswer});
 }
 
 /// @nodoc
@@ -72,7 +80,11 @@ class _$ProOnboardingStateCopyWithImpl<$Res, $Val extends ProOnboardingState>
     Object? selectedInterests = null,
     Object? isUpdateMode = null,
     Object? quizAnswers = null,
+    Object? quizResults = null,
     Object? isCompleted = null,
+    Object? showQuizFeedback = null,
+    Object? currentQuestionId = null,
+    Object? isSubmittingAnswer = null,
   }) {
     return _then(_value.copyWith(
       currentStep: null == currentStep
@@ -95,9 +107,25 @@ class _$ProOnboardingStateCopyWithImpl<$Res, $Val extends ProOnboardingState>
           ? _value.quizAnswers
           : quizAnswers // ignore: cast_nullable_to_non_nullable
               as Map<String, String>,
+      quizResults: null == quizResults
+          ? _value.quizResults
+          : quizResults // ignore: cast_nullable_to_non_nullable
+              as Map<String, bool>,
       isCompleted: null == isCompleted
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      showQuizFeedback: null == showQuizFeedback
+          ? _value.showQuizFeedback
+          : showQuizFeedback // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentQuestionId: null == currentQuestionId
+          ? _value.currentQuestionId
+          : currentQuestionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubmittingAnswer: null == isSubmittingAnswer
+          ? _value.isSubmittingAnswer
+          : isSubmittingAnswer // ignore: cast_nullable_to_non_nullable
               as bool,
     ) as $Val);
   }
@@ -117,7 +145,11 @@ abstract class _$$ProOnboardingStateImplCopyWith<$Res>
       List<String> selectedInterests,
       bool isUpdateMode,
       Map<String, String> quizAnswers,
-      bool isCompleted});
+      Map<String, bool> quizResults,
+      bool isCompleted,
+      bool showQuizFeedback,
+      String currentQuestionId,
+      bool isSubmittingAnswer});
 }
 
 /// @nodoc
@@ -138,7 +170,11 @@ class __$$ProOnboardingStateImplCopyWithImpl<$Res>
     Object? selectedInterests = null,
     Object? isUpdateMode = null,
     Object? quizAnswers = null,
+    Object? quizResults = null,
     Object? isCompleted = null,
+    Object? showQuizFeedback = null,
+    Object? currentQuestionId = null,
+    Object? isSubmittingAnswer = null,
   }) {
     return _then(_$ProOnboardingStateImpl(
       currentStep: null == currentStep
@@ -161,9 +197,25 @@ class __$$ProOnboardingStateImplCopyWithImpl<$Res>
           ? _value._quizAnswers
           : quizAnswers // ignore: cast_nullable_to_non_nullable
               as Map<String, String>,
+      quizResults: null == quizResults
+          ? _value._quizResults
+          : quizResults // ignore: cast_nullable_to_non_nullable
+              as Map<String, bool>,
       isCompleted: null == isCompleted
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      showQuizFeedback: null == showQuizFeedback
+          ? _value.showQuizFeedback
+          : showQuizFeedback // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentQuestionId: null == currentQuestionId
+          ? _value.currentQuestionId
+          : currentQuestionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isSubmittingAnswer: null == isSubmittingAnswer
+          ? _value.isSubmittingAnswer
+          : isSubmittingAnswer // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }
@@ -178,10 +230,15 @@ class _$ProOnboardingStateImpl implements _ProOnboardingState {
       final List<String> selectedInterests = const [],
       this.isUpdateMode = false,
       final Map<String, String> quizAnswers = const {},
-      this.isCompleted = false})
+      final Map<String, bool> quizResults = const {},
+      this.isCompleted = false,
+      this.showQuizFeedback = false,
+      this.currentQuestionId = '',
+      this.isSubmittingAnswer = false})
       : _previousInterests = previousInterests,
         _selectedInterests = selectedInterests,
-        _quizAnswers = quizAnswers;
+        _quizAnswers = quizAnswers,
+        _quizResults = quizResults;
 
   factory _$ProOnboardingStateImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProOnboardingStateImplFromJson(json);
@@ -221,13 +278,31 @@ class _$ProOnboardingStateImpl implements _ProOnboardingState {
     return EqualUnmodifiableMapView(_quizAnswers);
   }
 
+  final Map<String, bool> _quizResults;
+  @override
+  @JsonKey()
+  Map<String, bool> get quizResults {
+    if (_quizResults is EqualUnmodifiableMapView) return _quizResults;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_quizResults);
+  }
+
   @override
   @JsonKey()
   final bool isCompleted;
+  @override
+  @JsonKey()
+  final bool showQuizFeedback;
+  @override
+  @JsonKey()
+  final String currentQuestionId;
+  @override
+  @JsonKey()
+  final bool isSubmittingAnswer;
 
   @override
   String toString() {
-    return 'ProOnboardingState(currentStep: $currentStep, previousInterests: $previousInterests, selectedInterests: $selectedInterests, isUpdateMode: $isUpdateMode, quizAnswers: $quizAnswers, isCompleted: $isCompleted)';
+    return 'ProOnboardingState(currentStep: $currentStep, previousInterests: $previousInterests, selectedInterests: $selectedInterests, isUpdateMode: $isUpdateMode, quizAnswers: $quizAnswers, quizResults: $quizResults, isCompleted: $isCompleted, showQuizFeedback: $showQuizFeedback, currentQuestionId: $currentQuestionId, isSubmittingAnswer: $isSubmittingAnswer)';
   }
 
   @override
@@ -245,8 +320,16 @@ class _$ProOnboardingStateImpl implements _ProOnboardingState {
                 other.isUpdateMode == isUpdateMode) &&
             const DeepCollectionEquality()
                 .equals(other._quizAnswers, _quizAnswers) &&
+            const DeepCollectionEquality()
+                .equals(other._quizResults, _quizResults) &&
             (identical(other.isCompleted, isCompleted) ||
-                other.isCompleted == isCompleted));
+                other.isCompleted == isCompleted) &&
+            (identical(other.showQuizFeedback, showQuizFeedback) ||
+                other.showQuizFeedback == showQuizFeedback) &&
+            (identical(other.currentQuestionId, currentQuestionId) ||
+                other.currentQuestionId == currentQuestionId) &&
+            (identical(other.isSubmittingAnswer, isSubmittingAnswer) ||
+                other.isSubmittingAnswer == isSubmittingAnswer));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -258,7 +341,11 @@ class _$ProOnboardingStateImpl implements _ProOnboardingState {
       const DeepCollectionEquality().hash(_selectedInterests),
       isUpdateMode,
       const DeepCollectionEquality().hash(_quizAnswers),
-      isCompleted);
+      const DeepCollectionEquality().hash(_quizResults),
+      isCompleted,
+      showQuizFeedback,
+      currentQuestionId,
+      isSubmittingAnswer);
 
   /// Create a copy of ProOnboardingState
   /// with the given fields replaced by the non-null parameter values.
@@ -284,7 +371,11 @@ abstract class _ProOnboardingState implements ProOnboardingState {
       final List<String> selectedInterests,
       final bool isUpdateMode,
       final Map<String, String> quizAnswers,
-      final bool isCompleted}) = _$ProOnboardingStateImpl;
+      final Map<String, bool> quizResults,
+      final bool isCompleted,
+      final bool showQuizFeedback,
+      final String currentQuestionId,
+      final bool isSubmittingAnswer}) = _$ProOnboardingStateImpl;
 
   factory _ProOnboardingState.fromJson(Map<String, dynamic> json) =
       _$ProOnboardingStateImpl.fromJson;
@@ -300,7 +391,15 @@ abstract class _ProOnboardingState implements ProOnboardingState {
   @override
   Map<String, String> get quizAnswers;
   @override
+  Map<String, bool> get quizResults;
+  @override
   bool get isCompleted;
+  @override
+  bool get showQuizFeedback;
+  @override
+  String get currentQuestionId;
+  @override
+  bool get isSubmittingAnswer;
 
   /// Create a copy of ProOnboardingState
   /// with the given fields replaced by the non-null parameter values.

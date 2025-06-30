@@ -302,7 +302,7 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> requestPasswordReset(String email) async {
     if (state.maybeMap(
       loading: (_) => true,
       orElse: () => false,
@@ -311,12 +311,89 @@ class AuthNotifier extends _$AuthNotifier {
     }
 
     state = const AuthState.loading();
+
     try {
-      await ref.read(authRepositoryProvider).forgotPassword(email);
-      state = const AuthState.unauthenticated(
-        message: 'Password reset instructions have been sent to your email.',
+      await ref.read(authRepositoryProvider).requestPasswordReset(email);
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = AuthState.passwordResetPending(
+        email: email,
+        message:
+            'Password reset code sent to your email. Please check your inbox.',
+      );
+    } on DioException catch (e) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final errorMessage = _handleDioError(e);
+      state = AuthState.error(errorMessage);
+    } catch (e) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(e.toString());
+    }
+  }
+
+  Future<void> verifyPasswordResetOtp(String email, String otp) async {
+    if (state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    state = const AuthState.loading();
+
+    try {
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = AuthState.passwordResetVerified(
+        email: email,
+        otp: otp,
+        message: 'Code verified successfully! Please create your new password.',
       );
     } catch (e) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      state = AuthState.error(e.toString());
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    )) {
+      return;
+    }
+
+    state = const AuthState.loading();
+
+    try {
+      await ref.read(authRepositoryProvider).resetPassword(
+            email: email,
+            otp: otp,
+            newPassword: newPassword,
+            confirmPassword: confirmPassword,
+          );
+
+      // Add a small delay to ensure the loading state is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      state = const AuthState.unauthenticated(
+        message:
+            'Password reset successfully! Please login with your new password.',
+      );
+    } on DioException catch (e) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final errorMessage = _handleDioError(e);
+      state = AuthState.error(errorMessage);
+    } catch (e) {
+      await Future.delayed(const Duration(milliseconds: 500));
       state = AuthState.error(e.toString());
     }
   }

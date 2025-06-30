@@ -7,7 +7,7 @@ part of 'pro_onboarding_provider.dart';
 // **************************************************************************
 
 String _$proOnboardingNotifierHash() =>
-    r'291af03825551361701a62e86768f72de8d92c64';
+    r'082398739194cfb1198f65538ba60a425f66171f';
 
 /// See also [ProOnboardingNotifier].
 @ProviderFor(ProOnboardingNotifier)

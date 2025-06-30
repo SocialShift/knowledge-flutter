@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:knowledge/data/providers/pro_onboarding_provider.dart';
@@ -21,6 +22,12 @@ class ProOnboardingScreen extends HookConsumerWidget {
       return null;
     }, []);
 
+    // If it's the first step (welcome screen), show full screen
+    if (proOnboardingState.currentStep == 0) {
+      return _buildFullScreenWelcome(context, proOnboardingState, notifier);
+    }
+
+    // For other steps, show normal layout
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       body: SafeArea(
@@ -41,10 +48,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (proOnboardingState.currentStep == 0)
-                        _buildIntroSection(
-                            context, proOnboardingState, notifier)
-                      else if (proOnboardingState.currentStep == 1)
+                      if (proOnboardingState.currentStep == 1)
                         _buildInterestsSection(
                             context, proOnboardingState, notifier)
                       else if (proOnboardingState.currentStep == 2)
@@ -65,95 +69,245 @@ class ProOnboardingScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildIntroSection(
+  Widget _buildFullScreenWelcome(
     BuildContext context,
     ProOnboardingState state,
     ProOnboardingNotifier notifier,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Now, you\'ve taken a bold step forward in expanding your historical know{ledge} with us.',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.navyBlue,
-                height: 1.3,
-              ),
-        ).animate().fadeIn(duration: const Duration(milliseconds: 600)),
-        const SizedBox(height: 24),
-        Text(
-          'Let\'s take a brief quiz to get a sense of what you know today—so we can craft a personalized, engaging journey just for you.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-            height: 1.4,
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.navyBlue,
+              Color(0xFF3949AB),
+              AppColors.navyBlue.withOpacity(0.9),
+            ],
+            stops: [0.0, 0.5, 1.0],
           ),
-        ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
-        const SizedBox(height: 32),
-        // Add some visual elements to make it more engaging
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.limeGreen.withOpacity(0.1),
-                AppColors.lightPurple.withOpacity(0.1),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+
+                // Welcome icon
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.limeGreen.withOpacity(0.2),
+                    border: Border.all(
+                      color: AppColors.limeGreen,
+                      width: 3,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.psychology_rounded,
+                    size: 50,
+                    color: AppColors.limeGreen,
+                  ),
+                ).animate().fadeIn().scale(
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.elasticOut,
+                    ),
+
+                const SizedBox(height: 32),
+
+                // Welcome text
+                Text(
+                  'Welcome to Your',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w300,
+                      ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Know[ledge] Journey',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: AppColors.limeGreen,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn(delay: const Duration(milliseconds: 500)),
+
+                const SizedBox(height: 16),
+
+                Text(
+                  'You\'ve taken a bold step forward in expanding your historical knowledge with us.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn(delay: const Duration(milliseconds: 700)),
+
+                const SizedBox(height: 20),
+
+                Text(
+                  'Let\'s take a brief quiz to get a sense of what you know today—so we can craft a personalized, engaging journey just for you.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn(delay: const Duration(milliseconds: 900)),
+
+                const SizedBox(height: 28),
+
+                // Features preview
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.limeGreen.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildFeatureItem(
+                        icon: Icons.auto_stories_rounded,
+                        title: 'Personalized Learning',
+                        subtitle: 'Tailored content based on your interests',
+                      ),
+                      const SizedBox(height: 14),
+                      _buildFeatureItem(
+                        icon: Icons.quiz_outlined,
+                        title: 'Interactive Quizzes',
+                        subtitle: 'Test and expand your knowledge',
+                      ),
+                      const SizedBox(height: 14),
+                      _buildFeatureItem(
+                        icon: Icons.timeline_rounded,
+                        title: 'Historical Timelines',
+                        subtitle: 'Explore diverse narratives and perspectives',
+                      ),
+                    ],
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: const Duration(milliseconds: 1100))
+                    .slideY(
+                      begin: 0.3,
+                      duration: const Duration(milliseconds: 800),
+                    ),
+
+                const SizedBox(height: 32),
+
+                // Start button
+                Container(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.limeGreen,
+                      foregroundColor: AppColors.navyBlue,
+                      elevation: 8,
+                      shadowColor: AppColors.limeGreen.withOpacity(0.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () {
+                      print('Let\'s Begin button pressed!');
+                      notifier.nextStep();
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Let\'s Begin',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.arrow_forward, size: 20),
+                      ],
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: const Duration(milliseconds: 1300))
+                    .slideY(
+                      begin: 0.3,
+                      duration: const Duration(milliseconds: 800),
+                    ),
+
+                const SizedBox(height: 40),
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.limeGreen.withOpacity(0.2),
-              width: 1,
-            ),
           ),
-          child: Row(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.limeGreen.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.limeGreen,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: AppColors.limeGreen.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Icon(
-                  Icons.psychology_rounded,
-                  color: AppColors.navyBlue,
-                  size: 28,
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Personalized Learning',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Tailored content based on your interests and knowledge level',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 14,
                 ),
               ),
             ],
           ),
-        ).animate().fadeIn(delay: const Duration(milliseconds: 600)).slideY(
-              begin: 0.2,
-              duration: const Duration(milliseconds: 800),
-            ),
+        ),
       ],
     );
   }
@@ -185,12 +339,14 @@ class ProOnboardingScreen extends HookConsumerWidget {
               ),
         ).animate().fadeIn(duration: const Duration(milliseconds: 600)),
         const SizedBox(height: 16),
-        if (state.previousInterests.isNotEmpty && !state.isUpdateMode)
+        if (state.selectedInterests.isNotEmpty && !state.isUpdateMode)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Based on your first quiz, you said you were most interested in:',
+                state.previousInterests.isNotEmpty
+                    ? 'Based on your previous selections, you were interested in:'
+                    : 'You have selected these interests:',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade600,
@@ -200,7 +356,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
-                children: state.previousInterests.map((interest) {
+                children: state.selectedInterests.map((interest) {
                   return Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -259,11 +415,11 @@ class ProOnboardingScreen extends HookConsumerWidget {
               ),
             ],
           ),
-        if (state.isUpdateMode || state.previousInterests.isEmpty)
+        if (state.isUpdateMode || state.selectedInterests.isEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (state.previousInterests.isEmpty)
+              if (state.selectedInterests.isEmpty)
                 Text(
                   'Select the historical topics that interest you most:',
                   style: TextStyle(
@@ -354,11 +510,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
     ProOnboardingState state,
     ProOnboardingNotifier notifier,
   ) {
-    // Get current question index based on answered questions
-    final answeredQuestions = state.quizAnswers.length;
-    final currentQuestionIndex = answeredQuestions;
-
-    // Quiz questions data
+    // Quiz questions data with corrected answers
     final quizQuestions = [
       {
         'id': 'q1',
@@ -390,7 +542,23 @@ class ProOnboardingScreen extends HookConsumerWidget {
         'correctAnswer':
             'Tulsa\'s thriving Black business district destroyed in 1921',
       },
+      {
+        'id': 'q4',
+        'question':
+            'Which historical figure was known as the "Moses of her people"?',
+        'options': [
+          'Sojourner Truth',
+          'Harriet Tubman',
+          'Ida B. Wells',
+          'Mary McLeod Bethune',
+        ],
+        'correctAnswer': 'Harriet Tubman',
+      },
     ];
+
+    // Get current question index based on answered questions
+    final answeredQuestions = state.quizAnswers.length;
+    final currentQuestionIndex = answeredQuestions;
 
     if (currentQuestionIndex >= quizQuestions.length) {
       // All questions answered, show completion message
@@ -398,7 +566,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Let\'s Test Your Know(ledge)',
+            'Quiz Complete! 🎉',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.navyBlue,
@@ -419,7 +587,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
             child: Column(
               children: [
                 Icon(
-                  Icons.quiz_rounded,
+                  Icons.celebration_rounded,
                   size: 48,
                   color: AppColors.navyBlue,
                 ),
@@ -442,6 +610,8 @@ class ProOnboardingScreen extends HookConsumerWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 16),
+                _buildQuizResults(state, quizQuestions),
               ],
             ),
           ),
@@ -450,7 +620,14 @@ class ProOnboardingScreen extends HookConsumerWidget {
     }
 
     final currentQuestion = quizQuestions[currentQuestionIndex];
-    final selectedAnswer = state.quizAnswers[currentQuestion['id']];
+    final questionId = currentQuestion['id'] as String;
+    final selectedAnswer = state.quizAnswers[questionId];
+    final isCorrect = state.quizResults[questionId];
+    final showFeedback =
+        state.showQuizFeedback && state.currentQuestionId == questionId;
+
+    // Create a state hook for tracking the temporary selection before submission
+    final selectedOption = useState<String?>(selectedAnswer);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,7 +636,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'Let\'s Test Your Know(ledge)',
+                'Let\'s Test Your Know[ledge]',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.navyBlue,
@@ -485,13 +662,14 @@ class ProOnboardingScreen extends HookConsumerWidget {
         ).animate().fadeIn(duration: const Duration(milliseconds: 600)),
         const SizedBox(height: 16),
         Text(
-          'A few quick, playful questions to see what you already know (and spark curiosity).',
+          'Test your knowledge with these history questions.',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey.shade600,
           ),
         ),
         const SizedBox(height: 32),
+
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -518,56 +696,30 @@ class ProOnboardingScreen extends HookConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              ...(currentQuestion['options'] as List<String>).map((option) {
-                final isSelected = selectedAnswer == option;
+              ...(currentQuestion['options'] as List<String>)
+                  .asMap()
+                  .entries
+                  .map((entry) {
+                final index = entry.key;
+                final option = entry.value;
+                final isSelected = selectedOption.value == option;
+                final isCorrectOption =
+                    option == currentQuestion['correctAnswer'];
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: AnimatedScale(
-                    scale: isSelected ? 1.02 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: GestureDetector(
-                      onTap: () => notifier.answerQuizQuestion(
-                        currentQuestion['id'] as String,
-                        option,
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.limeGreen
-                              : AppColors.lightPurple.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(12),
-                          border: isSelected
-                              ? Border.all(
-                                  color: AppColors.navyBlue,
-                                  width: 2,
-                                )
-                              : null,
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.limeGreen.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ]
-                              : null,
-                        ),
-                        child: Text(
-                          option,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppColors.navyBlue
-                                : Colors.black87,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
+                  child: _buildQuizOption(
+                    option: option,
+                    index: index,
+                    isSelected: isSelected,
+                    isCorrectOption: isCorrectOption,
+                    showFeedback: showFeedback,
+                    onTap: state.isSubmittingAnswer || showFeedback
+                        ? null
+                        : () {
+                            HapticFeedback.selectionClick();
+                            selectedOption.value = option;
+                          },
                   ),
                 );
               }).toList(),
@@ -577,7 +729,322 @@ class ProOnboardingScreen extends HookConsumerWidget {
               begin: 0.2,
               duration: const Duration(milliseconds: 600),
             ),
+
+        // Submit button (similar to base_game_screen)
+        if (!showFeedback)
+          Padding(
+            padding: const EdgeInsets.only(top: 24.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed:
+                    selectedOption.value != null && !state.isSubmittingAnswer
+                        ? () {
+                            HapticFeedback.mediumImpact();
+                            notifier.answerQuizQuestion(
+                                questionId, selectedOption.value!);
+                          }
+                        : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.limeGreen,
+                  foregroundColor: Colors.black,
+                  disabledBackgroundColor: Colors.grey.withOpacity(0.3),
+                  disabledForegroundColor: Colors.black.withOpacity(0.5),
+                  elevation: selectedOption.value != null ? 4 : 0,
+                  shadowColor: AppColors.limeGreen.withOpacity(0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.send_rounded,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Submit Answer',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        // Feedback popup and Next button
+        if (showFeedback)
+          Column(
+            children: [
+              _buildQuizFeedback(
+                  isCorrect!, currentQuestion['correctAnswer'] as String),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    notifier.hideFeedback();
+                    // Move to next question if there are more questions
+                    if (currentQuestionIndex < quizQuestions.length - 1) {
+                      // Reset selected option for next question
+                      selectedOption.value = null;
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isCorrect! ? Colors.green : Colors.red.shade400,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: (isCorrect ? Colors.green : Colors.red)
+                        .withOpacity(0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Continue',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
       ],
+    );
+  }
+
+  Widget _buildQuizOption({
+    required String option,
+    required int index,
+    required bool isSelected,
+    required bool isCorrectOption,
+    required bool showFeedback,
+    required VoidCallback? onTap,
+  }) {
+    Color backgroundColor = AppColors.lightPurple.withOpacity(0.3);
+    Color borderColor = Colors.transparent;
+    Color textColor = Colors.black87;
+    Color letterBgColor = Colors.grey.shade300;
+    Color letterTextColor = Colors.black54;
+
+    if (showFeedback) {
+      if (isCorrectOption) {
+        backgroundColor = Colors.green.shade50;
+        borderColor = Colors.green;
+        textColor = Colors.green.shade800;
+        letterBgColor = Colors.green;
+        letterTextColor = Colors.white;
+      } else if (isSelected && !isCorrectOption) {
+        backgroundColor = Colors.red.shade50;
+        borderColor = Colors.red;
+        textColor = Colors.red.shade800;
+        letterBgColor = Colors.red;
+        letterTextColor = Colors.white;
+      } else if (!isSelected && isCorrectOption) {
+        backgroundColor = Colors.green.shade50;
+        borderColor = Colors.green;
+        textColor = Colors.green.shade800;
+        letterBgColor = Colors.green;
+        letterTextColor = Colors.white;
+      }
+    } else if (isSelected) {
+      backgroundColor = AppColors.limeGreen;
+      borderColor = AppColors.navyBlue;
+      textColor = AppColors.navyBlue;
+      letterBgColor = AppColors.navyBlue;
+      letterTextColor = Colors.white;
+    }
+
+    return AnimatedScale(
+      scale: isSelected ? 1.02 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: borderColor,
+              width: borderColor != Colors.transparent ? 2 : 0,
+            ),
+            boxShadow: isSelected && !showFeedback
+                ? [
+                    BoxShadow(
+                      color: AppColors.limeGreen.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              // Option letter
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: letterBgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    String.fromCharCode(65 + index),
+                    style: TextStyle(
+                      color: letterTextColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Option text
+              Expanded(
+                child: Text(
+                  option,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 15,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ),
+              // Feedback icon
+              if (showFeedback && (isSelected || isCorrectOption))
+                Icon(
+                  isCorrectOption ? Icons.check_circle : Icons.cancel,
+                  color: isCorrectOption ? Colors.green : Colors.red,
+                  size: 24,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuizFeedback(bool isCorrect, String correctAnswer) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isCorrect
+              ? [Colors.green.withOpacity(0.1), Colors.green.withOpacity(0.05)]
+              : [Colors.red.withOpacity(0.1), Colors.red.withOpacity(0.05)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCorrect ? Colors.green : Colors.red,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isCorrect ? Icons.check_circle : Icons.cancel,
+            color: isCorrect ? Colors.green : Colors.red,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCorrect ? 'Correct! 🎉' : 'Not quite! 🤔',
+                  style: TextStyle(
+                    color:
+                        isCorrect ? Colors.green.shade800 : Colors.red.shade800,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (!isCorrect) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'The correct answer is: $correctAnswer',
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn().scale(
+          duration: const Duration(milliseconds: 300),
+        );
+  }
+
+  Widget _buildQuizResults(
+      ProOnboardingState state, List<Map<String, dynamic>> questions) {
+    final correctCount =
+        state.quizResults.values.where((result) => result).length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.limeGreen.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.limeGreen.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Your Score: $correctCount/${questions.length}',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.navyBlue,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            correctCount >= 3
+                ? 'Excellent knowledge!'
+                : correctCount >= 2
+                    ? 'Good effort!'
+                    : 'Keep learning!',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -624,7 +1091,7 @@ class ProOnboardingScreen extends HookConsumerWidget {
             ),
         const SizedBox(height: 32),
         Text(
-          'You\'re in. Your journey is now tailored to your interests, knowledge, and curiosity.',
+          'You\'re in! Your journey is now tailored to your interests, knowledge, and curiosity.',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.navyBlue,
@@ -656,67 +1123,19 @@ class ProOnboardingScreen extends HookConsumerWidget {
           ),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.auto_stories_rounded,
-                    color: AppColors.navyBlue,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Personalized story recommendations',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.navyBlue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildFeatureRow(
+                icon: Icons.auto_stories_rounded,
+                text: 'Personalized story recommendations',
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.insights_rounded,
-                    color: AppColors.navyBlue,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Daily insights based on your knowledge level',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.navyBlue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildFeatureRow(
+                icon: Icons.insights_rounded,
+                text: 'Daily insights based on your knowledge level',
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.timeline_rounded,
-                    color: AppColors.navyBlue,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Curated historical timelines for your interests',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.navyBlue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildFeatureRow(
+                icon: Icons.timeline_rounded,
+                text: 'Curated historical timelines for your interests',
               ),
             ],
           ),
@@ -724,6 +1143,32 @@ class ProOnboardingScreen extends HookConsumerWidget {
               begin: 0.2,
               duration: const Duration(milliseconds: 800),
             ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureRow({
+    required IconData icon,
+    required String text,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: AppColors.navyBlue,
+          size: 24,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.navyBlue,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -737,70 +1182,72 @@ class ProOnboardingScreen extends HookConsumerWidget {
     bool canProceed = false;
 
     switch (state.currentStep) {
-      case 0:
-        canProceed = true; // Intro can always proceed
-        break;
       case 1:
         canProceed = state.selectedInterests.isNotEmpty && !state.isUpdateMode;
         break;
       case 2:
-        canProceed = state.quizAnswers.length >= 3; // All 3 questions answered
+        canProceed = state.quizAnswers.length >= 4; // All 4 questions answered
         break;
       case 3:
         canProceed = true; // Final step
         break;
+      default:
+        canProceed = false;
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Row(
-        children: [
-          const Spacer(),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.limeGreen,
-              foregroundColor: AppColors.navyBlue,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
-            onPressed: canProceed
-                ? () async {
-                    if (!isLastStep) {
-                      notifier.nextStep();
-                    } else {
-                      try {
-                        await notifier.completeOnboarding();
-                        if (context.mounted) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            context.go('/home');
-                          });
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error completing onboarding: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            const Spacer(),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                    canProceed ? AppColors.limeGreen : Colors.grey.shade300,
+                foregroundColor:
+                    canProceed ? AppColors.navyBlue : Colors.grey.shade600,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+              onPressed: canProceed
+                  ? () async {
+                      if (!isLastStep) {
+                        notifier.nextStep();
+                      } else {
+                        try {
+                          await notifier.completeOnboarding();
+                          if (context.mounted) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              context.go('/home');
+                            });
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Error completing onboarding: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                       }
                     }
-                  }
-                : null,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(isLastStep
-                    ? 'Start My Personalized Path'
-                    : state.currentStep == 0
-                        ? 'Let\'s Begin'
-                        : 'Next'),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, size: 16),
-              ],
+                  : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(isLastStep ? 'Start My Personalized Path' : 'Next'),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward, size: 16),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ).animate().fadeIn(delay: const Duration(milliseconds: 400));
   }

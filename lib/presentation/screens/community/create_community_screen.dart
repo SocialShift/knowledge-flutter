@@ -6,6 +6,7 @@ import 'package:knowledge/data/providers/community_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class CreateCommunityScreen extends HookConsumerWidget {
   const CreateCommunityScreen({super.key});
@@ -14,11 +15,25 @@ class CreateCommunityScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
-    final topicsController = useTextEditingController();
     final isLoading = useState(false);
     final bannerImage = useState<File?>(null);
     final iconImage = useState<File?>(null);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Categories from community_screen.dart
+    final categories = [
+      {'id': '1', 'name': 'Indigenous Histories', 'icon': '🏛️'},
+      {'id': '2', 'name': 'African Diaspora', 'icon': '🌍'},
+      {'id': '3', 'name': 'LGBTQ+ Movements', 'icon': '🏳️‍🌈'},
+      {'id': '4', 'name': 'Women\'s History', 'icon': '👩'},
+      {'id': '5', 'name': 'Civil Rights', 'icon': '✊'},
+      {'id': '6', 'name': 'Lesser-Known Figures', 'icon': '📚'},
+      {'id': '7', 'name': 'Colonial History', 'icon': '🗺️'},
+      {'id': '8', 'name': 'Immigrant Stories', 'icon': '🚢'},
+    ];
+
+    // Selected categories state
+    final selectedCategories = useState<List<String>>([]);
 
     Future<void> pickImage(bool isIcon) async {
       final picker = ImagePicker();
@@ -49,17 +64,43 @@ class CreateCommunityScreen extends HookConsumerWidget {
         return;
       }
 
+      // Check if icon image is selected (now mandatory)
+      if (iconImage.value == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a community icon image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Check if at least one category is selected
+      if (selectedCategories.value.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select at least one topic category'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       isLoading.value = true;
 
       try {
+        // Convert selected categories to comma-separated string for the API
+        final topics = selectedCategories.value.map((id) {
+          final category = categories.firstWhere((cat) => cat['id'] == id);
+          return category['name'];
+        }).join(', ');
+
         await ref.read(communityActionsProvider.notifier).createCommunity(
               name: nameController.text.trim(),
               description: descriptionController.text.trim().isEmpty
                   ? null
                   : descriptionController.text.trim(),
-              topics: topicsController.text.trim().isEmpty
-                  ? null
-                  : topicsController.text.trim(),
+              topics: topics,
               bannerFile: bannerImage.value,
               iconFile: iconImage.value,
             );
@@ -179,14 +220,147 @@ class CreateCommunityScreen extends HookConsumerWidget {
               maxLines: 3,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            _buildFormField(
-              context,
-              title: 'Topics',
-              hint: 'e.g., Ancient Rome, World War II, Renaissance',
-              controller: topicsController,
-              isDarkMode: isDarkMode,
+            // Topics/Categories Section
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Topics *',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Select categories that best describe your community (select at least one)',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color:
+                            isDarkMode ? Colors.white70 : Colors.grey.shade600,
+                      ),
+                ),
+                const SizedBox(height: 16),
+
+                // Categories grid with circular icons
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? AppColors.darkCard : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: AnimationLimiter(
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.8,
+                      ),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
+                        final isSelected =
+                            selectedCategories.value.contains(category['id']);
+
+                        return AnimationConfiguration.staggeredGrid(
+                          position: index,
+                          duration: const Duration(milliseconds: 375),
+                          columnCount: 4,
+                          child: ScaleAnimation(
+                            child: FadeInAnimation(
+                              child: GestureDetector(
+                                onTap: () {
+                                  final newSelected = List<String>.from(
+                                      selectedCategories.value);
+                                  if (isSelected) {
+                                    newSelected.remove(category['id']);
+                                  } else {
+                                    newSelected.add(category['id'] as String);
+                                  }
+                                  selectedCategories.value = newSelected;
+                                },
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.limeGreen
+                                            : (isDarkMode
+                                                ? AppColors.darkCard
+                                                : Colors.white),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.navyBlue
+                                              : isDarkMode
+                                                  ? Colors.grey.shade700
+                                                  : Colors.grey.shade300,
+                                          width: isSelected ? 2 : 1,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          category['icon'] as String,
+                                          style: const TextStyle(fontSize: 20),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      category['name'] as String,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: isSelected
+                                                ? AppColors.navyBlue
+                                                : (isDarkMode
+                                                    ? Colors.white70
+                                                    : Colors.black87),
+                                            fontSize: 10,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 24),
@@ -206,11 +380,12 @@ class CreateCommunityScreen extends HookConsumerWidget {
                 Expanded(
                   child: _buildImagePicker(
                     context,
-                    title: 'Community Icon',
-                    subtitle: 'Square image recommended',
+                    title: 'Community Icon *',
+                    subtitle: 'Square image required',
                     image: iconImage.value,
                     onTap: () => pickImage(true),
                     isDarkMode: isDarkMode,
+                    isRequired: true,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -222,6 +397,7 @@ class CreateCommunityScreen extends HookConsumerWidget {
                     image: bannerImage.value,
                     onTap: () => pickImage(false),
                     isDarkMode: isDarkMode,
+                    isRequired: false,
                   ),
                 ),
               ],
@@ -333,6 +509,7 @@ class CreateCommunityScreen extends HookConsumerWidget {
     required File? image,
     required VoidCallback onTap,
     required bool isDarkMode,
+    required bool isRequired,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -342,8 +519,10 @@ class CreateCommunityScreen extends HookConsumerWidget {
           color: isDarkMode ? AppColors.darkCard : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.limeGreen.withOpacity(0.3),
-            width: 2,
+            color: isRequired && image == null
+                ? Colors.red.withOpacity(0.7)
+                : AppColors.limeGreen.withOpacity(0.3),
+            width: isRequired && image == null ? 2 : 2,
             style: BorderStyle.solid,
           ),
           boxShadow: [
@@ -357,11 +536,36 @@ class CreateCommunityScreen extends HookConsumerWidget {
         child: image != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.file(
-                  image,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                child: Stack(
+                  children: [
+                    Image.file(
+                      image,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                    if (isRequired)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Required',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               )
             : Column(
@@ -370,16 +574,33 @@ class CreateCommunityScreen extends HookConsumerWidget {
                   Icon(
                     Icons.add_photo_alternate,
                     size: 32,
-                    color: AppColors.limeGreen,
+                    color: isRequired && image == null
+                        ? Colors.red.withOpacity(0.7)
+                        : AppColors.limeGreen,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDarkMode ? Colors.white : AppColors.navyBlue,
-                          fontWeight: FontWeight.w600,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : AppColors.navyBlue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (isRequired)
+                        Text(
+                          ' *',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                    textAlign: TextAlign.center,
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(

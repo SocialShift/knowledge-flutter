@@ -5,6 +5,7 @@ import 'package:knowledge/presentation/navigation/app_layout.dart';
 import 'package:knowledge/presentation/screens/auth/login_screen.dart';
 import 'package:knowledge/presentation/screens/auth/signup_screen.dart';
 import 'package:knowledge/presentation/screens/auth/email_verification_screen.dart';
+import 'package:knowledge/presentation/screens/auth/password_reset_screen.dart';
 import 'package:knowledge/presentation/screens/home/home_screen.dart';
 import 'package:knowledge/presentation/screens/profile/profile_screen.dart';
 import 'package:knowledge/presentation/screens/settings/settings_screen.dart';
@@ -51,6 +52,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
+      // Check for password reset flow states
+      final isInPasswordResetFlow = authState.maybeMap(
+        passwordResetPending: (_) => true,
+        passwordResetVerified: (_) => true,
+        orElse: () => false,
+      );
+
       final hasCompletedProfile = authState.maybeMap(
         authenticated: (auth) => auth.hasCompletedProfile,
         orElse: () => false,
@@ -73,11 +81,54 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.uri.path == '/login' ||
           state.uri.path == '/signup' ||
           state.uri.path == '/forgot-password' ||
-          state.uri.path == '/email-verification';
+          state.uri.path == '/email-verification' ||
+          state.uri.path == '/password-reset';
 
       // If user is explicitly unauthenticated (just logged out), allow access to auth routes
       if (isExplicitlyUnauthenticated && isAuthRoute) {
         return null; // Allow access to auth routes
+      }
+
+      // Handle password reset flow navigation
+      if (isInPasswordResetFlow) {
+        // Allow access to password reset related routes
+        if (state.uri.path == '/email-verification' ||
+            state.uri.path == '/password-reset' ||
+            state.uri.path == '/forgot-password') {
+          return null;
+        }
+
+        // Handle password reset pending state - redirect to email verification
+        final isPasswordResetPending = authState.maybeMap(
+          passwordResetPending: (_) => true,
+          orElse: () => false,
+        );
+
+        if (isPasswordResetPending && state.uri.path != '/email-verification') {
+          final email = authState.maybeMap(
+            passwordResetPending: (state) => state.email,
+            orElse: () => '',
+          );
+          return '/email-verification?email=${Uri.encodeComponent(email)}&type=password_reset';
+        }
+
+        // Handle password reset verified state - redirect to password reset screen
+        final isPasswordResetVerified = authState.maybeMap(
+          passwordResetVerified: (_) => true,
+          orElse: () => false,
+        );
+
+        if (isPasswordResetVerified && state.uri.path != '/password-reset') {
+          final email = authState.maybeMap(
+            passwordResetVerified: (state) => state.email,
+            orElse: () => '',
+          );
+          final otp = authState.maybeMap(
+            passwordResetVerified: (state) => state.otp,
+            orElse: () => '',
+          );
+          return '/password-reset?email=${Uri.encodeComponent(email)}&otp=${Uri.encodeComponent(otp)}';
+        }
       }
 
       // For initial route '/', redirect based on auth state
@@ -216,10 +267,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/email-verification',
         pageBuilder: (context, state) {
           final email = state.uri.queryParameters['email'] ?? '';
+          final type = state.uri.queryParameters['type'];
           return buildCupertinoPageTransition(
             context: context,
             state: state,
-            child: EmailVerificationScreen(email: email),
+            child: EmailVerificationScreen(email: email, type: type),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/password-reset',
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          final otp = state.uri.queryParameters['otp'] ?? '';
+          return buildCupertinoPageTransition(
+            context: context,
+            state: state,
+            child: PasswordResetScreen(email: email, otp: otp),
           );
         },
       ),

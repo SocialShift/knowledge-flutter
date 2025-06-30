@@ -3,6 +3,7 @@ import 'package:knowledge/data/models/community.dart';
 import 'package:knowledge/core/network/api_service.dart';
 import 'package:dio/dio.dart';
 import 'dart:io';
+import 'dart:convert';
 
 part 'community_repository.g.dart';
 
@@ -63,7 +64,8 @@ class CommunityRepository extends _$CommunityRepository {
 
       if (response.data is List) {
         return (response.data as List)
-            .map((json) => Community.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                Community.fromApiResponse(json as Map<String, dynamic>))
             .toList();
       }
 
@@ -123,7 +125,12 @@ class CommunityRepository extends _$CommunityRepository {
       }
 
       if (topics != null && topics.isNotEmpty) {
-        formData.fields.add(MapEntry('topics', topics));
+        // Convert comma-separated string to JSON array for the API
+        final topicsList =
+            topics.split(', ').map((topic) => topic.trim()).toList();
+        final topicsJson = jsonEncode(topicsList);
+        formData.fields.add(MapEntry('topics', topicsJson));
+        print('  - Topics JSON: $topicsJson');
       }
 
       // Add files if provided
@@ -150,7 +157,7 @@ class CommunityRepository extends _$CommunityRepository {
 
       // Handle different response types
       if (response.data is Map<String, dynamic>) {
-        return Community.fromJson(response.data as Map<String, dynamic>);
+        return Community.fromApiResponse(response.data as Map<String, dynamic>);
       } else if (response.data is String) {
         // If API returns a string (like success message), create a basic community object
         return Community(

@@ -23,7 +23,14 @@ _$ProOnboardingStateImpl _$$ProOnboardingStateImplFromJson(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
+      quizResults: (json['quizResults'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as bool),
+          ) ??
+          const {},
       isCompleted: json['isCompleted'] as bool? ?? false,
+      showQuizFeedback: json['showQuizFeedback'] as bool? ?? false,
+      currentQuestionId: json['currentQuestionId'] as String? ?? '',
+      isSubmittingAnswer: json['isSubmittingAnswer'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$ProOnboardingStateImplToJson(
@@ -34,5 +41,9 @@ Map<String, dynamic> _$$ProOnboardingStateImplToJson(
       'selectedInterests': instance.selectedInterests,
       'isUpdateMode': instance.isUpdateMode,
       'quizAnswers': instance.quizAnswers,
+      'quizResults': instance.quizResults,
       'isCompleted': instance.isCompleted,
+      'showQuizFeedback': instance.showQuizFeedback,
+      'currentQuestionId': instance.currentQuestionId,
+      'isSubmittingAnswer': instance.isSubmittingAnswer,
     };

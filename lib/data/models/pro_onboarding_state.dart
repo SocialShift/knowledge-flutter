@@ -11,7 +11,11 @@ class ProOnboardingState with _$ProOnboardingState {
     @Default([]) List<String> selectedInterests,
     @Default(false) bool isUpdateMode,
     @Default({}) Map<String, String> quizAnswers,
+    @Default({}) Map<String, bool> quizResults,
     @Default(false) bool isCompleted,
+    @Default(false) bool showQuizFeedback,
+    @Default('') String currentQuestionId,
+    @Default(false) bool isSubmittingAnswer,
   }) = _ProOnboardingState;
 
   factory ProOnboardingState.fromJson(Map<String, dynamic> json) =>

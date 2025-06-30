@@ -27,6 +27,10 @@ mixin _$AuthState {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) =>
@@ -40,6 +44,9 @@ mixin _$AuthState {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) =>
@@ -53,6 +60,9 @@ mixin _$AuthState {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -67,6 +77,9 @@ mixin _$AuthState {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) =>
@@ -80,6 +93,8 @@ mixin _$AuthState {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) =>
@@ -92,6 +107,8 @@ mixin _$AuthState {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -169,6 +186,10 @@ class _$InitialImpl implements _Initial {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -185,6 +206,9 @@ class _$InitialImpl implements _Initial {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -201,6 +225,9 @@ class _$InitialImpl implements _Initial {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -221,6 +248,9 @@ class _$InitialImpl implements _Initial {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -237,6 +267,8 @@ class _$InitialImpl implements _Initial {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -252,6 +284,8 @@ class _$InitialImpl implements _Initial {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -317,6 +351,10 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -333,6 +371,9 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -349,6 +390,9 @@ class _$LoadingImpl implements _Loading {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -369,6 +413,9 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -385,6 +432,8 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -400,6 +449,8 @@ class _$LoadingImpl implements _Loading {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -524,6 +575,10 @@ class _$AuthenticatedImpl implements _Authenticated {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -540,6 +595,9 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -556,6 +614,9 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -576,6 +637,9 @@ class _$AuthenticatedImpl implements _Authenticated {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -592,6 +656,8 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -607,6 +673,8 @@ class _$AuthenticatedImpl implements _Authenticated {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -713,6 +781,10 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -729,6 +801,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -745,6 +820,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -765,6 +843,9 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -781,6 +862,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -796,6 +879,8 @@ class _$UnauthenticatedImpl implements _Unauthenticated {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -908,6 +993,10 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -924,6 +1013,9 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -940,6 +1032,9 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -960,6 +1055,9 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -976,6 +1074,8 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -991,6 +1091,8 @@ class _$EmailVerificationPendingImpl implements _EmailVerificationPending {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -1102,6 +1204,10 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -1118,6 +1224,9 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -1134,6 +1243,9 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -1154,6 +1266,9 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -1170,6 +1285,8 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -1185,6 +1302,8 @@ class _$EmailVerifiedImpl implements _EmailVerified {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -1209,6 +1328,443 @@ abstract class _EmailVerified implements AuthState {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$EmailVerifiedImplCopyWith<_$EmailVerifiedImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$PasswordResetPendingImplCopyWith<$Res> {
+  factory _$$PasswordResetPendingImplCopyWith(_$PasswordResetPendingImpl value,
+          $Res Function(_$PasswordResetPendingImpl) then) =
+      __$$PasswordResetPendingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String email, String? message});
+}
+
+/// @nodoc
+class __$$PasswordResetPendingImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$PasswordResetPendingImpl>
+    implements _$$PasswordResetPendingImplCopyWith<$Res> {
+  __$$PasswordResetPendingImplCopyWithImpl(_$PasswordResetPendingImpl _value,
+      $Res Function(_$PasswordResetPendingImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? email = null,
+    Object? message = freezed,
+  }) {
+    return _then(_$PasswordResetPendingImpl(
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$PasswordResetPendingImpl implements _PasswordResetPending {
+  const _$PasswordResetPendingImpl({required this.email, this.message});
+
+  @override
+  final String email;
+  @override
+  final String? message;
+
+  @override
+  String toString() {
+    return 'AuthState.passwordResetPending(email: $email, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PasswordResetPendingImpl &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, email, message);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PasswordResetPendingImplCopyWith<_$PasswordResetPendingImpl>
+      get copyWith =>
+          __$$PasswordResetPendingImplCopyWithImpl<_$PasswordResetPendingImpl>(
+              this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
+    required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
+    required TResult Function(String message) error,
+    required TResult Function() guest,
+  }) {
+    return passwordResetPending(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
+    TResult? Function(String message)? error,
+    TResult? Function()? guest,
+  }) {
+    return passwordResetPending?.call(email, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
+    TResult Function(String message)? error,
+    TResult Function()? guest,
+    required TResult orElse(),
+  }) {
+    if (passwordResetPending != null) {
+      return passwordResetPending(email, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_Authenticated value) authenticated,
+    required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
+    required TResult Function(_Error value) error,
+    required TResult Function(_Guest value) guest,
+  }) {
+    return passwordResetPending(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_Authenticated value)? authenticated,
+    TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
+    TResult? Function(_Error value)? error,
+    TResult? Function(_Guest value)? guest,
+  }) {
+    return passwordResetPending?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_Authenticated value)? authenticated,
+    TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
+    TResult Function(_Error value)? error,
+    TResult Function(_Guest value)? guest,
+    required TResult orElse(),
+  }) {
+    if (passwordResetPending != null) {
+      return passwordResetPending(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _PasswordResetPending implements AuthState {
+  const factory _PasswordResetPending(
+      {required final String email,
+      final String? message}) = _$PasswordResetPendingImpl;
+
+  String get email;
+  String? get message;
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PasswordResetPendingImplCopyWith<_$PasswordResetPendingImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$PasswordResetVerifiedImplCopyWith<$Res> {
+  factory _$$PasswordResetVerifiedImplCopyWith(
+          _$PasswordResetVerifiedImpl value,
+          $Res Function(_$PasswordResetVerifiedImpl) then) =
+      __$$PasswordResetVerifiedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String email, String otp, String? message});
+}
+
+/// @nodoc
+class __$$PasswordResetVerifiedImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$PasswordResetVerifiedImpl>
+    implements _$$PasswordResetVerifiedImplCopyWith<$Res> {
+  __$$PasswordResetVerifiedImplCopyWithImpl(_$PasswordResetVerifiedImpl _value,
+      $Res Function(_$PasswordResetVerifiedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? email = null,
+    Object? otp = null,
+    Object? message = freezed,
+  }) {
+    return _then(_$PasswordResetVerifiedImpl(
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      otp: null == otp
+          ? _value.otp
+          : otp // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$PasswordResetVerifiedImpl implements _PasswordResetVerified {
+  const _$PasswordResetVerifiedImpl(
+      {required this.email, required this.otp, this.message});
+
+  @override
+  final String email;
+  @override
+  final String otp;
+  @override
+  final String? message;
+
+  @override
+  String toString() {
+    return 'AuthState.passwordResetVerified(email: $email, otp: $otp, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PasswordResetVerifiedImpl &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.otp, otp) || other.otp == otp) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, email, otp, message);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PasswordResetVerifiedImplCopyWith<_$PasswordResetVerifiedImpl>
+      get copyWith => __$$PasswordResetVerifiedImplCopyWithImpl<
+          _$PasswordResetVerifiedImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function(
+            User user, String? message, bool hasCompletedProfile)
+        authenticated,
+    required TResult Function(String? message) unauthenticated,
+    required TResult Function(String email, String? message)
+        emailVerificationPending,
+    required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
+    required TResult Function(String message) error,
+    required TResult Function() guest,
+  }) {
+    return passwordResetVerified(email, otp, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult? Function(String? message)? unauthenticated,
+    TResult? Function(String email, String? message)? emailVerificationPending,
+    TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
+    TResult? Function(String message)? error,
+    TResult? Function()? guest,
+  }) {
+    return passwordResetVerified?.call(email, otp, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function(User user, String? message, bool hasCompletedProfile)?
+        authenticated,
+    TResult Function(String? message)? unauthenticated,
+    TResult Function(String email, String? message)? emailVerificationPending,
+    TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
+    TResult Function(String message)? error,
+    TResult Function()? guest,
+    required TResult orElse(),
+  }) {
+    if (passwordResetVerified != null) {
+      return passwordResetVerified(email, otp, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_Authenticated value) authenticated,
+    required TResult Function(_Unauthenticated value) unauthenticated,
+    required TResult Function(_EmailVerificationPending value)
+        emailVerificationPending,
+    required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
+    required TResult Function(_Error value) error,
+    required TResult Function(_Guest value) guest,
+  }) {
+    return passwordResetVerified(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_Authenticated value)? authenticated,
+    TResult? Function(_Unauthenticated value)? unauthenticated,
+    TResult? Function(_EmailVerificationPending value)?
+        emailVerificationPending,
+    TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
+    TResult? Function(_Error value)? error,
+    TResult? Function(_Guest value)? guest,
+  }) {
+    return passwordResetVerified?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_Authenticated value)? authenticated,
+    TResult Function(_Unauthenticated value)? unauthenticated,
+    TResult Function(_EmailVerificationPending value)? emailVerificationPending,
+    TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
+    TResult Function(_Error value)? error,
+    TResult Function(_Guest value)? guest,
+    required TResult orElse(),
+  }) {
+    if (passwordResetVerified != null) {
+      return passwordResetVerified(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _PasswordResetVerified implements AuthState {
+  const factory _PasswordResetVerified(
+      {required final String email,
+      required final String otp,
+      final String? message}) = _$PasswordResetVerifiedImpl;
+
+  String get email;
+  String get otp;
+  String? get message;
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PasswordResetVerifiedImplCopyWith<_$PasswordResetVerifiedImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -1288,6 +1844,10 @@ class _$ErrorImpl implements _Error {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -1304,6 +1864,9 @@ class _$ErrorImpl implements _Error {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -1320,6 +1883,9 @@ class _$ErrorImpl implements _Error {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -1340,6 +1906,9 @@ class _$ErrorImpl implements _Error {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -1356,6 +1925,8 @@ class _$ErrorImpl implements _Error {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -1371,6 +1942,8 @@ class _$ErrorImpl implements _Error {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),
@@ -1444,6 +2017,10 @@ class _$GuestImpl implements _Guest {
     required TResult Function(String email, String? message)
         emailVerificationPending,
     required TResult Function(String email, String? message) emailVerified,
+    required TResult Function(String email, String? message)
+        passwordResetPending,
+    required TResult Function(String email, String otp, String? message)
+        passwordResetVerified,
     required TResult Function(String message) error,
     required TResult Function() guest,
   }) {
@@ -1460,6 +2037,9 @@ class _$GuestImpl implements _Guest {
     TResult? Function(String? message)? unauthenticated,
     TResult? Function(String email, String? message)? emailVerificationPending,
     TResult? Function(String email, String? message)? emailVerified,
+    TResult? Function(String email, String? message)? passwordResetPending,
+    TResult? Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult? Function(String message)? error,
     TResult? Function()? guest,
   }) {
@@ -1476,6 +2056,9 @@ class _$GuestImpl implements _Guest {
     TResult Function(String? message)? unauthenticated,
     TResult Function(String email, String? message)? emailVerificationPending,
     TResult Function(String email, String? message)? emailVerified,
+    TResult Function(String email, String? message)? passwordResetPending,
+    TResult Function(String email, String otp, String? message)?
+        passwordResetVerified,
     TResult Function(String message)? error,
     TResult Function()? guest,
     required TResult orElse(),
@@ -1496,6 +2079,9 @@ class _$GuestImpl implements _Guest {
     required TResult Function(_EmailVerificationPending value)
         emailVerificationPending,
     required TResult Function(_EmailVerified value) emailVerified,
+    required TResult Function(_PasswordResetPending value) passwordResetPending,
+    required TResult Function(_PasswordResetVerified value)
+        passwordResetVerified,
     required TResult Function(_Error value) error,
     required TResult Function(_Guest value) guest,
   }) {
@@ -1512,6 +2098,8 @@ class _$GuestImpl implements _Guest {
     TResult? Function(_EmailVerificationPending value)?
         emailVerificationPending,
     TResult? Function(_EmailVerified value)? emailVerified,
+    TResult? Function(_PasswordResetPending value)? passwordResetPending,
+    TResult? Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult? Function(_Error value)? error,
     TResult? Function(_Guest value)? guest,
   }) {
@@ -1527,6 +2115,8 @@ class _$GuestImpl implements _Guest {
     TResult Function(_Unauthenticated value)? unauthenticated,
     TResult Function(_EmailVerificationPending value)? emailVerificationPending,
     TResult Function(_EmailVerified value)? emailVerified,
+    TResult Function(_PasswordResetPending value)? passwordResetPending,
+    TResult Function(_PasswordResetVerified value)? passwordResetVerified,
     TResult Function(_Error value)? error,
     TResult Function(_Guest value)? guest,
     required TResult orElse(),

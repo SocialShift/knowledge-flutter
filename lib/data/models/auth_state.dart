@@ -23,6 +23,15 @@ class AuthState with _$AuthState {
     required String email,
     String? message,
   }) = _EmailVerified;
+  const factory AuthState.passwordResetPending({
+    required String email,
+    String? message,
+  }) = _PasswordResetPending;
+  const factory AuthState.passwordResetVerified({
+    required String email,
+    required String otp,
+    String? message,
+  }) = _PasswordResetVerified;
   const factory AuthState.error(String message) = _Error;
   const factory AuthState.guest() = _Guest;
 }
