@@ -87,6 +87,16 @@ class CommunityActions extends _$CommunityActions {
 
     return community;
   }
+
+  Future<void> deleteCommunity(int communityId) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    await repository.deleteCommunity(communityId);
+
+    // Invalidate providers to refresh data
+    ref.invalidate(allCommunitiesProvider);
+    ref.invalidate(joinedCommunitiesProvider);
+    ref.invalidate(communityDetailsProvider(communityId));
+  }
 }
 
 @riverpod
@@ -167,6 +177,17 @@ class PostActions extends _$PostActions {
   }) async {
     final repository = ref.read(communityRepositoryProvider.notifier);
     await repository.votePost(postId: postId, voteType: voteType);
+
+    // Invalidate posts provider to refresh data
+    ref.invalidate(communityPostsProvider(communityId));
+  }
+
+  Future<void> deletePost({
+    required int postId,
+    required int communityId,
+  }) async {
+    final repository = ref.read(communityRepositoryProvider.notifier);
+    await repository.deletePost(postId);
 
     // Invalidate posts provider to refresh data
     ref.invalidate(communityPostsProvider(communityId));

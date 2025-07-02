@@ -882,7 +882,7 @@ class _PostCommentsProviderElement
   int get postId => (origin as PostCommentsProvider).postId;
 }
 
-String _$communityActionsHash() => r'c3ca752d49f53711785e1ee22908466107aaa62b';
+String _$communityActionsHash() => r'dcb66e66a8af510d9f73f340ddb4e2e6a5825595';
 
 /// See also [CommunityActions].
 @ProviderFor(CommunityActions)
@@ -898,7 +898,7 @@ final communityActionsProvider =
 );
 
 typedef _$CommunityActions = AutoDisposeNotifier<void>;
-String _$postActionsHash() => r'14527f30361866956cb326de53a2ebd0ec4ffd40';
+String _$postActionsHash() => r'b6987950bcc8dc7b386fbae83256c0f55332fe59';
 
 /// See also [PostActions].
 @ProviderFor(PostActions)

@@ -325,6 +325,19 @@ class CommunityRepository extends _$CommunityRepository {
     }
   }
 
+  // Delete a community (only by owner)
+  Future<void> deleteCommunity(int communityId) async {
+    try {
+      final apiService = ApiService();
+
+      // DELETE /community/{community_id}
+      await apiService.delete('/community/$communityId');
+    } catch (e) {
+      print('Error deleting community: $e');
+      rethrow;
+    }
+  }
+
   // Create a new post in a community
   Future<Post> createPost({
     required String title,
@@ -412,6 +425,19 @@ class CommunityRepository extends _$CommunityRepository {
       );
     } catch (e) {
       print('Error voting on post: $e');
+      rethrow;
+    }
+  }
+
+  // Delete a post (by post creator or community owner)
+  Future<void> deletePost(int postId) async {
+    try {
+      final apiService = ApiService();
+
+      // DELETE /community/post/{post_id}
+      await apiService.delete('/community/post/$postId');
+    } catch (e) {
+      print('Error deleting post: $e');
       rethrow;
     }
   }

@@ -7,7 +7,7 @@ part of 'community_repository.dart';
 // **************************************************************************
 
 String _$communityRepositoryHash() =>
-    r'58d259c1363ed091967a364888d4a8a29684e3c6';
+    r'e469c9f57fcde738093d8ef7745e82b50226f9c0';
 
 /// See also [CommunityRepository].
 @ProviderFor(CommunityRepository)

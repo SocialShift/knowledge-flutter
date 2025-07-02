@@ -249,6 +249,9 @@ class CommunityDetailScreen extends HookConsumerWidget {
                 community.id,
                 community.name,
               );
+            } else if (value == 'delete') {
+              // Show delete confirmation dialog for community
+              _showDeleteCommunityDialog(context, ref, community);
             }
           },
           itemBuilder: (context) => [
@@ -272,6 +275,19 @@ class CommunityDetailScreen extends HookConsumerWidget {
                 ],
               ),
             ),
+            // Only show delete option if current user is the community owner
+            if (isCreatedByCurrentUser)
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_forever, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Delete Community',
+                        style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
           ],
         ),
       ],
@@ -843,6 +859,8 @@ class CommunityDetailScreen extends HookConsumerWidget {
                         post.id,
                         post.title,
                       );
+                    } else if (value == 'delete') {
+                      _showDeletePostDialog(context, ref, post, community);
                     }
                   },
                   itemBuilder: (context) => [
@@ -856,6 +874,19 @@ class CommunityDetailScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                    // Show delete option if current user is the post creator or community owner
+                    if (_canDeletePost(ref, post, community))
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_forever, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete Post',
+                                style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ],
@@ -1613,5 +1644,260 @@ class CommunityDetailScreen extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  // Check if current user can delete the post (post creator or community owner)
+  bool _canDeletePost(WidgetRef ref, Post post, Community community) {
+    final authState = ref.watch(authNotifierProvider);
+    final currentUserId = authState.maybeWhen(
+      authenticated: (user, _, __) => user.id,
+      orElse: () => null,
+    );
+
+    if (currentUserId == null) return false;
+
+    // Post creator can delete their own post
+    final isPostCreator =
+        post.createdBy != null && currentUserId == post.createdBy.toString();
+
+    // Community owner can delete any post in their community
+    final isCommunityOwner = community.createdBy != null &&
+        currentUserId == community.createdBy.toString();
+
+    return isPostCreator || isCommunityOwner;
+  }
+
+  // Show delete community confirmation dialog
+  void _showDeleteCommunityDialog(
+      BuildContext context, WidgetRef ref, Community community) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDarkMode ? AppColors.darkCard : Colors.white,
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.red,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Delete Community',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete "${community.name}"?',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This action cannot be undone. All posts, comments, and community data will be permanently deleted.',
+                style: TextStyle(
+                  color: Colors.red.shade600,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteCommunity(context, ref, community);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show delete post confirmation dialog
+  void _showDeletePostDialog(
+      BuildContext context, WidgetRef ref, Post post, Community community) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDarkMode ? AppColors.darkCard : Colors.white,
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.red,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Delete Post',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : AppColors.navyBlue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this post?',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color:
+                      isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '"${post.title}"',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This action cannot be undone.',
+                style: TextStyle(
+                  color: Colors.red.shade600,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deletePost(context, ref, post, community);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Handle community deletion
+  Future<void> _deleteCommunity(
+      BuildContext context, WidgetRef ref, Community community) async {
+    try {
+      final communityActions = ref.read(communityActionsProvider.notifier);
+      await communityActions.deleteCommunity(community.id);
+
+      if (context.mounted) {
+        // Navigate back to communities list
+        context.pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Community "${community.name}" deleted successfully'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete community: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  // Handle post deletion
+  Future<void> _deletePost(BuildContext context, WidgetRef ref, Post post,
+      Community community) async {
+    try {
+      final postActions = ref.read(postActionsProvider.notifier);
+      await postActions.deletePost(
+        postId: post.id,
+        communityId: community.id,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Post deleted successfully'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete post: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }
