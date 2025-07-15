@@ -22,6 +22,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) {
 mixin _$Profile {
   String? get nickname => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
+  bool get isPremium => throw _privateConstructorUsedError;
   String? get pronouns => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
   String? get languagePreference => throw _privateConstructorUsedError;
@@ -62,6 +63,7 @@ abstract class $ProfileCopyWith<$Res> {
   $Res call(
       {String? nickname,
       String email,
+      bool isPremium,
       String? pronouns,
       String? avatarUrl,
       String? languagePreference,
@@ -101,6 +103,7 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
   $Res call({
     Object? nickname = freezed,
     Object? email = null,
+    Object? isPremium = null,
     Object? pronouns = freezed,
     Object? avatarUrl = freezed,
     Object? languagePreference = freezed,
@@ -131,6 +134,10 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
+      isPremium: null == isPremium
+          ? _value.isPremium
+          : isPremium // ignore: cast_nullable_to_non_nullable
+              as bool,
       pronouns: freezed == pronouns
           ? _value.pronouns
           : pronouns // ignore: cast_nullable_to_non_nullable
@@ -225,6 +232,7 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   $Res call(
       {String? nickname,
       String email,
+      bool isPremium,
       String? pronouns,
       String? avatarUrl,
       String? languagePreference,
@@ -262,6 +270,7 @@ class __$$ProfileImplCopyWithImpl<$Res>
   $Res call({
     Object? nickname = freezed,
     Object? email = null,
+    Object? isPremium = null,
     Object? pronouns = freezed,
     Object? avatarUrl = freezed,
     Object? languagePreference = freezed,
@@ -292,6 +301,10 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
+      isPremium: null == isPremium
+          ? _value.isPremium
+          : isPremium // ignore: cast_nullable_to_non_nullable
+              as bool,
       pronouns: freezed == pronouns
           ? _value.pronouns
           : pronouns // ignore: cast_nullable_to_non_nullable
@@ -382,6 +395,7 @@ class _$ProfileImpl implements _Profile {
   const _$ProfileImpl(
       {this.nickname,
       required this.email,
+      required this.isPremium,
       this.pronouns,
       this.avatarUrl,
       this.languagePreference,
@@ -413,6 +427,8 @@ class _$ProfileImpl implements _Profile {
   final String? nickname;
   @override
   final String email;
+  @override
+  final bool isPremium;
   @override
   final String? pronouns;
   @override
@@ -482,7 +498,7 @@ class _$ProfileImpl implements _Profile {
 
   @override
   String toString() {
-    return 'Profile(nickname: $nickname, email: $email, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
+    return 'Profile(nickname: $nickname, email: $email, isPremium: $isPremium, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
   }
 
   @override
@@ -493,6 +509,8 @@ class _$ProfileImpl implements _Profile {
             (identical(other.nickname, nickname) ||
                 other.nickname == nickname) &&
             (identical(other.email, email) || other.email == email) &&
+            (identical(other.isPremium, isPremium) ||
+                other.isPremium == isPremium) &&
             (identical(other.pronouns, pronouns) ||
                 other.pronouns == pronouns) &&
             (identical(other.avatarUrl, avatarUrl) ||
@@ -539,6 +557,7 @@ class _$ProfileImpl implements _Profile {
         runtimeType,
         nickname,
         email,
+        isPremium,
         pronouns,
         avatarUrl,
         languagePreference,
@@ -581,6 +600,7 @@ abstract class _Profile implements Profile {
   const factory _Profile(
       {final String? nickname,
       required final String email,
+      required final bool isPremium,
       final String? pronouns,
       final String? avatarUrl,
       final String? languagePreference,
@@ -608,6 +628,8 @@ abstract class _Profile implements Profile {
   String? get nickname;
   @override
   String get email;
+  @override
+  bool get isPremium;
   @override
   String? get pronouns;
   @override

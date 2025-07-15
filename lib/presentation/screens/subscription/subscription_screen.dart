@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:knowledge/core/themes/app_theme.dart';
+import 'package:knowledge/core/themes/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:knowledge/data/providers/subscription_provider.dart';
 import 'dart:math' as math;
@@ -15,7 +15,7 @@ class SubscriptionScreen extends HookConsumerWidget {
         ref.watch(subscriptionNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.navyBlue,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Animated background - covers entire screen
@@ -23,429 +23,209 @@ class SubscriptionScreen extends HookConsumerWidget {
             child: _AnimatedBackground(),
           ),
 
-          // Close button positioned at top with SafeArea
-          // Positioned(
-          //   top: 0,
-          //   right: 0,
-          //   child: SafeArea(
-          //     child: Padding(
-          //       padding: const EdgeInsets.all(16),
-          //       child: GestureDetector(
-          //         onTap: () => Navigator.of(context).pop(),
-          //         child: Container(
-          //           decoration: BoxDecoration(
-          //             color: Colors.black.withOpacity(0.3),
-          //             borderRadius: BorderRadius.circular(20),
-          //           ),
-          //           padding: const EdgeInsets.all(8),
-          //           child:
-          //               const Icon(Icons.close, color: Colors.white, size: 28),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-
-          // Main content with SafeArea - scrollable to prevent overflow
+          // Main content and buttons within a single SafeArea
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
-              child: Column(
-                children: [
-                  // Enhanced logo with premium styling
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppColors.limeGreen.withOpacity(0.3),
-                          AppColors.limeGreen.withOpacity(0.1),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.7, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.limeGreen.withOpacity(0.5),
-                          blurRadius: 40,
-                          spreadRadius: 10,
-                        ),
-                        BoxShadow(
-                          color: AppColors.limeGreen.withOpacity(0.3),
-                          blurRadius: 60,
-                          spreadRadius: 20,
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Image.asset(
-                        'assets/images/logo/logo.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.school,
-                            size: 50,
-                            color: AppColors.limeGreen,
-                          );
-                        },
-                      ),
-                    ),
-                  ).animate().fadeIn().scale(
-                        delay: const Duration(milliseconds: 100),
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.elasticOut,
-                      ),
-
-                  // const SizedBox(height: 32),
-
-                  // Enhanced main heading with gradient text effect
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [
-                        Colors.white,
-                        AppColors.limeGreen,
-                        Colors.white,
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ).createShader(bounds),
-                    child: Text(
-                      'Unlock Your Full\nLearning Potential',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        height: 1.1,
-                        letterSpacing: -0.5,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(0, 3),
-                            blurRadius: 8,
-                          ),
-                          Shadow(
-                            color: AppColors.limeGreen.withOpacity(0.3),
-                            offset: const Offset(0, 0),
-                            blurRadius: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ).animate().fadeIn().slideY(
-                        begin: 0.3,
-                        delay: const Duration(milliseconds: 200),
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeOutBack,
-                      ),
-
-                  const SizedBox(height: 12),
-
-                  // Subtitle (smaller)
-                  // Text(
-                  //   'learners who are 4.2x more\nlikely to complete their learning journey',
-                  //   textAlign: TextAlign.center,
-                  //   style: TextStyle(
-                  //     color: Colors.white.withOpacity(0.8),
-                  //     fontSize: 14,
-                  //     height: 1.3,
-                  //     shadows: [
-                  //       Shadow(
-                  //         color: Colors.black.withOpacity(0.2),
-                  //         offset: const Offset(0, 1),
-                  //         blurRadius: 2,
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ).animate().fadeIn().slideY(
-                  //       begin: 0.2,
-                  //       delay: const Duration(milliseconds: 300),
-                  //       duration: const Duration(milliseconds: 600),
-                  //       curve: Curves.easeOutCubic,
-                  //     ),
-
-                  // const SizedBox(height: 40),
-
-                  // Enhanced feature cards with premium styling
-                  _buildEnhancedFeatureCard(
-                    icon: Icons.favorite_rounded,
-                    title: 'Unlimited Hearts',
-                    description: 'Learn without limits',
-                    gradient: [Colors.red.shade400, Colors.pink.shade300],
-                    delay: 400,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildEnhancedFeatureCard(
-                    icon: Icons.block_rounded,
-                    title: 'Ad-Free Experience',
-                    description: 'Focus on what matters',
-                    gradient: [Colors.blue.shade400, Colors.cyan.shade300],
-                    delay: 500,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildEnhancedFeatureCard(
-                    icon: Icons.library_books_rounded,
-                    title: 'Full Story Archive',
-                    description: 'Access all historical content',
-                    gradient: [
-                      Colors.purple.shade400,
-                      Colors.deepPurple.shade300
-                    ],
-                    delay: 600,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildEnhancedFeatureCard(
-                    icon: Icons.notifications_active_rounded,
-                    title: 'Daily Insights',
-                    description: 'Personalized "On This Day" alerts',
-                    gradient: [Colors.orange.shade400, Colors.amber.shade300],
-                    delay: 700,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Enhanced pricing section with premium styling
-                  // Container(
-                  //   padding: const EdgeInsets.all(24),
-                  //   decoration: BoxDecoration(
-                  //     gradient: LinearGradient(
-                  //       begin: Alignment.topLeft,
-                  //       end: Alignment.bottomRight,
-                  //       colors: [
-                  //         AppColors.limeGreen.withOpacity(0.2),
-                  //         AppColors.limeGreen.withOpacity(0.1),
-                  //         Colors.white.withOpacity(0.1),
-                  //       ],
-                  //       stops: const [0.0, 0.5, 1.0],
-                  //     ),
-                  //     borderRadius: BorderRadius.circular(20),
-                  //     border: Border.all(
-                  //       color: AppColors.limeGreen.withOpacity(0.4),
-                  //       width: 2,
-                  //     ),
-                  //     boxShadow: [
-                  //       BoxShadow(
-                  //         color: AppColors.limeGreen.withOpacity(0.3),
-                  //         blurRadius: 20,
-                  //         spreadRadius: 0,
-                  //         offset: const Offset(0, 8),
-                  //       ),
-                  //       BoxShadow(
-                  //         color: Colors.black.withOpacity(0.1),
-                  //         blurRadius: 10,
-                  //         spreadRadius: 0,
-                  //         offset: const Offset(0, 4),
-                  //       ),
-                  //     ],
-                  //   ),
-                  //   child: Column(
-                  //     children: [
-                  //       Container(
-                  //         padding: const EdgeInsets.symmetric(
-                  //           horizontal: 12,
-                  //           vertical: 6,
-                  //         ),
-                  //         decoration: BoxDecoration(
-                  //           color: AppColors.limeGreen,
-                  //           borderRadius: BorderRadius.circular(20),
-                  //           boxShadow: [
-                  //             BoxShadow(
-                  //               color: AppColors.limeGreen.withOpacity(0.4),
-                  //               blurRadius: 8,
-                  //               offset: const Offset(0, 2),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //         child: Text(
-                  //           '🎉 LIMITED TIME OFFER',
-                  //           style: TextStyle(
-                  //             color: AppColors.navyBlue,
-                  //             fontSize: 12,
-                  //             fontWeight: FontWeight.bold,
-                  //             letterSpacing: 0.5,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       const SizedBox(height: 16),
-                  //       Text(
-                  //         'Start Your Free Week',
-                  //         style: TextStyle(
-                  //           color: Colors.white,
-                  //           fontSize: 22,
-                  //           fontWeight: FontWeight.bold,
-                  //           letterSpacing: -0.5,
-                  //         ),
-                  //       ),
-                  //       const SizedBox(height: 8),
-                  //       Row(
-                  //         mainAxisAlignment: MainAxisAlignment.center,
-                  //         crossAxisAlignment: CrossAxisAlignment.baseline,
-                  //         textBaseline: TextBaseline.alphabetic,
-                  //         children: [
-                  //           Text(
-                  //             'Then ',
-                  //             style: TextStyle(
-                  //               color: Colors.white.withOpacity(0.8),
-                  //               fontSize: 16,
-                  //             ),
-                  //           ),
-                  //           Text(
-                  //             '\$9.99',
-                  //             style: TextStyle(
-                  //               color: AppColors.limeGreen,
-                  //               fontSize: 24,
-                  //               fontWeight: FontWeight.bold,
-                  //             ),
-                  //           ),
-                  //           Text(
-                  //             '/month',
-                  //             style: TextStyle(
-                  //               color: Colors.white.withOpacity(0.8),
-                  //               fontSize: 16,
-                  //             ),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //       const SizedBox(height: 8),
-                  //       Text(
-                  //         'Cancel anytime • No commitment',
-                  //         style: TextStyle(
-                  //           color: Colors.white.withOpacity(0.7),
-                  //           fontSize: 13,
-                  //           fontStyle: FontStyle.italic,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ).animate().fadeIn().scale(
-                  //       delay: const Duration(milliseconds: 800),
-                  //       duration: const Duration(milliseconds: 800),
-                  //       curve: Curves.elasticOut,
-                  //     ),
-
-                  // const SizedBox(height: 10),
-
-                  // Enhanced Subscribe Button
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.limeGreen,
-                          AppColors.limeGreen.withOpacity(0.8),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.limeGreen.withOpacity(0.4),
-                          blurRadius: 15,
-                          offset: const Offset(0, 6),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: AppColors.navyBlue,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      onPressed: () async {
-                        await subscriptionNotifier
-                            .subscribe(SubscriptionPlan.monthly);
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text(
-                                'Starting your free trial!',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              backgroundColor: AppColors.navyBlue,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              margin: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Enhanced logo with premium styling
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.accentGreen.withOpacity(0.3),
+                                AppColors.accentGreen.withOpacity(0.1),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.7, 1.0],
                             ),
-                          );
-                          // Navigate to pro onboarding instead of popping
-                          context.go('/pro-onboarding');
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.rocket_launch_rounded,
-                            color: AppColors.navyBlue,
-                            size: 20,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accentGreen.withOpacity(0.5),
+                                blurRadius: 40,
+                                spreadRadius: 10,
+                              ),
+                              BoxShadow(
+                                color: AppColors.accentGreen.withOpacity(0.3),
+                                blurRadius: 60,
+                                spreadRadius: 20,
+                              ),
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.1),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'START MY FREE WEEK',
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            child: Image.asset(
+                              'assets/images/logo/logo.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.school,
+                                  size: 50,
+                                  color: AppColors.accentGreen,
+                                );
+                              },
+                            ),
+                          ),
+                        ).animate().fadeIn().scale(
+                              delay: const Duration(milliseconds: 100),
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.elasticOut,
+                            ),
+
+                        // Enhanced main heading with gradient text effect
+                        ShaderMask(
+                          shaderCallback: (bounds) => LinearGradient(
+                            colors: [
+                              Colors.white,
+                              AppColors.accentGreen,
+                              Colors.white,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ).createShader(bounds),
+                          child: Text(
+                            'Unlock Your Full\nLearning Potential',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                              letterSpacing: -0.5,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.4),
+                                  offset: const Offset(0, 3),
+                                  blurRadius: 8,
+                                ),
+                                Shadow(
+                                  color: AppColors.accentGreen.withOpacity(0.3),
+                                  offset: const Offset(0, 0),
+                                  blurRadius: 20,
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ).animate().fadeIn().slideY(
+                              begin: 0.3,
+                              delay: const Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.easeOutBack,
+                            ),
+
+                        const SizedBox(height: 12),
+
+                        // Enhanced feature cards with premium styling
+                        _buildEnhancedFeatureCard(
+                          icon: Icons.favorite_rounded,
+                          title: 'Unlimited Hearts',
+                          description: 'Learn without limits',
+                          gradient: [Colors.red.shade400, Colors.pink.shade300],
+                          delay: 400,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildEnhancedFeatureCard(
+                          icon: Icons.block_rounded,
+                          title: 'Ad-Free Experience',
+                          description: 'Focus on what matters',
+                          gradient: [
+                            Colors.blue.shade400,
+                            Colors.cyan.shade300
+                          ],
+                          delay: 500,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildEnhancedFeatureCard(
+                          icon: Icons.library_books_rounded,
+                          title: 'Full Story Archive',
+                          description: 'Access all historical content',
+                          gradient: [
+                            Colors.purple.shade400,
+                            Colors.deepPurple.shade300
+                          ],
+                          delay: 600,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildEnhancedFeatureCard(
+                          icon: Icons.notifications_active_rounded,
+                          title: 'Daily Insights',
+                          description: 'Personalized "On This Day" alerts',
+                          gradient: [
+                            Colors.orange.shade400,
+                            Colors.amber.shade300
+                          ],
+                          delay: 700,
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                  ).animate().fadeIn().slideY(
-                        begin: 0.3,
-                        delay: const Duration(milliseconds: 900),
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.elasticOut,
+                  ),
+                ),
+                // Buttons at the very bottom
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accentGreen,
+                            foregroundColor: AppColors.primaryBlue,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              letterSpacing: 1.1,
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            GoRouter.of(context).push('/select-plan');
+                          },
+                          child: const Text('UPGRADE TO PRO'),
+                        ),
                       ),
-
-                  const SizedBox(height: 5),
-
-                  // No Thanks Button
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Maybe Later',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'NO THANKS',
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
                       ),
-                    ),
-                  ).animate().fadeIn(
-                        delay: const Duration(milliseconds: 1000),
-                        duration: const Duration(milliseconds: 400),
-                      ),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -538,7 +318,7 @@ class SubscriptionScreen extends HookConsumerWidget {
           ),
           Icon(
             Icons.check_circle_rounded,
-            color: AppColors.limeGreen,
+            color: AppColors.accentGreen,
             size: 20,
           ),
         ],
@@ -580,12 +360,12 @@ class SubscriptionScreen extends HookConsumerWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.limeGreen.withOpacity(0.2),
+              color: AppColors.accentGreen.withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              color: AppColors.limeGreen,
+              color: AppColors.accentGreen,
               size: 20,
             ),
           ),
@@ -755,12 +535,12 @@ class _AnimatedBackgroundState extends State<_AnimatedBackground>
               colors: isDark
                   ? [
                       const Color(0xFF1A1A2E),
-                      AppColors.darkBackground,
+                      AppColors.primaryBlue.withOpacity(0.95),
                       const Color(0xFF16213E),
                     ]
                   : [
                       const Color(0xFF1E3A8A),
-                      AppColors.navyBlue,
+                      AppColors.primaryBlue,
                       const Color(0xFF312E81),
                     ],
               stops: const [0.0, 0.5, 1.0],
@@ -776,8 +556,8 @@ class _AnimatedBackgroundState extends State<_AnimatedBackground>
                 width: 250,
                 height: 180,
                 colors: [
-                  AppColors.limeGreen.withOpacity(0.15),
-                  AppColors.limeGreen.withOpacity(0.05),
+                  AppColors.accentGreen.withOpacity(0.15),
+                  AppColors.accentGreen.withOpacity(0.05),
                 ],
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.elliptical(180, 100),
@@ -840,7 +620,7 @@ class _AnimatedBackgroundState extends State<_AnimatedBackground>
                                 offset) *
                             0.3,
                     color: index % 3 == 0
-                        ? AppColors.limeGreen
+                        ? AppColors.accentGreen
                         : index % 3 == 1
                             ? Colors.white
                             : const Color(0xFF00FF88),
@@ -875,7 +655,7 @@ class _AnimatedBackgroundState extends State<_AnimatedBackground>
                   child: CustomPaint(
                     size: Size(double.infinity, 40),
                     painter: AnimatedWavyLinePainter(
-                      color: AppColors.limeGreen.withOpacity(0.08),
+                      color: AppColors.accentGreen.withOpacity(0.08),
                       strokeWidth: 1.5,
                       animationValue: _backgroundFloat2.value * 0.7,
                     ),

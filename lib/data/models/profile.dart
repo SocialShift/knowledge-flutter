@@ -8,6 +8,7 @@ class Profile with _$Profile {
   const factory Profile({
     String? nickname,
     required String email,
+    required bool isPremium,
     String? pronouns,
     String? avatarUrl,
     String? languagePreference,
@@ -58,6 +59,7 @@ class Profile with _$Profile {
 
     return Profile(
       email: user['email'] ?? '',
+      isPremium: profile['is_premium'] ?? false,
       joinedDate: user['joined_at'],
       nickname: profile['nickname'],
       avatarUrl: profile['avatar_url'],

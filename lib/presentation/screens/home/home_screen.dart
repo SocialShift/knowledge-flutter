@@ -19,6 +19,7 @@ import 'package:knowledge/presentation/widgets/butterfly_loading_widget.dart';
 import 'package:knowledge/presentation/widgets/streak_sliding_widget.dart';
 import 'package:knowledge/presentation/widgets/bookmark_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:knowledge/data/models/profile.dart';
 
 // Create cached versions of providers with keepAlive set to true
 final cachedTimelinesSortedProvider =
@@ -55,6 +56,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   int _selectedTimelineIndex = 0; // Default to first timeline
   bool _hasInitializedIndex = false; // Track if we've set the initial focus
   bool _isManualRefresh = false; // Track if user is manually refreshing
+  bool _upsellShown = false;
+  static bool _upsellShownGlobal = false;
 
   // Animation controller for the swipe transition
   late AnimationController _animationController;
@@ -188,6 +191,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     // Watch cached timelines provider instead of directly watching the original provider
     final timelinesAsync = ref.watch(cachedTimelinesSortedProvider);
+
+    // Watch cached profile provider
+    final profileAsync = ref.watch(cachedProfileProvider);
+
+    profileAsync.whenOrNull(
+      data: (profile) {
+        if (!_upsellShown &&
+            !_upsellShownGlobal &&
+            profile != null &&
+            profile is Profile &&
+            profile.isPremium == false) {
+          _upsellShown = true;
+          _upsellShownGlobal = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final currentPath = GoRouterState.of(context).uri.path;
+            if (currentPath != '/subscription-upsell') {
+              GoRouter.of(context).push('/subscription-upsell');
+            }
+          });
+        }
+      },
+    );
 
     return Scaffold(
       backgroundColor: backgroundColor,

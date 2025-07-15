@@ -36,6 +36,8 @@ import 'package:knowledge/presentation/screens/community/community_detail_screen
 import 'package:knowledge/presentation/screens/community/create_post_screen.dart';
 import 'package:knowledge/core/utils/debug_utils.dart';
 import 'package:knowledge/core/utils/sharing_utils.dart';
+import 'package:knowledge/presentation/screens/subscription/subs_upsell_screen.dart';
+import 'package:knowledge/presentation/screens/subscription/select_plan_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -409,6 +411,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/subscription',
         name: 'subscription',
         builder: (context, state) => const SubscriptionScreen(),
+      ),
+      GoRoute(
+        path: '/subscription-upsell',
+        name: 'subscription-upsell',
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const SubsUpsellScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/select-plan',
+        name: 'select-plan',
+        pageBuilder: (context, state) => buildCupertinoPageTransition(
+          context: context,
+          state: state,
+          child: const SelectPlanScreen(),
+        ),
       ),
 
       // Notifications screen with slide-up transition

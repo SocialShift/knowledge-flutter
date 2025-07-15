@@ -10,6 +10,7 @@ _$ProfileImpl _$$ProfileImplFromJson(Map<String, dynamic> json) =>
     _$ProfileImpl(
       nickname: json['nickname'] as String?,
       email: json['email'] as String,
+      isPremium: json['isPremium'] as bool,
       pronouns: json['pronouns'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       languagePreference: json['languagePreference'] as String?,
@@ -37,6 +38,7 @@ Map<String, dynamic> _$$ProfileImplToJson(_$ProfileImpl instance) =>
     <String, dynamic>{
       'nickname': instance.nickname,
       'email': instance.email,
+      'isPremium': instance.isPremium,
       'pronouns': instance.pronouns,
       'avatarUrl': instance.avatarUrl,
       'languagePreference': instance.languagePreference,
