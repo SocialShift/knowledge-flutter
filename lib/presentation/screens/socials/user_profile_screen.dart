@@ -9,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:knowledge/core/utils/debouncer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:knowledge/data/models/badge.dart' as badge_model;
+import 'package:flutter/services.dart';
 // import 'package:knowledge/presentation/widgets/user_avatar.dart';
 
 class UserProfileScreen extends HookConsumerWidget {
@@ -519,6 +521,20 @@ class UserProfileBody extends HookConsumerWidget {
                   .fadeIn(
                     duration: const Duration(milliseconds: 500),
                     delay: const Duration(milliseconds: 100),
+                  )
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
+
+              const SizedBox(height: 12),
+
+              // Badges section
+              BadgesWidget(
+                profile: profile,
+                isDarkMode: isDarkMode,
+              )
+                  .animate()
+                  .fadeIn(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 125),
                   )
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuad),
 
@@ -1192,6 +1208,250 @@ class PercentileWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class BadgesWidget extends StatelessWidget {
+  final Profile profile;
+  final bool isDarkMode;
+
+  const BadgesWidget({
+    super.key,
+    required this.profile,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+
+    // Get earned badges
+    final earnedBadges = profile.badges;
+    final recentBadges = earnedBadges.take(4).toList(); // Show first 4 badges
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.navyBlue.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                Icons.military_tech,
+                color: AppColors.limeGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Badges',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              if (earnedBadges.length > 4)
+                Text(
+                  '+${earnedBadges.length - 4} more',
+                  style: TextStyle(
+                    color: AppColors.limeGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Badges grid or empty state
+          if (earnedBadges.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.military_tech,
+                    color: Colors.grey.shade400,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No badges earned yet',
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.7),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              children: [
+                // Badge count
+                Row(
+                  children: [
+                    Text(
+                      '${earnedBadges.length} badges earned',
+                      style: TextStyle(
+                        color: textColor.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Recent badges
+                Row(
+                  children: recentBadges.map((badge) {
+                    final index = recentBadges.indexOf(badge);
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: index < recentBadges.length - 1 ? 8 : 0,
+                        ),
+                        child: _buildBadgeItem(badge),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeItem(badge_model.Badge badge) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _getPathColor(badge.path).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _getPathColor(badge.path).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Badge icon
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _getPathColor(badge.path).withOpacity(0.1),
+            ),
+            child: ClipOval(
+              child: FutureBuilder<ByteData>(
+                future: rootBundle.load('assets/images/badges/${badge.id}.png'),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    print(
+                        'Error loading badge image: ${badge.id}.png - ${snapshot.error}');
+                    return Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _getPathColor(badge.path).withOpacity(0.2),
+                      ),
+                      child: Icon(
+                        Icons.military_tech,
+                        color: _getPathColor(badge.path),
+                        size: 24,
+                      ),
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    return Image.memory(
+                      snapshot.data!.buffer.asUint8List(),
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    );
+                  }
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _getPathColor(badge.path).withOpacity(0.2),
+                    ),
+                    child: Icon(
+                      Icons.military_tech,
+                      color: _getPathColor(badge.path),
+                      size: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Badge name
+          Text(
+            badge.name,
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : AppColors.navyBlue,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          // Tier
+          Text(
+            'Tier ${badge.tier}',
+            style: TextStyle(
+              color: _getPathColor(badge.path),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPathColor(String path) {
+    switch (path) {
+      case badge_model.BadgePath.illumination:
+        return Colors.amber;
+      case badge_model.BadgePath.game:
+        return Colors.purple;
+      case badge_model.BadgePath.streak:
+        return Colors.orange;
+      case badge_model.BadgePath.starter:
+        return Colors.blue;
+      default:
+        return AppColors.limeGreen;
+    }
   }
 }
 

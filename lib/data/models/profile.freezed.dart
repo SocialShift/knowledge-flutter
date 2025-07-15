@@ -34,8 +34,8 @@ mixin _$Profile {
   int? get totalReferrals => throw _privateConstructorUsedError;
   String? get joinedDate => throw _privateConstructorUsedError;
   Map<String, dynamic>? get followers => throw _privateConstructorUsedError;
-  Map<String, dynamic>? get following =>
-      throw _privateConstructorUsedError; // Stats fields
+  Map<String, dynamic>? get following => throw _privateConstructorUsedError;
+  List<Badge> get badges => throw _privateConstructorUsedError; // Stats fields
   int? get rank => throw _privateConstructorUsedError;
   int? get totalUsers => throw _privateConstructorUsedError;
   int? get percentile => throw _privateConstructorUsedError;
@@ -75,6 +75,7 @@ abstract class $ProfileCopyWith<$Res> {
       String? joinedDate,
       Map<String, dynamic>? followers,
       Map<String, dynamic>? following,
+      List<Badge> badges,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -115,6 +116,7 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? joinedDate = freezed,
     Object? followers = freezed,
     Object? following = freezed,
+    Object? badges = null,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -182,6 +184,10 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.following
           : following // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      badges: null == badges
+          ? _value.badges
+          : badges // ignore: cast_nullable_to_non_nullable
+              as List<Badge>,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -244,6 +250,7 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       String? joinedDate,
       Map<String, dynamic>? followers,
       Map<String, dynamic>? following,
+      List<Badge> badges,
       int? rank,
       int? totalUsers,
       int? percentile,
@@ -282,6 +289,7 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? joinedDate = freezed,
     Object? followers = freezed,
     Object? following = freezed,
+    Object? badges = null,
     Object? rank = freezed,
     Object? totalUsers = freezed,
     Object? percentile = freezed,
@@ -349,6 +357,10 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value._following
           : following // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      badges: null == badges
+          ? _value._badges
+          : badges // ignore: cast_nullable_to_non_nullable
+              as List<Badge>,
       rank: freezed == rank
           ? _value.rank
           : rank // ignore: cast_nullable_to_non_nullable
@@ -407,6 +419,7 @@ class _$ProfileImpl implements _Profile {
       this.joinedDate,
       final Map<String, dynamic>? followers,
       final Map<String, dynamic>? following,
+      final List<Badge> badges = const [],
       this.rank,
       this.totalUsers,
       this.percentile,
@@ -418,7 +431,8 @@ class _$ProfileImpl implements _Profile {
       this.streakBonus})
       : _personalizationQuestions = personalizationQuestions,
         _followers = followers,
-        _following = following;
+        _following = following,
+        _badges = badges;
 
   factory _$ProfileImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileImplFromJson(json);
@@ -476,6 +490,15 @@ class _$ProfileImpl implements _Profile {
     return EqualUnmodifiableMapView(value);
   }
 
+  final List<Badge> _badges;
+  @override
+  @JsonKey()
+  List<Badge> get badges {
+    if (_badges is EqualUnmodifiableListView) return _badges;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_badges);
+  }
+
 // Stats fields
   @override
   final int? rank;
@@ -498,7 +521,7 @@ class _$ProfileImpl implements _Profile {
 
   @override
   String toString() {
-    return 'Profile(nickname: $nickname, email: $email, isPremium: $isPremium, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
+    return 'Profile(nickname: $nickname, email: $email, isPremium: $isPremium, pronouns: $pronouns, avatarUrl: $avatarUrl, languagePreference: $languagePreference, location: $location, personalizationQuestions: $personalizationQuestions, points: $points, referralCode: $referralCode, totalReferrals: $totalReferrals, joinedDate: $joinedDate, followers: $followers, following: $following, badges: $badges, rank: $rank, totalUsers: $totalUsers, percentile: $percentile, completedQuizzes: $completedQuizzes, currentLoginStreak: $currentLoginStreak, maxLoginStreak: $maxLoginStreak, daysToNextMilestone: $daysToNextMilestone, nextMilestone: $nextMilestone, streakBonus: $streakBonus)';
   }
 
   @override
@@ -532,6 +555,7 @@ class _$ProfileImpl implements _Profile {
                 .equals(other._followers, _followers) &&
             const DeepCollectionEquality()
                 .equals(other._following, _following) &&
+            const DeepCollectionEquality().equals(other._badges, _badges) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.totalUsers, totalUsers) ||
                 other.totalUsers == totalUsers) &&
@@ -569,6 +593,7 @@ class _$ProfileImpl implements _Profile {
         joinedDate,
         const DeepCollectionEquality().hash(_followers),
         const DeepCollectionEquality().hash(_following),
+        const DeepCollectionEquality().hash(_badges),
         rank,
         totalUsers,
         percentile,
@@ -612,6 +637,7 @@ abstract class _Profile implements Profile {
       final String? joinedDate,
       final Map<String, dynamic>? followers,
       final Map<String, dynamic>? following,
+      final List<Badge> badges,
       final int? rank,
       final int? totalUsers,
       final int? percentile,
@@ -651,7 +677,9 @@ abstract class _Profile implements Profile {
   @override
   Map<String, dynamic>? get followers;
   @override
-  Map<String, dynamic>? get following; // Stats fields
+  Map<String, dynamic>? get following;
+  @override
+  List<Badge> get badges; // Stats fields
   @override
   int? get rank;
   @override

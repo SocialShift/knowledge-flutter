@@ -15,6 +15,8 @@ import 'package:knowledge/presentation/widgets/feedback_dialog.dart';
 import 'package:knowledge/presentation/widgets/bookmarked_timelines_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:knowledge/core/utils/simple_sharing_utils.dart';
+import 'package:knowledge/data/models/badge.dart' as badge_model;
+import 'package:flutter/services.dart';
 
 // Create a cached profile provider to prevent unnecessary reloading
 final cachedProfileProvider = Provider<AsyncValue<Profile>>((ref) {
@@ -699,6 +701,10 @@ class _ProfileBodyState extends ConsumerState<ProfileBody>
                         children: [
                           // Overview section with rank, journey and points
                           OverviewWidget(profile: widget.profile),
+                          const SizedBox(height: 12),
+
+                          // Badges section
+                          BadgesWidget(profile: widget.profile),
                           const SizedBox(height: 12),
 
                           // Percentile rank
@@ -1620,6 +1626,260 @@ class StreakInfoWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class BadgesWidget extends StatelessWidget {
+  final Profile profile;
+
+  const BadgesWidget({
+    super.key,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? Colors.white : AppColors.navyBlue;
+    final cardColor = isDarkMode ? AppColors.darkCard : Colors.white;
+
+    // Get earned badges
+    final earnedBadges = profile.badges;
+    final recentBadges = earnedBadges.take(4).toList(); // Show first 4 badges
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.navyBlue.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                Icons.military_tech,
+                color: AppColors.limeGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Badges',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => context.push('/profile/badges'),
+                child: Row(
+                  children: [
+                    Text(
+                      'View All',
+                      style: TextStyle(
+                        color: AppColors.limeGreen,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppColors.limeGreen,
+                      size: 12,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Badges grid or empty state
+          if (earnedBadges.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.military_tech,
+                    color: Colors.grey.shade400,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No badges earned yet',
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.7),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Complete stories, play games, and maintain streaks to earn badges!',
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.5),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              children: [
+                // Badge count
+                Row(
+                  children: [
+                    Text(
+                      '${earnedBadges.length} badges earned',
+                      style: TextStyle(
+                        color: textColor.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (earnedBadges.length > 4)
+                      Text(
+                        '+${earnedBadges.length - 4} more',
+                        style: TextStyle(
+                          color: AppColors.limeGreen,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Recent badges
+                Row(
+                  children: recentBadges.map((badge) {
+                    final index = recentBadges.indexOf(badge);
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: index < recentBadges.length - 1 ? 8 : 0,
+                        ),
+                        child: _buildBadgeItem(badge, isDarkMode),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeItem(badge_model.Badge badge, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _getPathColor(badge.path).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _getPathColor(badge.path).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Badge icon - try to load image first, fallback to icon
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _getPathColor(badge.path).withOpacity(0.1),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/badges/${badge.id}.png',
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading badge image: ${badge.id}.png - $error');
+                  // Return the actual badge image as a fallback
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _getPathColor(badge.path).withOpacity(0.2),
+                    ),
+                    child: Icon(
+                      Icons.military_tech,
+                      color: _getPathColor(badge.path),
+                      size: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Badge name
+          Text(
+            badge.name,
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : AppColors.navyBlue,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          // Tier
+          Text(
+            'Tier ${badge.tier}',
+            style: TextStyle(
+              color: _getPathColor(badge.path),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPathColor(String path) {
+    switch (path) {
+      case badge_model.BadgePath.illumination:
+        return Colors.amber;
+      case badge_model.BadgePath.game:
+        return Colors.purple;
+      case badge_model.BadgePath.streak:
+        return Colors.orange;
+      case badge_model.BadgePath.starter:
+        return Colors.blue;
+      default:
+        return AppColors.limeGreen;
+    }
   }
 }
 

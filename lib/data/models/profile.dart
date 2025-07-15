@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:knowledge/data/models/badge.dart';
 
 part 'profile.g.dart';
 part 'profile.freezed.dart';
@@ -20,6 +21,7 @@ class Profile with _$Profile {
     String? joinedDate,
     Map<String, dynamic>? followers,
     Map<String, dynamic>? following,
+    @Default([]) List<Badge> badges,
     // Stats fields
     int? rank,
     int? totalUsers,
@@ -57,6 +59,12 @@ class Profile with _$Profile {
       followersMap['is_following'] = profile['is_following'];
     }
 
+    // Parse badges
+    final badgesList = profile['badges'] as List<dynamic>? ?? [];
+    final badges = badgesList
+        .map((badgeJson) => Badge.fromJson(badgeJson as Map<String, dynamic>))
+        .toList();
+
     return Profile(
       email: user['email'] ?? '',
       isPremium: profile['is_premium'] ?? false,
@@ -72,6 +80,7 @@ class Profile with _$Profile {
       totalReferrals: profile['total_referrals'],
       followers: followersMap,
       following: profile['following'],
+      badges: badges,
       // Stats
       rank: stats['rank'],
       totalUsers: stats['total_users'],

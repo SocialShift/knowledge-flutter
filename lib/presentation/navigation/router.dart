@@ -38,6 +38,7 @@ import 'package:knowledge/core/utils/debug_utils.dart';
 import 'package:knowledge/core/utils/sharing_utils.dart';
 import 'package:knowledge/presentation/screens/subscription/subs_upsell_screen.dart';
 import 'package:knowledge/presentation/screens/subscription/select_plan_screen.dart';
+import 'package:knowledge/presentation/screens/profile/badges_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -471,6 +472,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               context: context,
               state: state,
               child: const EditProfileScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/profile/badges',
+            pageBuilder: (context, state) => buildSlideUpTransition(
+              context: context,
+              state: state,
+              child: const BadgesScreen(),
             ),
           ),
           // Enable e-learning route

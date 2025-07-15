@@ -23,6 +23,10 @@ _$ProfileImpl _$$ProfileImplFromJson(Map<String, dynamic> json) =>
       joinedDate: json['joinedDate'] as String?,
       followers: json['followers'] as Map<String, dynamic>?,
       following: json['following'] as Map<String, dynamic>?,
+      badges: (json['badges'] as List<dynamic>?)
+              ?.map((e) => Badge.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       rank: (json['rank'] as num?)?.toInt(),
       totalUsers: (json['totalUsers'] as num?)?.toInt(),
       percentile: (json['percentile'] as num?)?.toInt(),
@@ -50,6 +54,7 @@ Map<String, dynamic> _$$ProfileImplToJson(_$ProfileImpl instance) =>
       'joinedDate': instance.joinedDate,
       'followers': instance.followers,
       'following': instance.following,
+      'badges': instance.badges,
       'rank': instance.rank,
       'totalUsers': instance.totalUsers,
       'percentile': instance.percentile,

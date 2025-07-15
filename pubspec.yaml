@@ -115,6 +115,24 @@ flutter:
     - assets/images/avatars/lion_cub.jpg
     - assets/images/avatars/panda.jpg
     - assets/images/avatars/panda2.jpg
+    - assets/images/badges/
+    - assets/images/badges/archivist.png
+    - assets/images/badges/beacon.png
+    - assets/images/badges/candlebearer.png
+    - assets/images/badges/constellation.png
+    - assets/images/badges/ember.png
+    - assets/images/badges/eternal_flame.png
+    - assets/images/badges/first_step.png
+    - assets/images/badges/flame.png
+    - assets/images/badges/flamekeeper.png
+    - assets/images/badges/historian.png
+    - assets/images/badges/inferno.png
+    - assets/images/badges/revealer.png
+    - assets/images/badges/seeker.png
+    - assets/images/badges/spark.png
+    - assets/images/badges/torchbearer.png
+    - assets/images/badges/truth_seeker.png
+    - assets/images/badges/uncover.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
