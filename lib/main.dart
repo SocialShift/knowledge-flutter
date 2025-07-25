@@ -19,6 +19,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:developer' as developer;
 import 'package:knowledge/core/utils/debug_utils.dart';
+import 'package:knowledge/core/services/subscription_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,13 @@ Future<void> main() async {
 
   // Load .env file
   await dotenv.load(fileName: ".env");
+
+  // Initialize subscription service
+  try {
+    await SubscriptionService().initialize();
+  } catch (e) {
+    developer.log('Failed to initialize subscription service: $e');
+  }
 
   // Disable print statements in release mode for performance
   if (kReleaseMode) {

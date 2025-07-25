@@ -7,7 +7,7 @@ part of 'subscription_provider.dart';
 // **************************************************************************
 
 String _$subscriptionNotifierHash() =>
-    r'9966d0c35db04c5f3a7d32fd67bb0f883407461d';
+    r'72f876b98af3a6466d4d29ff281c456e7531221f';
 
 /// See also [SubscriptionNotifier].
 @ProviderFor(SubscriptionNotifier)

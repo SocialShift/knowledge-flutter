@@ -1,21 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:knowledge/core/themes/app_colors.dart';
+import 'package:knowledge/data/providers/subscription_provider.dart';
 
-class SelectPlanScreen extends StatefulWidget {
+class SelectPlanScreen extends ConsumerStatefulWidget {
   const SelectPlanScreen({super.key});
 
   @override
-  State<SelectPlanScreen> createState() => _SelectPlanScreenState();
+  ConsumerState<SelectPlanScreen> createState() => _SelectPlanScreenState();
 }
 
-class _SelectPlanScreenState extends State<SelectPlanScreen> {
-  int _selectedIndex = 0;
+class _SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
+  int _selectedIndex = 1; // Default to yearly plan (better value)
+
+  final List<PlanOption> _plans = [
+    PlanOption(
+      title: 'Monthly',
+      productId: 'pro_subscription_1month',
+      price: '\$12',
+      period: 'month',
+      yearlyEquivalent: '\$144 / year',
+      isPopular: false,
+    ),
+    PlanOption(
+      title: 'Yearly',
+      productId: 'pro_subscription_1y',
+      price: '\$99',
+      period: 'year',
+      yearlyEquivalent: 'Save \$45',
+      isPopular: true,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
+    final subscriptionState = ref.watch(subscriptionNotifierProvider);
     return Scaffold(
       backgroundColor:
           isDarkMode ? AppColors.primaryBlue.withOpacity(0.95) : Colors.white,
@@ -34,7 +56,7 @@ class _SelectPlanScreenState extends State<SelectPlanScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
                     Colors.blueAccent,
                     Colors.purpleAccent,
@@ -87,14 +109,20 @@ class _SelectPlanScreenState extends State<SelectPlanScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      _PlanCard(
-                        title: 'Individual',
-                        price: ' \$12 / month',
-                        yearly: ' \$99 / year',
-                        selected: _selectedIndex == 0,
-                        onTap: () => setState(() => _selectedIndex = 0),
-                      ),
+
+                      // Plan cards
+                      ...List.generate(_plans.length, (index) {
+                        final plan = _plans[index];
+                        return _PlanCard(
+                          plan: plan,
+                          selected: _selectedIndex == index,
+                          onTap: () => setState(() => _selectedIndex = index),
+                        );
+                      }),
+
                       const Spacer(),
+
+                      // Continue button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -112,10 +140,35 @@ class _SelectPlanScreenState extends State<SelectPlanScreen> {
                             ),
                             elevation: 0,
                           ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('CONTINUE'),
+                          onPressed: subscriptionState.isLoading
+                              ? null
+                              : () {
+                                  final selectedPlan = _plans[_selectedIndex];
+                                  _handleSubscription(selectedPlan);
+                                },
+                          child: subscriptionState.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.primaryBlue),
+                                  ),
+                                )
+                              : Text(
+                                  'SUBSCRIBE FOR ${_plans[_selectedIndex].price}/${_plans[_selectedIndex].period.toUpperCase()}'),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Terms and privacy
+                      Text(
+                        'By continuing, you agree to our Terms of Service and Privacy Policy. Subscription automatically renews unless cancelled.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white54 : Colors.black45,
+                          fontSize: 12,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -129,19 +182,91 @@ class _SelectPlanScreenState extends State<SelectPlanScreen> {
       ),
     );
   }
+
+  void _handleSubscription(PlanOption plan) async {
+    final subscriptionNotifier =
+        ref.read(subscriptionNotifierProvider.notifier);
+
+    // Convert PlanOption to SubscriptionPlan
+    SubscriptionPlan subscriptionPlan;
+    if (plan.productId == 'pro_subscription_1month') {
+      subscriptionPlan = SubscriptionPlan.monthly;
+    } else if (plan.productId == 'pro_subscription_1y') {
+      subscriptionPlan = SubscriptionPlan.yearly;
+    } else {
+      subscriptionPlan = SubscriptionPlan.free;
+    }
+
+    // Show loading
+    setState(() {});
+
+    try {
+      final success = await subscriptionNotifier.subscribe(subscriptionPlan);
+
+      if (success && mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully subscribed to ${plan.title} plan!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        // Close the screen
+        Navigator.of(context).pop();
+      } else if (mounted) {
+        // Show error message
+        final subscriptionState = ref.read(subscriptionNotifierProvider);
+        final errorMessage = subscriptionState.error ?? 'Subscription failed';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+}
+
+class PlanOption {
+  final String title;
+  final String productId;
+  final String price;
+  final String period;
+  final String yearlyEquivalent;
+  final bool isPopular;
+
+  PlanOption({
+    required this.title,
+    required this.productId,
+    required this.price,
+    required this.period,
+    required this.yearlyEquivalent,
+    required this.isPopular,
+  });
 }
 
 class _PlanCard extends StatelessWidget {
-  final String title;
-  final String price;
-  final String yearly;
+  final PlanOption plan;
   final bool selected;
   final VoidCallback onTap;
 
   const _PlanCard({
-    required this.title,
-    required this.price,
-    required this.yearly,
+    required this.plan,
     required this.selected,
     required this.onTap,
   });
@@ -180,34 +305,35 @@ class _PlanCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? Colors.blueAccent.withOpacity(0.12)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'BEST VALUE',
-                          style: TextStyle(
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            letterSpacing: 0.7,
+                  if (plan.isPopular)
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'BEST VALUE',
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              letterSpacing: 0.7,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                      ],
+                    ),
+                  if (plan.isPopular) const SizedBox(height: 8),
                   Text(
-                    title,
+                    plan.title,
                     style: TextStyle(
-                      color: Colors.blue[900],
+                      color: selected
+                          ? Colors.blue[900]
+                          : (isDarkMode ? Colors.white : Colors.blue[900]),
                       fontWeight: FontWeight.w800,
                       fontSize: 22,
                       letterSpacing: -0.5,
@@ -215,9 +341,13 @@ class _PlanCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    yearly,
+                    plan.yearlyEquivalent,
                     style: TextStyle(
-                      color: Colors.blueGrey[700],
+                      color: selected
+                          ? Colors.blueGrey[700]
+                          : (isDarkMode
+                              ? Colors.white70
+                              : Colors.blueGrey[700]),
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
@@ -229,7 +359,7 @@ class _PlanCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  price,
+                  '${plan.price} / ${plan.period}',
                   style: TextStyle(
                     color: Colors.blueAccent,
                     fontWeight: FontWeight.bold,
@@ -237,8 +367,8 @@ class _PlanCard extends StatelessWidget {
                   ),
                 ),
                 if (selected)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
                     child: Icon(
                       Icons.check_circle,
                       color: Colors.blueAccent,
