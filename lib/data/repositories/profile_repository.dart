@@ -162,6 +162,25 @@ class ProfileRepository {
     }
   }
 
+  // Update premium status
+  Future<void> updatePremiumStatus(bool isPremium) async {
+    try {
+      final response = await _apiService.patch(
+        '/auth/user/me',
+        data: {
+          'is_premium': isPremium,
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw response.data['detail'] ?? 'Failed to update premium status';
+      }
+    } catch (e) {
+      print('Error updating premium status: $e');
+      throw 'Failed to update premium status: $e';
+    }
+  }
+
   // Update pro onboarding data
   Future<void> updateProOnboardingData({
     required List<String> interests,

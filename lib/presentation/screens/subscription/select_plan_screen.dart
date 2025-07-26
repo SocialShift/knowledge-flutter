@@ -207,14 +207,21 @@ class _SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully subscribed to ${plan.title} plan!'),
+            content: Text(
+                '🎉 Welcome to Premium! Setting up your personalized experience...'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
           ),
         );
 
-        // Close the screen
-        Navigator.of(context).pop();
+        // Small delay to let the user see the success message
+        await Future.delayed(Duration(milliseconds: 1500));
+
+        // Navigate to pro onboarding
+        if (mounted) {
+          context.go('/pro-onboarding');
+        }
       } else if (mounted) {
         // Show error message
         final subscriptionState = ref.read(subscriptionNotifierProvider);

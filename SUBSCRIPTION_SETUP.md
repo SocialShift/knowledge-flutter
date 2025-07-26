@@ -107,6 +107,14 @@ final isSubscribed = subscriptionState.isSubscribed;
 final currentPlan = subscriptionState.currentPlan;
 ```
 
+### Subscription Flow
+
+1. **User selects a plan** on the SelectPlanScreen
+2. **Purchase is processed** through RevenueCat and Apple App Store
+3. **Profile is updated** with `is_premium: true` via PATCH `/auth/user/me`
+4. **User is redirected** to Pro Onboarding Screen for personalized experience setup
+5. **Subscription status is synced** across the app
+
 ### Error Handling
 The implementation includes comprehensive error handling for:
 - Network errors

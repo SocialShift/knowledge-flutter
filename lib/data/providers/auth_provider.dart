@@ -5,6 +5,7 @@ import 'package:knowledge/data/models/user.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 import 'package:knowledge/core/utils/debug_utils.dart';
+import 'package:knowledge/data/providers/subscription_provider.dart';
 
 part 'auth_provider.g.dart';
 
@@ -45,6 +46,15 @@ class AuthNotifier extends _$AuthNotifier {
       message: 'Welcome back, ${user.email}!',
       hasCompletedProfile: hasCompletedProfile,
     );
+
+    // Set user ID in subscription service and check subscription status
+    try {
+      final subscriptionNotifier =
+          ref.read(subscriptionNotifierProvider.notifier);
+      await subscriptionNotifier.setUserId(user.id);
+    } catch (e) {
+      DebugUtils.debugError('Failed to set subscription user ID: $e');
+    }
 
     DebugUtils.debugLog(
         'Session restored successfully for verified user: ${user.email}');
@@ -90,6 +100,16 @@ class AuthNotifier extends _$AuthNotifier {
         message: 'Welcome back, ${user.email}!',
         hasCompletedProfile: hasProfile,
       );
+
+      // Set user ID in subscription service and check subscription status
+      try {
+        final subscriptionNotifier =
+            ref.read(subscriptionNotifierProvider.notifier);
+        await subscriptionNotifier.setUserId(user.id);
+      } catch (e) {
+        DebugUtils.debugError(
+            'Failed to set subscription user ID during login: $e');
+      }
     } on DioException catch (e) {
       await Future.delayed(const Duration(milliseconds: 500));
       final errorMessage = _handleDioError(e);
@@ -268,6 +288,16 @@ class AuthNotifier extends _$AuthNotifier {
 
       // Call logout API and clear storage
       await ref.read(authRepositoryProvider).logout();
+
+      // Log out from subscription service
+      try {
+        final subscriptionNotifier =
+            ref.read(subscriptionNotifierProvider.notifier);
+        await subscriptionNotifier.logOut();
+      } catch (e) {
+        DebugUtils.debugError(
+            'Failed to log out from subscription service: $e');
+      }
 
       // Immediately set state to unauthenticated to prevent any race conditions
       state = const AuthState.unauthenticated(

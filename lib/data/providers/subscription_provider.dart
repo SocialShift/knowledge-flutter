@@ -2,6 +2,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:knowledge/core/services/subscription_service.dart';
 import 'package:knowledge/core/utils/debug_utils.dart';
+import 'package:knowledge/data/repositories/profile_repository.dart';
+import 'package:knowledge/data/providers/profile_provider.dart'
+    as profile_provider;
 
 part 'subscription_provider.g.dart';
 
@@ -133,6 +136,17 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
         }
       }
 
+      // Sync premium status with profile
+      try {
+        final profileRepository = ProfileRepository();
+        await profileRepository.updatePremiumStatus(hasActiveSubscription);
+        ref.invalidate(profile_provider.userProfileProvider);
+        DebugUtils.debugLog(
+            'Premium status synced with profile: $hasActiveSubscription');
+      } catch (e) {
+        DebugUtils.debugError('Failed to sync premium status: $e');
+      }
+
       state = state.copyWith(
         isSubscribed: hasActiveSubscription,
         currentPlan: currentPlan,
@@ -159,6 +173,21 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
       final result = await _subscriptionService.purchaseProduct(plan.productId);
 
       if (result.success) {
+        // Update premium status in profile API
+        try {
+          final profileRepository = ProfileRepository();
+          await profileRepository.updatePremiumStatus(true);
+
+          // Invalidate profile provider to refresh the profile data
+          ref.invalidate(profile_provider.userProfileProvider);
+
+          DebugUtils.debugLog('Premium status updated in profile');
+        } catch (e) {
+          DebugUtils.debugError(
+              'Failed to update premium status in profile: $e');
+          // Don't fail the entire subscription process if profile update fails
+        }
+
         state = state.copyWith(
           isSubscribed: true,
           currentPlan: plan,
@@ -204,6 +233,30 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
           } else if (activePurchases
               .contains(SubscriptionService.monthlyProductId)) {
             currentPlan = SubscriptionPlan.monthly;
+          }
+
+          // Update premium status in profile if subscription is active
+          try {
+            final profileRepository = ProfileRepository();
+            await profileRepository.updatePremiumStatus(true);
+            ref.invalidate(profile_provider.userProfileProvider);
+            DebugUtils.debugLog(
+                'Premium status updated in profile during restore');
+          } catch (e) {
+            DebugUtils.debugError(
+                'Failed to update premium status during restore: $e');
+          }
+        } else {
+          // Update premium status to false if no active subscription
+          try {
+            final profileRepository = ProfileRepository();
+            await profileRepository.updatePremiumStatus(false);
+            ref.invalidate(profile_provider.userProfileProvider);
+            DebugUtils.debugLog(
+                'Premium status set to false (no active subscription)');
+          } catch (e) {
+            DebugUtils.debugError(
+                'Failed to update premium status to false: $e');
           }
         }
 
@@ -254,4 +307,28 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  /// Get subscription result with navigation info
+  SubscriptionResult getSubscriptionResult() {
+    return SubscriptionResult(
+      isSubscribed: state.isSubscribed,
+      currentPlan: state.currentPlan,
+      shouldNavigateToProOnboarding: state.isSubscribed &&
+          (state.currentPlan == SubscriptionPlan.monthly ||
+              state.currentPlan == SubscriptionPlan.yearly),
+    );
+  }
+}
+
+/// Result class for subscription operations with navigation info
+class SubscriptionResult {
+  final bool isSubscribed;
+  final SubscriptionPlan currentPlan;
+  final bool shouldNavigateToProOnboarding;
+
+  SubscriptionResult({
+    required this.isSubscribed,
+    required this.currentPlan,
+    required this.shouldNavigateToProOnboarding,
+  });
 }
