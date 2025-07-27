@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:knowledge/core/utils/simple_sharing_utils.dart';
 import 'package:knowledge/data/models/badge.dart' as badge_model;
 import 'package:flutter/services.dart';
+import 'package:knowledge/presentation/widgets/pro_badge_widget.dart';
 
 // Create a cached profile provider to prevent unnecessary reloading
 final cachedProfileProvider = Provider<AsyncValue<Profile>>((ref) {
@@ -850,6 +851,16 @@ class ProfileCardWidget extends StatelessWidget {
               ),
             ],
           ),
+
+          // Pro Badge - only show for premium users
+          if (profile.isPremium == true) ...[
+            const SizedBox(height: 8),
+            const ProBadgeWidget(
+              size: 80,
+              showGlow: true,
+            ),
+          ],
+
           const SizedBox(height: 12),
           // Nickname with pronouns
           RichText(

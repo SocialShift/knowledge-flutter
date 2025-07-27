@@ -696,39 +696,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 // Streak display (clickable sliding widget)
                                 const StreakSlidingWidget(),
 
-                                // Lightbulb icon
-                                GestureDetector(
-                                  onTap: () {
-                                    // Show monetization coming soon dialog
-                                    _showMonetizationDialog(context);
-                                  },
-                                  child: Container(
-                                    height: 40,
-                                    width: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDarkMode
-                                          ? Colors.white.withOpacity(0.1)
-                                          : Colors.white.withOpacity(0.2),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
+                                // Lightbulb icon - only show for non-premium users
+                                profileAsync.when(
+                                  data: (profile) {
+                                    // Hide lightbulb for premium users
+                                    if (profile != null &&
+                                        profile is Profile &&
+                                        profile.isPremium == true) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    // Show lightbulb for non-premium users
+                                    return GestureDetector(
+                                      onTap: () {
+                                        // Show monetization coming soon dialog
+                                        _showMonetizationDialog(context);
+                                      },
+                                      child: Container(
+                                        height: 40,
+                                        width: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: isDarkMode
+                                              ? Colors.white.withOpacity(0.1)
+                                              : Colors.white.withOpacity(0.2),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.lightbulb_outline,
-                                      color: AppColors.limeGreen,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ).animate().fadeIn().scale(
-                                      delay: const Duration(milliseconds: 400),
-                                      duration:
-                                          const Duration(milliseconds: 500),
-                                    ),
+                                        child: const Icon(
+                                          Icons.lightbulb_outline,
+                                          color: AppColors.limeGreen,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ).animate().fadeIn().scale(
+                                          delay:
+                                              const Duration(milliseconds: 400),
+                                          duration:
+                                              const Duration(milliseconds: 500),
+                                        );
+                                  },
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, __) => const SizedBox.shrink(),
+                                ),
                               ],
                             ),
                           ),
