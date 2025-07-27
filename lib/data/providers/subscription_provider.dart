@@ -136,15 +136,29 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
         }
       }
 
-      // Sync premium status with profile
-      try {
-        final profileRepository = ProfileRepository();
-        await profileRepository.updatePremiumStatus(hasActiveSubscription);
-        ref.invalidate(profile_provider.userProfileProvider);
+      // Validate entitlements for current user before updating premium status
+      if (hasActiveSubscription) {
+        // Double-check entitlements are valid for current user
+        final isValidEntitlement =
+            await _subscriptionService.validateCurrentUserEntitlements();
+
+        if (isValidEntitlement) {
+          try {
+            final profileRepository = ProfileRepository();
+            await profileRepository.updatePremiumStatus(true);
+            ref.invalidate(profile_provider.userProfileProvider);
+            DebugUtils.debugLog(
+                'Premium status updated to true after entitlement validation');
+          } catch (e) {
+            DebugUtils.debugError('Failed to update premium status: $e');
+          }
+        } else {
+          DebugUtils.debugError(
+              'Active subscription found but entitlement validation failed - not updating premium status');
+        }
+      } else {
         DebugUtils.debugLog(
-            'Premium status synced with profile: $hasActiveSubscription');
-      } catch (e) {
-        DebugUtils.debugError('Failed to sync premium status: $e');
+            'No active subscription found - not updating premium status');
       }
 
       state = state.copyWith(
@@ -173,19 +187,28 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
       final result = await _subscriptionService.purchaseProduct(plan.productId);
 
       if (result.success) {
-        // Update premium status in profile API
-        try {
-          final profileRepository = ProfileRepository();
-          await profileRepository.updatePremiumStatus(true);
+        // Validate that the current user actually has the entitlement
+        final customerInfo = result.customerInfo;
+        if (customerInfo != null &&
+            customerInfo.entitlements.active.isNotEmpty) {
+          // Update premium status in profile API only after validating entitlement
+          try {
+            final profileRepository = ProfileRepository();
+            await profileRepository.updatePremiumStatus(true);
 
-          // Invalidate profile provider to refresh the profile data
-          ref.invalidate(profile_provider.userProfileProvider);
+            // Invalidate profile provider to refresh the profile data
+            ref.invalidate(profile_provider.userProfileProvider);
 
-          DebugUtils.debugLog('Premium status updated in profile');
-        } catch (e) {
+            DebugUtils.debugLog(
+                'Premium status updated in profile after entitlement validation');
+          } catch (e) {
+            DebugUtils.debugError(
+                'Failed to update premium status in profile: $e');
+            // Don't fail the entire subscription process if profile update fails
+          }
+        } else {
           DebugUtils.debugError(
-              'Failed to update premium status in profile: $e');
-          // Don't fail the entire subscription process if profile update fails
+              'Purchase succeeded but no active entitlements found - not updating premium status');
         }
 
         state = state.copyWith(
@@ -235,29 +258,29 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
             currentPlan = SubscriptionPlan.monthly;
           }
 
-          // Update premium status in profile if subscription is active
-          try {
-            final profileRepository = ProfileRepository();
-            await profileRepository.updatePremiumStatus(true);
-            ref.invalidate(profile_provider.userProfileProvider);
-            DebugUtils.debugLog(
-                'Premium status updated in profile during restore');
-          } catch (e) {
+          // Validate entitlements before updating premium status during restore
+          final isValidEntitlement =
+              await _subscriptionService.validateCurrentUserEntitlements();
+
+          if (isValidEntitlement) {
+            try {
+              final profileRepository = ProfileRepository();
+              await profileRepository.updatePremiumStatus(true);
+              ref.invalidate(profile_provider.userProfileProvider);
+              DebugUtils.debugLog(
+                  'Premium status updated in profile during restore after validation');
+            } catch (e) {
+              DebugUtils.debugError(
+                  'Failed to update premium status during restore: $e');
+            }
+          } else {
             DebugUtils.debugError(
-                'Failed to update premium status during restore: $e');
+                'Restore found subscription but entitlement validation failed - not updating premium status');
           }
         } else {
-          // Update premium status to false if no active subscription
-          try {
-            final profileRepository = ProfileRepository();
-            await profileRepository.updatePremiumStatus(false);
-            ref.invalidate(profile_provider.userProfileProvider);
-            DebugUtils.debugLog(
-                'Premium status set to false (no active subscription)');
-          } catch (e) {
-            DebugUtils.debugError(
-                'Failed to update premium status to false: $e');
-          }
+          // Don't set premium to false - let backend manage this
+          DebugUtils.debugLog(
+              'No active subscription found during restore - not updating premium status');
         }
 
         state = state.copyWith(
@@ -284,23 +307,47 @@ class SubscriptionNotifier extends _$SubscriptionNotifier {
 
   Future<void> setUserId(String userId) async {
     try {
+      DebugUtils.debugLog('Setting subscription user ID: $userId');
+
+      // Set user ID with proper isolation
       await _subscriptionService.setUserId(userId);
+
+      // Check subscription status for this specific user
       await checkSubscriptionStatus();
+
+      DebugUtils.debugLog(
+          'Subscription user ID set and status checked for: $userId');
     } catch (e) {
       DebugUtils.debugError('Failed to set user ID: $e');
+      // Reset to free state if user switching fails
+      state = const SubscriptionState(
+        isSubscribed: false,
+        currentPlan: SubscriptionPlan.free,
+      );
     }
   }
 
   Future<void> logOut() async {
     try {
+      DebugUtils.debugLog('Logging out from subscription service');
+
+      // Log out from RevenueCat to clear user-specific entitlements
       await _subscriptionService.logOut();
 
+      // Reset to free state immediately
       state = const SubscriptionState(
         isSubscribed: false,
         currentPlan: SubscriptionPlan.free,
       );
+
+      DebugUtils.debugLog('Subscription service logout completed');
     } catch (e) {
       DebugUtils.debugError('Failed to log out from subscription service: $e');
+      // Still reset state even if logout fails
+      state = const SubscriptionState(
+        isSubscribed: false,
+        currentPlan: SubscriptionPlan.free,
+      );
     }
   }
 

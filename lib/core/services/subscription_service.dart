@@ -40,14 +40,27 @@ class SubscriptionService {
     }
   }
 
-  /// Set user ID for RevenueCat
+  /// Set user ID for RevenueCat with proper user isolation
   Future<void> setUserId(String userId) async {
     try {
       await _ensureInitialized();
-      await Purchases.logIn(userId);
-      DebugUtils.debugLog('RevenueCat user ID set: $userId');
+
+      // Always log out first to ensure clean slate for new user
+      try {
+        await Purchases.logOut();
+        DebugUtils.debugLog('Logged out previous RevenueCat user');
+      } catch (e) {
+        DebugUtils.debugLog('No previous user to log out: $e');
+      }
+
+      // Log in the new user with unique identifier
+      final loginResult = await Purchases.logIn(userId);
+      DebugUtils.debugLog('RevenueCat user logged in: $userId');
+      DebugUtils.debugLog(
+          'Customer entitlements: ${loginResult.customerInfo.entitlements.active.keys}');
     } catch (e) {
       DebugUtils.debugError('Failed to set user ID: $e');
+      rethrow;
     }
   }
 
@@ -204,14 +217,42 @@ class SubscriptionService {
     }
   }
 
-  /// Log out user
+  /// Validate current user's entitlements (ensures user-specific validation)
+  Future<bool> validateCurrentUserEntitlements() async {
+    try {
+      final customerInfo = await getCustomerInfo();
+      if (customerInfo == null) {
+        DebugUtils.debugLog(
+            'No customer info available for entitlement validation');
+        return false;
+      }
+
+      final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
+      final userId = customerInfo.originalAppUserId;
+
+      DebugUtils.debugLog('Entitlement validation for user: $userId');
+      DebugUtils.debugLog(
+          'Active entitlements: ${customerInfo.entitlements.active.keys}');
+      DebugUtils.debugLog('Has active entitlements: $hasActiveEntitlements');
+
+      return hasActiveEntitlements;
+    } catch (e) {
+      DebugUtils.debugError('Failed to validate user entitlements: $e');
+      return false;
+    }
+  }
+
+  /// Log out user and clear all entitlements
   Future<void> logOut() async {
     try {
       await _ensureInitialized();
-      await Purchases.logOut();
-      DebugUtils.debugLog('RevenueCat user logged out');
+      final customerInfo = await Purchases.logOut();
+      DebugUtils.debugLog('RevenueCat user logged out successfully');
+      DebugUtils.debugLog(
+          'Anonymous customer entitlements: ${customerInfo.entitlements.active.keys}');
     } catch (e) {
       DebugUtils.debugError('Failed to log out user: $e');
+      // Don't rethrow to avoid blocking app logout
     }
   }
 

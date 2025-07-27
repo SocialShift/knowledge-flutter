@@ -111,9 +111,20 @@ final currentPlan = subscriptionState.currentPlan;
 
 1. **User selects a plan** on the SelectPlanScreen
 2. **Purchase is processed** through RevenueCat and Apple App Store
-3. **Profile is updated** with `is_premium: true` via PATCH `/auth/user/me`
-4. **User is redirected** to Pro Onboarding Screen for personalized experience setup
-5. **Subscription status is synced** across the app
+3. **Entitlement is validated** for the current logged-in user
+4. **Profile is updated** with `is_premium: true` via PATCH `/auth/profile/update` (only if entitlement is valid)
+5. **User is redirected** to Pro Onboarding Screen for personalized experience setup
+6. **Subscription status is synced** across the app
+
+### User Isolation
+
+The app ensures proper user isolation for subscriptions:
+
+- **Login**: `Purchases.logIn(userId)` is called with unique user ID
+- **Logout**: `Purchases.logOut()` clears user-specific entitlements
+- **User Switching**: Previous user is logged out before new user login
+- **Entitlement Validation**: Premium status only set if current user has active entitlement
+- **Backend Sync**: Only sets `is_premium: true`, never sets to `false` (backend manages this)
 
 ### Error Handling
 The implementation includes comprehensive error handling for:

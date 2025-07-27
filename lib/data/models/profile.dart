@@ -67,7 +67,7 @@ class Profile with _$Profile {
 
     return Profile(
       email: user['email'] ?? '',
-      isPremium: profile['is_premium'] ?? false,
+      isPremium: profile['is_premium'],
       joinedDate: user['joined_at'],
       nickname: profile['nickname'],
       avatarUrl: profile['avatar_url'],
