@@ -163,13 +163,36 @@ class ProfileRepository {
   }
 
   // Update premium status
+  // Future<void> updatePremiumStatus(bool isPremium) async {
+  //   try {
+  //     final response = await _apiService.patch(
+  //       '/auth/profile/update',
+  //       data: {
+  //         'is_premium': isPremium,
+  //       },
+  //     );
+
+  //     if (response.statusCode != 200) {
+  //       throw response.data['detail'] ?? 'Failed to update premium status';
+  //     }
+  //   } catch (e) {
+  //     print('Error updating premium status: $e');
+  //     throw 'Failed to update premium status: $e';
+  //   }
+  // }
+
   Future<void> updatePremiumStatus(bool isPremium) async {
     try {
+      final formData = FormData.fromMap({
+        'is_premium': isPremium.toString(), // FormData requires string values
+      });
+
       final response = await _apiService.patch(
-        '/auth/user/me',
-        data: {
-          'is_premium': isPremium,
-        },
+        '/auth/profile/update',
+        data: formData,
+        // options: Options(
+        //   contentType: Headers.formUrlEncodedContentType, // Important!
+        // ),
       );
 
       if (response.statusCode != 200) {
